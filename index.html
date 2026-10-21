@@ -272,7 +272,7 @@ $("themeBtn").onclick=()=>{const t=document.documentElement.getAttribute("data-t
 $("langBtn").onclick=()=>{lang=lang==="en"?"hi":"en";store.set("sl_lang",lang);$("langBtn").textContent=lang==="en"?"EN":"हिं";$("subText").textContent=lang==="en"?"Press HELP → laptop sounds alarm so someone can help.":"HELP दबाएँ → लैपटॉप पर अलार्म बजेगा।"};
 
 /* PIN */
-function getPin(){return store.get("sl_pin")||"1234"}
+function getPin(){return store.get("sl_pin")||"956597"}
 function showPin(){$("pinLock").hidden=false;$("pinIn").value="";setTimeout(()=>$("pinIn").focus(),100)}
 $("pinGo").onclick=()=>{if($("pinIn").value===getPin()){$("pinLock").hidden=true;startLaptop(true)}else{$("pinMsg").textContent="Wrong PIN";$("pinMsg").className="msg bad"}};
 $("pinIn").onkeydown=e=>{if(e.key==="Enter")$("pinGo").click()};
