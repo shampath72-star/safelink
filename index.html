@@ -2,213 +2,603 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#7c3aed">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>SafeLink</title>
+<link rel="manifest" href="data:application/manifest+json,{&quot;name&quot;:&quot;SafeLink&quot;,&quot;short_name&quot;:&quot;SafeLink&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#0c0814&quot;,&quot;theme_color&quot;:&quot;#7c3aed&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='42' fill='%237c3aed'/%3E%3Ctext x='96' y='120' font-size='88' text-anchor='middle' fill='white'%3E🆘%3C/text%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;192x192&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}">
 <style>
-:root{--bg:#f6f2fb;--surface:#fff;--ink:#241a35;--muted:#665a78;--line:#ddd3ea;--accent:#6a2fb8;--accent-ink:#fff;--sos:#d4113f;--ok:#14803c;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#150f20;--surface:#211832;--ink:#f1eaf9;--muted:#b3a6c6;--line:#3a2d52;--accent:#b690ff;--accent-ink:#1b0f2e;--sos:#ff4d6d;--ok:#4ade80}}
-:root[data-theme="dark"]{--bg:#150f20;--surface:#211832;--ink:#f1eaf9;--muted:#b3a6c6;--line:#3a2d52;--accent:#b690ff;--accent-ink:#1b0f2e;--sos:#ff4d6d;--ok:#4ade80}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Segoe UI",system-ui,sans-serif}
-main{max-width:520px;margin:0 auto;padding:20px 16px 40px}
-h1{font:700 30px/1.1 Georgia,serif;margin:6px 0 4px}
-.sub{color:var(--muted);margin:0 0 18px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
+:root {
+  --bg:#0c0814;--card:#161022;--card2:#1e1730;--ink:#f4f0ff;--muted:#9b8fb8;
+  --line:#2e2545;--purple:#8b5cf6;--purple2:#7c3aed;--pink:#f43f5e;--green:#10b981;
+  --radius:18px;--safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
+}
+[data-theme="light"] {
+  --bg:#f8f5ff;--card:#fff;--card2:#f3effc;--ink:#1a1225;--muted:#6b5f80;
+  --line:#e4dcf5;--purple:#7c3aed;--purple2:#6d28d9;--pink:#e11d48;--green:#059669;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg);color:var(--ink);
+  font:15px/1.5 system-ui,-apple-system,sans-serif;min-height:100dvh;
+  padding-top:var(--safe-top);padding-bottom:var(--safe-bot);
+  background-image:radial-gradient(ellipse 100% 60% at 50% -30%,#5b21b680,transparent 70%);
+}
+[data-theme="light"] body{background-image:radial-gradient(ellipse 100% 60% at 50% -30%,#c4b5fd55,transparent 70%)}
+main{max-width:440px;margin:0 auto;padding:16px 16px 48px}
+.topbar{display:flex;justify-content:flex-end;gap:6px;margin-bottom:4px}
+.icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:15px;cursor:pointer;display:grid;place-items:center}
+h1{font:800 30px/1.15 system-ui;letter-spacing:-.03em;background:linear-gradient(120deg,#e9d5ff,#a78bfa 40%,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}
+.sub{color:var(--muted);font-size:13.5px;margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:12px;box-shadow:0 4px 24px #00000030}
 .card[hidden],[hidden]{display:none!important}
-.btn{border:0;border-radius:12px;padding:13px 18px;font:inherit;font-weight:700;cursor:pointer;background:var(--accent);color:var(--accent-ink);width:100%;margin-top:10px}
-.btn.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
-a.btn{display:block;text-align:center;text-decoration:none}
-button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-input{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:700 24px/1 ui-monospace,Consolas,monospace;letter-spacing:.3em;text-align:center}
-.code{font:700 44px/1 ui-monospace,Consolas,monospace;letter-spacing:.2em;text-align:center;margin:10px 0}
-.status{display:flex;align-items:center;gap:8px;color:var(--muted);margin:8px 0}
-.dot{width:12px;height:12px;border-radius:50%;background:var(--line)}
-.dot.on{background:var(--ok)}
-.help{display:block;margin:18px auto;width:min(72vw,260px);height:min(72vw,260px);border-radius:50%;border:0;background:var(--sos);color:#fff;font:800 40px/1 "Segoe UI",sans-serif;cursor:pointer;box-shadow:0 0 0 10px color-mix(in srgb,var(--sos) 22%,transparent)}
-.help:active{transform:scale(.97)}
-.msg{color:var(--muted);margin:8px 0 0}.msg.bad{color:var(--sos)}.msg.good{color:var(--ok)}
-ol{padding-left:20px;margin:8px 0 0}li{margin-bottom:6px}
-.alarm{animation:flash .6s steps(1) infinite}
-@keyframes flash{50%{background:#d4113f}}
-@media (prefers-reduced-motion:reduce){.alarm{animation:none;background:#d4113f}}
-#alarmbox{background:#fff;color:#14000a;border:4px solid #14000a;text-align:center}
-#alarmbox h2{font:800 34px/1.1 Georgia,serif;margin:0 0 8px}
-.small{font-size:14px;color:var(--muted)}
+.card-title{font-weight:700;font-size:15px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.btn{display:block;width:100%;border:0;border-radius:14px;padding:14px 16px;font:700 15px/1 system-ui;cursor:pointer;background:linear-gradient(135deg,var(--purple2),#9333ea);color:#fff;margin-top:10px;box-shadow:0 4px 16px #7c3aed40;transition:transform .1s}
+.btn:active{transform:scale(.975)}
+.btn.alt{background:transparent;color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.btn.pink{background:linear-gradient(135deg,#e11d48,#f43f5e);box-shadow:0 4px 16px #f43f5e40}
+.btn.sm{display:inline-block;width:auto;padding:8px 14px;font-size:13px;margin:4px 4px 0 0}
+a.btn{text-align:center;text-decoration:none}
+input,select{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card2);color:var(--ink);font:inherit;outline:none}
+input:focus{border-color:var(--purple)}
+input.code-in{font:700 26px/1 ui-monospace,monospace;letter-spacing:.28em;text-align:center}
+input::placeholder{color:var(--muted)}
+.code-big{font:800 46px/1 ui-monospace,monospace;letter-spacing:.16em;text-align:center;margin:12px 0;color:var(--purple);text-shadow:0 0 28px #8b5cf655}
+.status{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;margin:10px 0}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--line);flex-shrink:0}
+.dot.on{background:var(--green);box-shadow:0 0 0 3px #10b98133,0 0 8px #10b98166}
+.help{display:block;margin:22px auto;width:min(64vw,220px);height:min(64vw,220px);border-radius:50%;border:0;background:var(--pink);color:#fff;font:800 38px/1 system-ui;cursor:pointer;box-shadow:0 0 0 12px #f43f5e33,0 0 48px #f43f5e44,0 10px 32px #0006;position:relative;-webkit-user-select:none;user-select:none;transition:transform .1s}
+.help::after{content:"";position:absolute;inset:-14px;border-radius:50%;border:2px solid var(--pink);opacity:.3;animation:ring 2s ease-out infinite}
+@keyframes ring{0%{transform:scale(.92);opacity:.4}100%{transform:scale(1.18);opacity:0}}
+.help:active{transform:scale(.94)}
+.help.busy{animation:pulse 1s ease-in-out infinite;pointer-events:none}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 12px #f43f5e33,0 0 48px #f43f5e44}50%{box-shadow:0 0 0 22px #f43f5e22,0 0 64px #f43f5e55}}
+.list{list-style:none;margin:8px 0 0}
+.list li{display:flex;align-items:center;gap:8px;padding:10px 12px;margin-bottom:5px;background:var(--card2);border-radius:12px;font-size:13.5px;font-weight:600;flex-wrap:wrap}
+.list .dot{width:7px;height:7px}
+#alarmbox{background:linear-gradient(165deg,#2a0a14,#14050c);border:1.5px solid var(--pink);border-radius:var(--radius);text-align:center;box-shadow:0 0 40px #f43f5e30;animation:glow 1.4s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 24px #f43f5e30}50%{box-shadow:0 0 48px #f43f5e50}}
+#alarmbox h2{font:800 22px/1.2 system-ui;color:#fff;margin-bottom:4px;text-shadow:0 0 14px #f43f5e}
+.badge{display:inline-block;background:var(--pink);color:#fff;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;margin-bottom:12px}
+.em-list{list-style:none;text-align:left;margin:0 0 12px}
+.em-item{background:#1a0a10;border:1px solid #f43f5e40;border-radius:12px;padding:12px 14px;margin-bottom:8px}
+.em-item .name{font:800 15px/1.2 system-ui;color:#fff}
+.em-item .meta{font-size:11px;color:#fb7185;margin-top:2px}
+.em-item a{color:#a78bfa;font-weight:700;font-size:12.5px;text-decoration:none}
+.em-item img,.em-item audio{max-width:100%;border-radius:8px;margin-top:6px;display:block}
+.msg{color:var(--muted);font-size:12.5px;margin-top:8px}
+.msg.bad{color:var(--pink);font-weight:600}
+.msg.good{color:var(--green);font-weight:600}
+.small{font-size:12.5px;color:var(--muted)}
+ol.steps{padding-left:18px;color:var(--muted);font-size:13px;margin-top:10px}
+ol.steps li{margin-bottom:5px}
+.switch{display:flex;align-items:center;gap:8px;font-size:13.5px;margin:8px 0}
+.switch input{width:auto;accent-color:var(--purple)}
+.section{font-weight:700;font-size:13px;margin:14px 0 6px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.warn{background:#7c3aed18;border:1px solid #8b5cf640;border-radius:10px;padding:8px 10px;margin:6px 0;font-size:12.5px;color:var(--purple)}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+#pinLock{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background-image:radial-gradient(ellipse 80% 50% at 50% 0%,#5b21b650,transparent)}
+#pinLock input{max-width:200px;text-align:center;font-size:26px;letter-spacing:.35em}
+#fake{position:fixed;inset:0;z-index:200;background:#0d0d0d;color:#eee;display:none;flex-direction:column;align-items:center;justify-content:center;font-family:ui-monospace,monospace}
+#fake .disp{font-size:42px;margin:16px 0;min-height:50px}
+#fake .pad{display:grid;grid-template-columns:repeat(4,58px);gap:7px}
+#fake .pad button{height:48px;border:0;border-radius:10px;background:#222;color:#eee;font-size:18px;cursor:pointer}
+body.alarm{animation:flash .55s steps(1) infinite}
+@keyframes flash{50%{background:#1a050c}}
+@media(prefers-reduced-motion:reduce){body.alarm,.help.busy,.help::after,#alarmbox{animation:none}}
+.rec-btn{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 14px;color:var(--ink);font-weight:600;cursor:pointer;font-size:13px}
+.rec-btn.rec{border-color:var(--pink);color:var(--pink);animation:pulse 1s infinite}
 </style>
 </head>
 <body>
+
+<div id="pinLock" hidden>
+  <div style="font-size:32px;margin-bottom:8px">🔐</div>
+  <h2 style="font-size:20px;margin-bottom:4px">Admin PIN</h2>
+  <p class="small" style="margin-bottom:16px;text-align:center">Enter PIN to open laptop station</p>
+  <input id="pinIn" type="password" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off">
+  <button class="btn" id="pinGo" style="max-width:200px;margin-top:12px">Unlock</button>
+  <p class="msg" id="pinMsg"></p>
+  <p class="small" style="margin-top:20px;text-align:center;opacity:.7">Default PIN: <b>1234</b></p>
+</div>
+
+<div id="fake">
+  <div style="font-size:13px;opacity:.5;margin-bottom:4px">Calculator</div>
+  <div class="disp" id="fakeDisp">0</div>
+  <div class="pad" id="fakePad"></div>
+  <p class="small" style="margin-top:20px;opacity:.35">Triple-tap anywhere to exit</p>
+</div>
+
 <main>
-<h1>SafeLink</h1>
-<p class="sub">Press help on your phone. Your laptop sounds a loud alarm.</p>
+  <div class="topbar">
+    <button class="icon-btn" id="themeBtn" title="Theme">🌓</button>
+    <button class="icon-btn" id="langBtn" title="Language">EN</button>
+  </div>
+  <h1>SafeLink</h1>
+  <p class="sub" id="subText">Press HELP → laptop sounds alarm so someone can help.</p>
 
-<section class="card" id="pick">
-<b>Which device is this?</b>
-<button class="btn" id="pickLaptop">This is my laptop (alarm)</button>
-<button class="btn alt" id="pickPhone">This is my phone (help button)</button>
-<ol class="small">
-<li>Open this page on your laptop and choose “laptop”. It shows a QR code.</li>
-<li>Scan the QR code with your phone’s camera and open the link. Your phone links by itself.</li>
-<li>On the laptop press “Arm alarm” and keep that tab open.</li>
-</ol>
-<p class="small">Both devices must be signed in to Claude. This is a backup, not a replacement for emergency services. In India call 112 (emergency) or 1091 (women helpline).</p>
-</section>
+  <section class="card" id="pick">
+    <div class="card-title">Which device is this?</div>
+    <button class="btn" id="pickLaptop">Laptop — alarm station</button>
+    <button class="btn alt" id="pickPhone">Phone — HELP button</button>
+    <ol class="steps">
+      <li>Open on <b>laptop</b> → unlock with PIN → QR appears</li>
+      <li>Scan QR on phone → enter your <b>name</b></li>
+      <li>Many phones can link to one laptop</li>
+      <li>Arm alarm on laptop, keep tab open</li>
+      <li>Press red <b>HELP</b> when you need help</li>
+    </ol>
+    <p class="small" style="margin-top:12px"><b>Backup only.</b> Call 112 or 1091 first if in danger.</p>
+  </section>
 
-<section class="card" id="laptop" hidden>
-<b>Laptop: alarm station</b>
-<p class="small" style="margin:10px 0 0">Scan this with your phone’s camera:</p>
-<div id="qr" style="display:flex;justify-content:center;background:#fff;padding:14px;border-radius:12px;margin:10px 0"></div>
-<p class="small" style="margin:0">Or type this code on your phone:</p>
-<div class="code" id="lcode">------</div>
-<div class="status"><span class="dot" id="ldot"></span><span id="lstat">Waiting for your phone…</span></div>
-<button class="btn" id="arm">Arm alarm</button>
-<button class="btn alt" id="test">Test alarm (3 seconds)</button>
-<p class="msg" id="lmsg">Press “Arm alarm” once so the browser allows sound. Keep this tab open.</p>
-</section>
+  <section class="card" id="laptop" hidden>
+    <div class="card-title">💻 Laptop · Alarm station</div>
+    <p class="small">Scan with any phone camera:</p>
+    <div id="qr" style="display:flex;justify-content:center;background:#fff;padding:14px;border-radius:14px;margin:10px 0"></div>
+    <p class="small" style="text-align:center">Or type this code:</p>
+    <div class="code-big" id="lcode">------</div>
+    <div class="status"><span class="dot" id="ldot"></span><span id="lstat">Connecting…</span></div>
+    <p class="small" id="phoneCount"></p>
+    <ul class="list" id="phoneList"></ul>
+    <div class="section">Incoming voice notes</div>
+    <ul class="list" id="voiceList"><li class="small">No voice notes yet</li></ul>
+    <div class="section">Settings</div>
+    <div class="switch"><input type="checkbox" id="silentMode"><label for="silentMode">Silent mode (visual only)</label></div>
+    <div class="row">
+      <button class="btn sm alt" id="btnHistory">History</button>
+      <button class="btn sm alt" id="btnPin">Change PIN</button>
+    </div>
+    <div id="historyBox" hidden><ul class="list" id="historyList"></ul></div>
+    <div id="pinBox" hidden>
+      <input id="newPin" type="password" inputmode="numeric" maxlength="6" placeholder="New 4–6 digit PIN" style="margin-top:8px">
+      <button class="btn sm" id="savePin">Save PIN</button>
+    </div>
+    <button class="btn" id="arm">Arm alarm</button>
+    <button class="btn alt" id="test">Test (3 sec)</button>
+    <p class="msg" id="lmsg">Press Arm so browser allows sound. Keep tab open.</p>
+    </section>
 
-<section class="card" id="alarmbox" hidden>
-<h2>HELP ALERT FROM PHONE</h2>
-<p id="ainfo">Someone needs help.</p>
-<button class="btn" id="stopAlarm" style="background:#14000a;color:#fff">Stop alarm</button>
-</section>
+  <section class="card" id="alarmbox" hidden>
+    <h2>🆘 EMERGENCY</h2>
+    <div class="badge" id="alarmCount">1 person needs help</div>
+    <ul class="em-list" id="emList"></ul>
+    <button class="btn pink" id="stopAll">Stop all alarms</button>
+  </section>
 
-<section class="card" id="phone" hidden>
-<b>Phone: help button</b>
-<div id="enter">
-<p class="small">Type the 6-digit code shown on your laptop.</p>
-<input id="pcode" inputmode="numeric" maxlength="6" autocomplete="off" aria-label="6-digit code">
-<button class="btn" id="link">Link to laptop</button>
-</div>
-<div id="ready" hidden>
-<div class="status"><span class="dot" id="pdot"></span><span id="pstat">Looking for your laptop…</span></div>
-<button class="help" id="help">HELP</button>
-<p class="msg" id="pmsg">Press HELP to start the alarm on your laptop.</p>
-<button class="btn alt" id="safe" hidden>I’m safe, stop the alarm</button>
-<a class="btn" href="tel:112" target="_top" style="background:var(--sos);color:#fff">Call 112</a>
-<a class="btn alt" href="tel:1091" target="_top">Call women helpline 1091</a>
-<button class="btn alt" id="unlink">Use a different code</button>
-</div>
-</section>
+  <section class="card" id="phone" hidden>
+    <div class="card-title">📱 Phone · HELP button</div>
+
+    <div id="stepCode">
+      <p class="small">Enter the 6-digit code from the laptop:</p>
+      <input id="pcode" class="code-in" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="off">
+      <button class="btn" id="btnCode">Next</button>
+    </div>
+
+    <div id="stepName" hidden>
+      <p class="small">Your name <b>(required)</b> — shown on laptop when you need help:</p>
+      <input id="pname" maxlength="24" placeholder="Your full name" autocomplete="name">
+      <button class="btn" id="btnName">Continue</button>
+    </div>
+
+    <div id="stepReady" hidden>
+      <div class="status"><span class="dot" id="pdot"></span><span id="pstat">Connecting…</span></div>
+      <p class="small" id="nameLabel"></p>
+      <div id="warnBox"></div>
+
+      <button class="help" id="helpBtn">HELP</button>
+      <p class="msg" id="pmsg">Press HELP to alert the laptop.</p>
+      <button class="btn alt" id="safeBtn" hidden>I'm safe — stop my alarm</button>
+
+      <!-- Voice note — release = auto-send to laptop -->
+      <div class="section">Voice note</div>
+      <p class="small" style="margin-bottom:6px">Hold → speak → release. Sends to laptop instantly so they can hear you.</p>
+      <div class="row">
+        <button class="rec-btn" id="recBtn">🎙 Hold to record</button>
+        <span class="small" id="recStatus"></span>
+      </div>
+      <audio id="voicePreview" controls style="display:none;width:100%;margin-top:6px"></audio>
+      <button class="btn sm alt" id="clearVoice" style="display:none;margin-top:4px">Clear voice note</button>
+
+      <!-- Quick SMS / text (sent with HELP) -->
+      <div class="section">Quick message / SMS</div>
+      <p class="small" style="margin-bottom:6px">Type a short message. Sent to laptop when you press HELP (no recording needed).</p>
+      <textarea id="smsText" maxlength="280" placeholder="e.g. I'm near the gate, send help…" rows="2" style="width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card2);color:var(--ink);font:inherit;resize:vertical;outline:none"></textarea>
+
+      <div class="section">Emergency contacts</div>
+      <ul class="list" id="contactList"></ul>
+      <div class="row">
+        <input id="cName" placeholder="Name" style="flex:1">
+        <input id="cPhone" placeholder="Phone" inputmode="tel" style="flex:1">
+      </div>
+      <button class="btn sm alt" id="addContact">Add contact</button>
+
+      <div class="section">Options</div>
+      <div class="switch"><input type="checkbox" id="shakeOn"><label for="shakeOn">Shake phone to trigger HELP</label></div>
+      <div class="switch"><input type="checkbox" id="photoOn"><label for="photoOn">Attach photo when sending HELP</label></div>
+      <p class="small" style="margin-top:4px">📍 Live location + message + voice are sent the moment you press HELP.</p>
+
+      <button class="btn sm alt" id="hideBtn" style="margin-top:10px">Hide app (fake calculator)</button>
+
+      <a class="btn pink" href="tel:112" style="margin-top:14px">Call 112</a>
+      <a class="btn alt" href="tel:1091">Call 1091</a>
+    </div>
+  </section>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script>
-const $=id=>document.getElementById(id);
-const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
-let room=null,role=null,code=null,paired=false;
+const $ = id => document.getElementById(id);
+const store = {
+  get(k){try{return localStorage.getItem(k)}catch(e){return null}},
+  set(k,v){try{localStorage.setItem(k,v)}catch(e){}},
+  del(k){try{localStorage.removeItem(k)}catch(e){}},
+  json(k,d){try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}},
+  setJson(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+};
 
+let client=null,role=null,code=null,myName="",myId=null;
+let phones={},emergencies={},history=[],voiceNotes=[];
+let sosActive=false,acked=false,sendT=null,locT=null,tries=0,pos=null;
+let ctx=null,osc=null,sirenT=null,titleT=null,sirenOn=false;
+let lang="en", batteryLevel=1, voiceBlob=null, voiceUrl=null;
+let mediaRec=null, recChunks=[];
+
+/* Theme & lang */
+$("themeBtn").onclick=()=>{const t=document.documentElement.getAttribute("data-theme")==="light"?"":"light";document.documentElement.setAttribute("data-theme",t);store.set("sl_theme",t)};
+$("langBtn").onclick=()=>{lang=lang==="en"?"hi":"en";store.set("sl_lang",lang);$("langBtn").textContent=lang==="en"?"EN":"हिं";$("subText").textContent=lang==="en"?"Press HELP → laptop sounds alarm so someone can help.":"HELP दबाएँ → लैपटॉप पर अलार्म बजेगा।"};
+
+/* PIN */
+function getPin(){return store.get("sl_pin")||"1234"}
+function showPin(){$("pinLock").hidden=false;$("pinIn").value="";setTimeout(()=>$("pinIn").focus(),100)}
+$("pinGo").onclick=()=>{if($("pinIn").value===getPin()){$("pinLock").hidden=true;startLaptop(true)}else{$("pinMsg").textContent="Wrong PIN";$("pinMsg").className="msg bad"}};
+$("pinIn").onkeydown=e=>{if(e.key==="Enter")$("pinGo").click()};
+
+/* Helpers */
 function show(id){["pick","laptop","phone"].forEach(x=>$(x).hidden=x!==id)}
-function dots(on){["ldot","pdot"].forEach(d=>$(d).classList.toggle("on",on));
- $("lstat").textContent=on?"Phone linked":"Waiting for your phone…";
- $("pstat").textContent=on?"Laptop linked":"Looking for your laptop…"}
+function setStatus(t,on){if(role==="laptop"){$("lstat").textContent=t;$("ldot").classList.toggle("on",!!on)}else{$("pstat").textContent=t;$("pdot").classList.toggle("on",!!on)}}
+function note(t,bad){const el=role==="laptop"?$("lmsg"):$("pmsg");el.textContent=t;el.className="msg"+(bad?" bad":bad===false?" good":"")}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function ago(ts){const s=Math.floor((Date.now()-ts)/1000);if(s<5)return"just now";if(s<60)return s+"s ago";return Math.floor(s/60)+"m ago"}
 
-async function connect(){
- try{
-  const api=window.claude&&await claude.use("room");
-  if(!api){note("Live link isn’t available. Open this page while signed in to Claude.",true);return}
-  room=await api.join("safelink-"+code);
-  room.presence({role});
-  room.onPeers(()=>{
-   paired=room.peers().some(p=>!p.sameTab&&p.presence&&p.presence.role&&p.presence.role!==role);
-   dots(paired);
+function updatePhones(){
+  const now=Date.now();
+  Object.keys(phones).forEach(id=>{if(now-phones[id].last>15000)delete phones[id]});
+  const list=Object.values(phones);
+  $("phoneCount").textContent=list.length?list.length+" phone"+(list.length>1?"s":"")+" linked":"No phones linked yet";
+  $("phoneList").innerHTML=list.map(p=>`<li><span class="dot on"></span>${esc(p.name||"Unknown")}</li>`).join("");
+  setStatus(list.length?"Ready":"Waiting for phones…",!!list.length);
+}
+
+function renderEmergencies(){
+  const list=Object.values(emergencies).sort((a,b)=>b.ts-a.ts);
+  if(!list.length){$("alarmbox").hidden=true;stopSiren();return}
+  $("alarmbox").hidden=false;
+  $("alarmCount").textContent=list.length===1?"1 person needs help":list.length+" people need help";
+  $("emList").innerHTML=list.map(e=>{
+    let loc="",photo="",voice="",msg="";
+    if(e.msg) msg=`<div style="margin-top:6px;padding:8px 10px;background:#2a0a14;border-radius:8px;font-size:13.5px;color:#fff">${esc(e.msg)}</div>`;
+    if(typeof e.lat==="number"&&typeof e.lng==="number")
+      loc=`<div style="margin-top:4px"><a href="https://www.google.com/maps?q=${e.lat.toFixed(5)},${e.lng.toFixed(5)}" target="_blank" rel="noopener">📍 Live location (open map)</a></div>`;
+    if(e.photo) photo=`<div style="margin-top:6px"><div class="meta">Photo</div><img src="${e.photo}" alt="Emergency photo"></div>`;
+    if(e.voice) voice=`<div style="margin-top:6px"><div class="meta">Voice note — tap play ▶</div><audio controls preload="auto" src="${e.voice}" style="width:100%;margin-top:4px"></audio></div>`;
+    return `<li class="em-item"><div class="name">${esc(e.name||"Someone")} is in emergency</div><div class="meta">${ago(e.ts)}</div>${msg}${loc}${photo}${voice}</li>`;
+  }).join("");
+  if(!$("silentMode").checked) startSiren(); else document.body.classList.add("alarm");
+}
+function renderVoiceNotes(){
+  const el=$("voiceList");
+  if(!el) return;
+  if(!voiceNotes.length){el.innerHTML='<li class="small">No voice notes yet</li>';return}
+  el.innerHTML=voiceNotes.slice(0,12).map(v=>`
+    <li style="flex-direction:column;align-items:stretch">
+      <div style="display:flex;justify-content:space-between;gap:8px;width:100%">
+        <strong>${esc(v.name||"Someone")}</strong>
+        <span class="small">${ago(v.ts)}</span>
+      </div>
+      <audio controls preload="auto" src="${v.voice}" style="width:100%;margin-top:6px"></audio>
+    </li>`).join("");
+}
+
+/* MQTT */
+function topic(b){return"safelink/"+code+"/"+b}
+function connect(){
+  return new Promise(resolve=>{
+    try{
+      myId="sl_"+role+"_"+Math.random().toString(16).slice(2,9);
+      client=mqtt.connect("wss://broker.hivemq.com:8884/mqtt",{clientId:myId,clean:true,reconnectPeriod:3000,connectTimeout:8000});
+      client.on("connect",()=>{
+        if(role==="laptop"){client.subscribe(topic("sos"));client.subscribe(topic("cancel"));client.subscribe(topic("phone"));client.subscribe(topic("voice"));setStatus("Waiting for phones…",false)}
+        else{client.subscribe(topic("ack"));client.subscribe(topic("stop"));client.subscribe(topic("laptop"));setStatus("Looking for laptop…",false)}
+        beat();setInterval(beat,3000);
+        if(role==="laptop") setInterval(updatePhones,2500);
+        resolve(true);
+      });
+      client.on("message",(t,buf)=>{let d={};try{d=JSON.parse(buf.toString())}catch(e){} onMsg(t,d)});
+      client.on("error",()=>setStatus("Connection error…",false));
+      client.on("close",()=>setStatus("Reconnecting…",false));
+    }catch(e){note("Couldn't connect.",true);resolve(false)}
   });
-  if(role==="laptop"){
-   room.on("sos",onSos);
-   room.on("cancel",()=>{stopAlarm();$("lmsg").textContent="Phone user marked safe."});
-  }else{
-   room.on("ack",m=>{if(m.data&&m.data.id===sosId){acked=true;$("pmsg").className="msg good";$("pmsg").textContent="Your laptop is sounding the alarm."}});
-   room.on("stop",()=>{$("pmsg").className="msg";$("pmsg").textContent="The laptop alarm was stopped.";endSos()});
+}
+function pub(b,obj){if(!client||!client.connected)return;try{client.publish(topic(b),JSON.stringify(obj||{}),{qos:1})}catch(e){}}
+function beat(){if(role==="phone") pub("phone",{id:myId,name:myName||"Phone",ts:Date.now()});else pub("laptop",{ts:Date.now()})}
+
+function onMsg(t,d){
+  if(t.endsWith("/sos")&&role==="laptop"){
+    const key=d.from||d.id||("x"+Date.now());
+    const prev=emergencies[key]||{};
+    emergencies[key]={
+      name:d.name||prev.name||"Someone",
+      lat:typeof d.lat==="number"?d.lat:prev.lat,
+      lng:typeof d.lng==="number"?d.lng:prev.lng,
+      ts:d.ts||Date.now(),
+      photo:d.photo||prev.photo||null,
+      voice:d.voice||prev.voice||null,
+      msg:d.msg||prev.msg||null,
+      from:key
+    };
+    renderEmergencies();
+    if(!prev.ts){
+      history.unshift({name:emergencies[key].name,ts:emergencies[key].ts,lat:d.lat,lng:d.lng});
+      if(history.length>40) history.pop();
+      store.setJson("sl_history",history);
+    }
+    pub("ack",{id:d.id||"",to:key});
   }
- }catch(e){note("Couldn’t connect. Check your internet and reload.",true)}
+  else if(t.endsWith("/voice")&&role==="laptop"){
+    if(d.voice){
+      voiceNotes.unshift({name:d.name||"Someone",voice:d.voice,ts:d.ts||Date.now()});
+      if(voiceNotes.length>20) voiceNotes.pop();
+      renderVoiceNotes();
+      note((d.name||"Someone")+" sent a voice note — play it above.",false);
+      // Soft beep so laptop hears something arrived
+      try{
+        ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();
+        ctx.resume();
+        const o=ctx.createOscillator(),g=ctx.createGain();
+        o.frequency.value=880;g.gain.value=.25;o.connect(g);g.connect(ctx.destination);
+        o.start();setTimeout(()=>{try{o.stop()}catch(e){}},180);
+      }catch(e){}
+    }
+  }
+  else if(t.endsWith("/cancel")&&role==="laptop"){
+    const key=d.from||d.id;
+    if(key&&emergencies[key]) delete emergencies[key];
+    else Object.keys(emergencies).forEach(k=>{if(emergencies[k].name===d.name) delete emergencies[k]});
+    renderEmergencies();
+    note((d.name?d.name+" marked safe.":"Someone marked safe."),false);
+  }
+  else if(t.endsWith("/ack")&&role==="phone"){
+    if(d.id===sosId||d.to===myId){acked=true;note("Laptop is sounding the alarm.",false);$("helpBtn").classList.remove("busy")}
+  }
+  else if(t.endsWith("/stop")&&role==="phone"){note("Laptop stopped the alarms.");endSos()}
+  else if(t.endsWith("/phone")&&role==="laptop"){if(d.id){phones[d.id]={name:d.name||"Phone",last:Date.now()};updatePhones()}}
+  else if(t.endsWith("/laptop")&&role==="phone") setStatus("Laptop linked ✓",true);
 }
-function note(t,bad){const el=role==="laptop"?$("lmsg"):$("pmsg");el.textContent=t;el.className="msg"+(bad?" bad":"")}
 
-// ---------- laptop ----------
-const APP="https://claude.ai/artifact/4e8HwxwHYsStRrrGGa3hTW";
-function drawQr(){const q=$("qr");q.innerHTML="";try{new QRCode(q,{text:APP+"#p"+code,width:200,height:200,colorDark:"#000000",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M})}catch(e){q.textContent="QR unavailable. Use the code below."}}
+/* Laptop */
+function baseUrl(){const u=new URL(location.href);u.hash="";u.search="";return u.toString().replace(/\/$/,"")||location.origin+location.pathname}
+function drawQr(){const q=$("qr");q.innerHTML="";try{new QRCode(q,{text:baseUrl()+"?c="+code,width:180,height:180,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M})}catch(e){q.innerHTML="<p class='small'>QR unavailable</p>"}}
 function makeCode(){return String(Math.floor(100000+Math.random()*900000))}
-async function startLaptop(){
- role="laptop";show("laptop");
- code="482913";
- $("lcode").textContent=code;drawQr();await connect();
-}
-let ctx=null,osc=null,sirenT=null,titleT=null,alarmOn=false,armed=false,wake=null;
-$("arm").onclick=async()=>{
- try{ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();await ctx.resume()}catch(e){}
- try{if(navigator.wakeLock)wake=await navigator.wakeLock.request("screen")}catch(e){}
- armed=true;$("arm").textContent="Armed";$("lmsg").className="msg good";$("lmsg").textContent="Alarm is armed. Keep this tab open and the laptop awake.";
-};
-$("test").onclick=()=>{startAlarm({test:true});setTimeout(stopAlarm,3000)};
-function validNum(n){return typeof n==="number"&&isFinite(n)}
-function onSos(m){
- const d=m.data||{};
- startAlarm(d);
- room.emit("ack",{id:typeof d.id==="string"?d.id.slice(0,20):""});
-}
-function startAlarm(d){
- d=d||{};
- const i=$("ainfo");i.textContent=d.test?"This is a test.":"Someone needs help. Check on her now.";
- if(validNum(d.lat)&&validNum(d.lng)){
-  const a=document.createElement("a");a.href="https://www.google.com/maps?q="+d.lat.toFixed(6)+","+d.lng.toFixed(6);
-  a.target="_blank";a.rel="noopener noreferrer";a.textContent=" Open her location on the map";i.appendChild(a);
- }
- $("alarmbox").hidden=false;
- if(alarmOn)return;alarmOn=true;
- document.body.classList.add("alarm");
- try{
-  ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();ctx.resume();
-  osc=ctx.createOscillator();const g=ctx.createGain();osc.type="square";g.gain.value=.6;osc.connect(g);g.connect(ctx.destination);osc.start();
-  let hi=true;sirenT=setInterval(()=>{osc.frequency.setValueAtTime(hi?1150:650,ctx.currentTime);hi=!hi},400);
- }catch(e){}
- let t=true;titleT=setInterval(()=>{document.title=t?"!!! HELP ALERT !!!":"SafeLink";t=!t},500);
-}
-function stopAlarm(){
- if(!alarmOn)return;alarmOn=false;
- document.body.classList.remove("alarm");$("alarmbox").hidden=true;
- clearInterval(sirenT);clearInterval(titleT);document.title="SafeLink";
- try{osc&&osc.stop()}catch(e){}osc=null;
-}
-$("stopAlarm").onclick=()=>{stopAlarm();if(room)room.emit("stop",{})};
 
-// ---------- phone ----------
-let sosId=null,acked=false,sendT=null,tries=0,pos=null;
+async function startLaptop(ok){
+  if(!ok){showPin();return}
+  role="laptop";show("laptop");
+  code=store.get("sl_code_laptop")||makeCode();store.set("sl_code_laptop",code);
+  $("lcode").textContent=code;drawQr();history=store.json("sl_history",[]);
+  await connect();
+}
+$("arm").onclick=async()=>{try{ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();await ctx.resume()}catch(e){}try{if(navigator.wakeLock)await navigator.wakeLock.request("screen")}catch(e){}$("arm").textContent="Armed ✓";note("Alarm armed. Keep this tab open.",false)};
+$("test").onclick=()=>{emergencies["test"]={name:"Test",lat:null,lng:null,ts:Date.now()};renderEmergencies();setTimeout(()=>{delete emergencies["test"];renderEmergencies()},3000)};
+$("btnHistory").onclick=()=>{$("historyBox").hidden=!$("historyBox").hidden;$("historyList").innerHTML=history.length?history.map(h=>{const loc=h.lat?` · <a href="https://www.google.com/maps?q=${h.lat},${h.lng}" target="_blank">map</a>`:"";return`<li>${esc(h.name)} · ${new Date(h.ts).toLocaleString()}${loc}</li>`}).join(""):"<li class='small'>No history yet</li>"};
+$("btnPin").onclick=()=>{$("pinBox").hidden=!$("pinBox").hidden};
+$("savePin").onclick=()=>{const p=$("newPin").value.replace(/\D/g,"");if(p.length<4||p.length>6){alert("PIN must be 4–6 digits");return}store.set("sl_pin",p);$("pinBox").hidden=true;$("newPin").value="";note("PIN saved.",false)};
+
+function startSiren(){if(sirenOn||$("silentMode").checked)return;sirenOn=true;document.body.classList.add("alarm");try{ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();ctx.resume();osc=ctx.createOscillator();const g=ctx.createGain();osc.type="square";g.gain.value=.55;osc.connect(g);g.connect(ctx.destination);osc.start();let hi=true;sirenT=setInterval(()=>{osc.frequency.setValueAtTime(hi?1150:650,ctx.currentTime);hi=!hi},380)}catch(e){}let t=true;titleT=setInterval(()=>{document.title=t?"!!! EMERGENCY !!!":"SafeLink";t=!t},450)}
+function stopSiren(){if(!sirenOn)return;sirenOn=false;document.body.classList.remove("alarm");clearInterval(sirenT);clearInterval(titleT);document.title="SafeLink";try{osc&&osc.stop()}catch(e){}osc=null}
+$("stopAll").onclick=()=>{emergencies={};renderEmergencies();pub("stop",{})};
+
+/* Phone */
 async function startPhone(){
- role="phone";show("phone");
- const saved=store.get("sl_code_phone");
- if(saved){code=saved;$("enter").hidden=true;$("ready").hidden=false;await connect()}
+  role="phone";show("phone");
+  const sc=store.get("sl_code_phone"),sn=store.get("sl_name_phone");
+  if(sc&&sn){code=sc;myName=sn;$("stepCode").hidden=true;$("stepName").hidden=true;$("stepReady").hidden=false;$("nameLabel").textContent="You are: "+myName;await connect();warnings();loadContacts();readBattery()}
+  else if(sc){code=sc;$("stepCode").hidden=true;$("stepName").hidden=false}
 }
-$("link").onclick=async()=>{
- const c=$("pcode").value.replace(/\D/g,"");
- if(c.length!==6){$("pcode").focus();return}
- code=c;store.set("sl_code_phone",c);$("enter").hidden=true;$("ready").hidden=false;await connect();
-};
-$("unlink").onclick=()=>{store.del("sl_code_phone");location.reload()};
-function sendOnce(){
- if(!room)return;
- tries++;
- room.emit("sos",{id:sosId,lat:pos?pos.lat:null,lng:pos?pos.lng:null});
- if(acked||tries>40){clearInterval(sendT);sendT=null}
+$("btnCode").onclick=()=>{const c=$("pcode").value.replace(/\D/g,"");if(c.length!==6){$("pcode").focus();return}code=c;store.set("sl_code_phone",c);$("stepCode").hidden=true;$("stepName").hidden=false;$("pname").focus()};
+$("btnName").onclick=async()=>{const n=$("pname").value.trim();if(n.length<2){$("pname").focus();return}myName=n.slice(0,24);store.set("sl_name_phone",myName);$("stepName").hidden=true;$("stepReady").hidden=false;$("nameLabel").textContent="You are: "+myName;await connect();warnings();loadContacts();readBattery()};
+function warnings(){
+  const box=$("warnBox");box.innerHTML="";
+  if(navigator.getBattery) navigator.getBattery().then(b=>{if(b.level<0.2) box.innerHTML+=`<div class="warn">⚠️ Battery low (${Math.round(b.level*100)}%) — live location still sent</div>`});
+  if(!navigator.onLine) box.innerHTML+=`<div class="warn">⚠️ No internet</div>`;
 }
-function endSos(){clearInterval(sendT);sendT=null;sosId=null;acked=false;tries=0;$("safe").hidden=true}
-$("help").onclick=()=>{
- if(sendT)return;
- if(!room){$("pmsg").className="msg bad";$("pmsg").textContent="Not linked yet. Call 112 if you are in danger.";return}
- sosId=Date.now().toString(36);acked=false;tries=0;
- try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}
- $("pmsg").className="msg";$("pmsg").textContent="Sending alert to your laptop…";$("safe").hidden=false;
- sendOnce();sendT=setInterval(sendOnce,2000);
- try{navigator.geolocation&&navigator.geolocation.getCurrentPosition(p=>{pos={lat:p.coords.latitude,lng:p.coords.longitude}},()=>{},{timeout:5000,maximumAge:60000})}catch(e){}
- setTimeout(()=>{if(!acked&&sendT){$("pmsg").className="msg bad";$("pmsg").textContent="No reply from the laptop yet. Still trying. Call 112 if you are in danger."}},8000);
-};
-$("safe").onclick=()=>{if(room)room.emit("cancel",{id:sosId});endSos();$("pmsg").className="msg good";$("pmsg").textContent="Alarm cancelled. Glad you’re safe."};
+function readBattery(){
+  if(navigator.getBattery) navigator.getBattery().then(b=>{
+    batteryLevel=b.level;
+    b.addEventListener("levelchange",()=>{batteryLevel=b.level});
+  });
+}
 
-// ---------- start ----------
-$("pickLaptop").onclick=()=>{store.set("sl_role","laptop");startLaptop()};
+/* Contacts + SMS */
+function loadContacts(){
+  const list=store.json("sl_contacts",[]);
+  $("contactList").innerHTML=list.map((c,i)=>{
+    const smsBody=encodeURIComponent("🆘 HELP! I need help. - "+(myName||"SafeLink user"));
+    return `<li>${esc(c.name)} · ${esc(c.phone)}
+      <a class="btn sm" href="tel:${c.phone}" style="margin-left:auto">Call</a>
+      <a class="btn sm alt" href="sms:${c.phone}?body=${smsBody}">SMS</a>
+      <button class="btn sm alt" data-i="${i}">✕</button></li>`;
+  }).join("");
+  $("contactList").querySelectorAll("[data-i]").forEach(b=>{
+    b.onclick=()=>{list.splice(+b.dataset.i,1);store.setJson("sl_contacts",list);loadContacts()};
+  });
+}
+$("addContact").onclick=()=>{
+  const n=$("cName").value.trim(),p=$("cPhone").value.trim();
+  if(!n||!p) return;
+  const list=store.json("sl_contacts",[]);
+  list.push({name:n,phone:p});store.setJson("sl_contacts",list);
+  $("cName").value="";$("cPhone").value="";loadContacts();
+};
+
+/* Voice note */
+$("recBtn").onpointerdown=$("recBtn").ontouchstart=async e=>{
+  e.preventDefault();
+  if(mediaRec) return;
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    recChunks=[];
+    mediaRec=new MediaRecorder(stream,{mimeType:MediaRecorder.isTypeSupported("audio/webm")?"audio/webm":"audio/mp4"});
+    mediaRec.ondataavailable=ev=>{if(ev.data.size) recChunks.push(ev.data)};
+    mediaRec.onstop=async()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      voiceBlob=new Blob(recChunks,{type:mediaRec.mimeType});
+      if(voiceUrl) URL.revokeObjectURL(voiceUrl);
+      voiceUrl=URL.createObjectURL(voiceBlob);
+      $("voicePreview").src=voiceUrl;$("voicePreview").style.display="block";
+      $("clearVoice").style.display="inline-block";
+      $("recBtn").classList.remove("rec");$("recBtn").textContent="🎙 Hold to record";
+      mediaRec=null;
+      // Auto-send voice to laptop immediately on release
+      $("recStatus").textContent="Sending to laptop…";
+      try{
+        const dataUrl=await voiceToDataUrl();
+        if(dataUrl&&client&&client.connected){
+          pub("voice",{from:myId,name:myName||"Someone",voice:dataUrl,ts:Date.now()});
+          $("recStatus").textContent="Sent to laptop ✓ — they can play it now";
+        }else{
+          $("recStatus").textContent="Saved (not linked yet — will send with HELP)";
+        }
+      }catch(err){
+        $("recStatus").textContent="Saved — send failed, will retry with HELP";
+      }
+    };
+    mediaRec.start();
+    $("recBtn").classList.add("rec");$("recBtn").textContent="● Recording…";
+    $("recStatus").textContent="";
+  }catch(err){$("recStatus").textContent="Mic not allowed"}
+};
+function stopRec(){if(mediaRec&&mediaRec.state==="recording") mediaRec.stop()}
+$("recBtn").onpointerup=$("recBtn").onmouseleave=$("recBtn").ontouchend=$("recBtn").ontouchcancel=stopRec;
+$("clearVoice").onclick=()=>{
+  voiceBlob=null;
+  if(voiceUrl){URL.revokeObjectURL(voiceUrl);voiceUrl=null}
+  $("voicePreview").src="";$("voicePreview").style.display="none";
+  $("clearVoice").style.display="none";
+  $("recStatus").textContent="";
+};
+
+async function voiceToDataUrl(){
+  if(!voiceBlob) return null;
+  return new Promise(res=>{
+    const r=new FileReader();
+    r.onload=()=>res(r.result);
+    r.onerror=()=>res(null);
+    r.readAsDataURL(voiceBlob);
+  });
+}
+
+/* Photo */
+async function snap(){
+  if(!$("photoOn").checked) return null;
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"},audio:false});
+    const v=document.createElement("video");v.srcObject=stream;v.playsInline=true;await v.play();
+    await new Promise(r=>setTimeout(r,350));
+    const c=document.createElement("canvas");c.width=v.videoWidth;c.height=v.videoHeight;
+    c.getContext("2d").drawImage(v,0,0);stream.getTracks().forEach(t=>t.stop());
+    return c.toDataURL("image/jpeg",0.45);
+  }catch(e){return null}
+}
+
+/* Location — fast */
+function getLocOnce(){
+  return new Promise(resolve=>{
+    if(!navigator.geolocation){resolve(null);return}
+    navigator.geolocation.getCurrentPosition(
+      p=>resolve({lat:p.coords.latitude,lng:p.coords.longitude}),
+      ()=>resolve(null),
+      {timeout:2500,maximumAge:4000,enableHighAccuracy:false}
+    );
+  });
+}
+
+/* SOS */
+let sosId=null;
+function sendOnce(extra){
+  tries++;
+  const payload={
+    id:sosId,from:myId,name:myName,
+    lat:pos?pos.lat:null,lng:pos?pos.lng:null,
+    ts:Date.now(),
+    photo:extra&&extra.photo||null,
+    voice:extra&&extra.voice||null,
+    msg:extra&&extra.msg||null
+  };
+  pub("sos",payload);
+  if(acked||tries>40){clearInterval(sendT);sendT=null}
+}
+function endSos(){
+  clearInterval(sendT);clearInterval(locT);sendT=null;locT=null;
+  sosActive=false;acked=false;tries=0;sosId=null;
+  $("safeBtn").hidden=true;$("helpBtn").classList.remove("busy");
+}
+
+$("helpBtn").onclick=async()=>{
+  if(sosActive) return;
+  if(!client||!client.connected){note("Not linked yet. Call 112 if in danger.",true);return}
+  sosActive=true;sosId=Date.now().toString(36);acked=false;tries=0;
+  try{navigator.vibrate&&navigator.vibrate([180,80,180,80,180])}catch(e){}
+  note("Sending alert…");$("safeBtn").hidden=false;$("helpBtn").classList.add("busy");
+
+  const smsMsg=($("smsText")&&$("smsText").value||"").trim().slice(0,280);
+
+  // Fire location + media as fast as possible in parallel
+  const [loc,photo,voice]=await Promise.all([getLocOnce(),snap(),voiceToDataUrl()]);
+  pos=loc;
+  sendOnce({photo,voice,msg:smsMsg||null});
+  // Fast retries until laptop acks
+  sendT=setInterval(()=>sendOnce({msg:smsMsg||null}),1200);
+
+  // Live location every 3s while HELP is active
+  locT=setInterval(async()=>{
+    const p=await getLocOnce();
+    if(p){pos=p;pub("sos",{id:sosId,from:myId,name:myName,lat:p.lat,lng:p.lng,ts:Date.now(),msg:smsMsg||null})}
+  },3000);
+
+  setTimeout(()=>{if(!acked&&sendT) note("No reply yet. Still trying. Call 112 if needed.",true)},8000);
+};
+
+$("safeBtn").onclick=()=>{pub("cancel",{id:sosId,from:myId,name:myName});endSos();note("Alarm cancelled. Glad you're safe.",false)};
+
+/* Shake */
+let lastShake=0;
+$("shakeOn").onchange=()=>store.set("sl_shake",$("shakeOn").checked?"1":"0");
+if(store.get("sl_shake")==="1") $("shakeOn").checked=true;
+window.addEventListener("devicemotion",e=>{
+  if(!$("shakeOn").checked||role!=="phone"||$("stepReady").hidden||sosActive) return;
+  const a=e.accelerationIncludingGravity;if(!a) return;
+  if(Math.abs(a.x)+Math.abs(a.y)+Math.abs(a.z)>42&&Date.now()-lastShake>4000){lastShake=Date.now();$("helpBtn").click()}
+},{passive:true});
+
+/* Fake calculator */
+$("hideBtn").onclick=()=>{$("fake").style.display="flex"};
+let taps=0,tapTimer=null;
+$("fake").onclick=()=>{taps++;clearTimeout(tapTimer);tapTimer=setTimeout(()=>taps=0,500);if(taps>=3){$("fake").style.display="none";taps=0}};
+(function(){const keys=["7","8","9","C","4","5","6","+","1","2","3","-","0",".","=","×"];const pad=$("fakePad");let val="0";keys.forEach(k=>{const b=document.createElement("button");b.textContent=k;b.onclick=e=>{e.stopPropagation();if(k==="C")val="0";else if(k==="="){try{val=String(eval(val.replace(/×/g,"*")))}catch(e){val="Err"}}else val=(val==="0"?"":val)+k;$("fakeDisp").textContent=val.slice(0,12)};pad.appendChild(b)})})();
+
+/* Start */
+$("pickLaptop").onclick=()=>{store.set("sl_role","laptop");showPin()};
 $("pickPhone").onclick=()=>{store.set("sl_role","phone");startPhone()};
-const hm=/^#p(\d{6})$/.exec(location.hash||"");
-if(hm){store.set("sl_role","phone");store.set("sl_code_phone",hm[1]);startPhone()}
-else{const r=store.get("sl_role");if(r==="laptop")startLaptop();else if(r==="phone")startPhone()}
+if(store.get("sl_theme")==="light") document.documentElement.setAttribute("data-theme","light");
+lang=store.get("sl_lang")||"en";$("langBtn").textContent=lang==="en"?"EN":"हिं";
+
+const params=new URLSearchParams(location.search);
+const q=params.get("c")||params.get("code");
+if(q&&/^\d{6}$/.test(q)){store.set("sl_role","phone");store.set("sl_code_phone",q);startPhone()}
+else{const r=store.get("sl_role");if(r==="laptop") showPin();else if(r==="phone") startPhone()}
 </script>
 </body>
 </html>
