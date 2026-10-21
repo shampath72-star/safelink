@@ -280,9 +280,22 @@ function renderEmergencies(){
   $("emList").innerHTML=list.map(e=>{
     let loc="",photo="",voice="",msg="";
     if(e.msg) msg=`<div style="margin-top:6px;padding:8px 10px;background:#2a0a14;border-radius:8px;font-size:13.5px;color:#fff">${esc(e.msg)}</div>`;
-    if(typeof e.lat==="number"&&typeof e.lng==="number")
-      loc=`<div style="margin-top:4px"><a href="https://www.google.com/maps?q=${e.lat.toFixed(5)},${e.lng.toFixed(5)}" target="_blank" rel="noopener">📍 Live location (open map)</a></div>`;
-    if(e.photo) photo=`<div style="margin-top:6px"><div class="meta">Photo</div><img src="${e.photo}" alt="Emergency photo"></div>`;
+    if(typeof e.lat==="number"&&typeof e.lng==="number"){
+      const maps=`https://www.google.com/maps?q=${e.lat.toFixed(6)},${e.lng.toFixed(6)}`;
+      const mapsDir=`https://www.google.com/maps/dir/?api=1&destination=${e.lat.toFixed(6)},${e.lng.toFixed(6)}`;
+      loc=`<div style="margin-top:8px;padding:10px;background:#1a0a10;border:1px solid #f43f5e55;border-radius:10px">
+        <div class="meta" style="margin-bottom:6px">📍 Live location · ${ago(e.ts)}</div>
+        <div style="font-size:12px;color:#fb7185;margin-bottom:8px">${e.lat.toFixed(5)}, ${e.lng.toFixed(5)}</div>
+        <a class="btn sm pink" href="${maps}" target="_blank" rel="noopener" style="margin:0 6px 6px 0;text-decoration:none">Track on map</a>
+        <a class="btn sm alt" href="${mapsDir}" target="_blank" rel="noopener" style="margin:0 0 6px 0;text-decoration:none">Get directions</a>
+      </div>`;
+    } else {
+      loc=`<div style="margin-top:8px;padding:10px;background:#1a0a10;border:1px dashed #f43f5e55;border-radius:10px">
+        <div class="meta">📍 Waiting for live location…</div>
+        <div style="font-size:12px;color:#9b8fb8;margin-top:4px">Phone will send GPS every few seconds. Keep HELP active.</div>
+      </div>`;
+    }
+    if(e.photo) photo=`<div style="margin-top:6px"><div class="meta">Photo</div><img src="${e.photo}" alt="Emergency photo" style="max-height:220px;object-fit:cover"></div>`;
     if(e.voice) voice=`<div style="margin-top:6px"><div class="meta">Voice note — tap play ▶</div><audio controls preload="auto" src="${e.voice}" style="width:100%;margin-top:4px"></audio></div>`;
     return `<li class="em-item"><div class="name">${esc(e.name||"Someone")} is in emergency</div><div class="meta">${ago(e.ts)}</div>${msg}${loc}${photo}${voice}</li>`;
   }).join("");
@@ -504,29 +517,42 @@ async function voiceToDataUrl(){
 async function snap(){
   if(!$("photoOn").checked) return null;
   try{
-    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"},audio:false});
-    const v=document.createElement("video");v.srcObject=stream;v.playsInline=true;await v.play();
-    await new Promise(r=>setTimeout(r,350));
-    const c=document.createElement("canvas");c.width=v.videoWidth;c.height=v.videoHeight;
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:640},height:{ideal:480}},audio:false});
+    const v=document.createElement("video");v.srcObject=stream;v.setAttribute("playsinline","true");v.muted=true;await v.play();
+    // Wait until we have real frames
+    await new Promise(r=>{
+      if(v.videoWidth>0) return r();
+      v.onloadeddata=()=>r();
+      setTimeout(r,1200);
+    });
+    await new Promise(r=>setTimeout(r,400));
+    const c=document.createElement("canvas");c.width=v.videoWidth||640;c.height=v.videoHeight||480;
     c.getContext("2d").drawImage(v,0,0);stream.getTracks().forEach(t=>t.stop());
-    return c.toDataURL("image/jpeg",0.45);
+    return c.toDataURL("image/jpeg",0.5);
   }catch(e){return null}
 }
 
-/* Location — fast */
+/* Location — more reliable */
 function getLocOnce(){
   return new Promise(resolve=>{
     if(!navigator.geolocation){resolve(null);return}
+    // Try high accuracy first, then fall back to low accuracy
     navigator.geolocation.getCurrentPosition(
       p=>resolve({lat:p.coords.latitude,lng:p.coords.longitude}),
-      ()=>resolve(null),
-      {timeout:2500,maximumAge:4000,enableHighAccuracy:false}
+      ()=>{
+        navigator.geolocation.getCurrentPosition(
+          p=>resolve({lat:p.coords.latitude,lng:p.coords.longitude}),
+          ()=>resolve(null),
+          {timeout:5000,maximumAge:15000,enableHighAccuracy:false}
+        );
+      },
+      {timeout:4000,maximumAge:5000,enableHighAccuracy:true}
     );
   });
 }
 
 /* SOS */
-let sosId=null;
+let sosId=null, watchId=null;
 function sendOnce(extra){
   tries++;
   const payload={
@@ -542,6 +568,7 @@ function sendOnce(extra){
 }
 function endSos(){
   clearInterval(sendT);clearInterval(locT);sendT=null;locT=null;
+  if(watchId!=null){try{navigator.geolocation.clearWatch(watchId)}catch(e){} watchId=null}
   sosActive=false;acked=false;tries=0;sosId=null;
   $("safeBtn").hidden=true;$("helpBtn").classList.remove("busy");
 }
@@ -562,11 +589,24 @@ $("helpBtn").onclick=async()=>{
   // Fast retries until laptop acks
   sendT=setInterval(()=>sendOnce({msg:smsMsg||null}),1200);
 
-  // Live location every 3s while HELP is active
+  // Continuous live location via watchPosition (real GPS stream)
+  if(navigator.geolocation){
+    try{
+      watchId=navigator.geolocation.watchPosition(
+        p=>{
+          pos={lat:p.coords.latitude,lng:p.coords.longitude};
+          pub("sos",{id:sosId,from:myId,name:myName,lat:pos.lat,lng:pos.lng,ts:Date.now(),msg:smsMsg||null});
+        },
+        ()=>{},
+        {enableHighAccuracy:true,maximumAge:2000,timeout:8000}
+      );
+    }catch(e){}
+  }
+  // Backup interval if watch fails
   locT=setInterval(async()=>{
     const p=await getLocOnce();
     if(p){pos=p;pub("sos",{id:sosId,from:myId,name:myName,lat:p.lat,lng:p.lng,ts:Date.now(),msg:smsMsg||null})}
-  },3000);
+  },4000);
 
   setTimeout(()=>{if(!acked&&sendT) note("No reply yet. Still trying. Call 112 if needed.",true)},8000);
 };
