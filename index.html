@@ -27,7 +27,8 @@ body{
   background-image:radial-gradient(ellipse 100% 60% at 50% -30%,#5b21b680,transparent 70%);
 }
 [data-theme="light"] body{background-image:radial-gradient(ellipse 100% 60% at 50% -30%,#c4b5fd55,transparent 70%)}
-main{max-width:440px;margin:0 auto;padding:16px 16px 48px}
+main{max-width:440px;margin:0 auto;padding:16px 16px 48px;transition:max-width .25s}
+main.wide{max-width:min(960px,96vw)}
 .topbar{display:flex;justify-content:flex-end;gap:6px;margin-bottom:4px}
 .icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:15px;cursor:pointer;display:grid;place-items:center}
 h1{font:800 30px/1.15 system-ui;letter-spacing:-.03em;background:linear-gradient(120deg,#e9d5ff,#a78bfa 40%,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}
@@ -62,12 +63,32 @@ input::placeholder{color:var(--muted)}
 @keyframes glow{0%,100%{box-shadow:0 0 24px #f43f5e30}50%{box-shadow:0 0 48px #f43f5e50}}
 #alarmbox h2{font:800 22px/1.2 system-ui;color:#fff;margin-bottom:4px;text-shadow:0 0 14px #f43f5e}
 .badge{display:inline-block;background:var(--pink);color:#fff;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;margin-bottom:12px}
-.em-list{list-style:none;text-align:left;margin:0 0 12px}
-.em-item{background:#1a0a10;border:1px solid #f43f5e40;border-radius:12px;padding:12px 14px;margin-bottom:8px}
-.em-item .name{font:800 15px/1.2 system-ui;color:#fff}
+.em-list{list-style:none;text-align:left;margin:0 0 12px;display:flex;flex-direction:column;gap:14px}
+.em-list.multi{flex-direction:row;flex-wrap:wrap;align-items:stretch}
+.em-item{background:#1a0a10;border:1.5px solid #f43f5e55;border-radius:14px;padding:14px;box-shadow:0 0 20px #f43f5e18;flex:1 1 100%;min-width:0}
+.em-list.multi .em-item{flex:1 1 280px;max-width:100%;min-width:260px}
+.em-item .name{font:800 16px/1.2 system-ui;color:#fff}
 .em-item .meta{font-size:11px;color:#fb7185;margin-top:2px}
 .em-item a{color:#a78bfa;font-weight:700;font-size:12.5px;text-decoration:none}
 .em-item img,.em-item audio{max-width:100%;border-radius:8px;margin-top:6px;display:block}
+.track-btn{
+  display:flex!important;align-items:center;justify-content:center;gap:8px;
+  width:100%!important;text-align:center;
+  padding:18px 16px!important;font:800 18px/1.1 system-ui!important;
+  margin:10px 0 0!important;
+  background:linear-gradient(135deg,#be123c,#f43f5e 50%,#fb7185)!important;
+  color:#fff!important;border:0!important;border-radius:14px!important;
+  box-shadow:0 0 0 4px #f43f5e33,0 6px 28px #f43f5e66;
+  text-decoration:none!important;letter-spacing:.02em;
+  animation:trackPulse 1.6s ease-in-out infinite;
+}
+@keyframes trackPulse{
+  0%,100%{box-shadow:0 0 0 4px #f43f5e33,0 6px 28px #f43f5e66}
+  50%{box-shadow:0 0 0 10px #f43f5e22,0 8px 36px #f43f5e88}
+}
+.track-btn:active{transform:scale(.97);animation:none}
+.dir-btn{display:block!important;width:100%!important;text-align:center;padding:12px 14px!important;font:700 14px/1 system-ui!important;margin:8px 0 0!important;background:rgba(244,63,94,.12)!important;color:#fda4af!important;border:1px solid #f43f5e66!important;border-radius:12px!important;text-decoration:none!important}
+.em-row-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#fb7185;margin-bottom:4px}
 .msg{color:var(--muted);font-size:12.5px;margin-top:8px}
 .msg.bad{color:var(--pink);font-weight:600}
 .msg.good{color:var(--green);font-weight:600}
@@ -125,10 +146,10 @@ body.alarm{animation:flash .55s steps(1) infinite}
     <button class="btn alt" id="pickPhone">Phone — HELP button</button>
     <ol class="steps">
       <li>Open on <b>laptop</b> → unlock with PIN → QR appears</li>
-      <li>Scan QR on phone → enter your <b>name</b></li>
-      <li>Many phones can link to one laptop</li>
+      <li>Scan same QR on <b>any number of phones</b> → each enters their name</li>
+      <li>All phones stay linked to this one laptop</li>
       <li>Arm alarm on laptop, keep tab open</li>
-      <li>Press red <b>HELP</b> when you need help</li>
+      <li>Any phone presses <b>HELP</b> → laptop shows that person (or all if many)</li>
     </ol>
     <p class="small" style="margin-top:12px"><b>Backup only.</b> Call 112 or 1091 first if in danger.</p>
   </section>
@@ -274,31 +295,99 @@ function updatePhones(){
 
 function renderEmergencies(){
   const list=Object.values(emergencies).sort((a,b)=>b.ts-a.ts);
-  if(!list.length){$("alarmbox").hidden=true;stopSiren();return}
+  const main=document.querySelector("main");
+  const emList=$("emList");
+  if(!list.length){
+    $("alarmbox").hidden=true;stopSiren();
+    emList.classList.remove("multi");
+    emList.innerHTML="";
+    if(main) main.classList.remove("wide");
+    return;
+  }
   $("alarmbox").hidden=false;
   $("alarmCount").textContent=list.length===1?"1 person needs help":list.length+" people need help";
-  $("emList").innerHTML=list.map(e=>{
-    let loc="",photo="",voice="",msg="";
-    if(e.msg) msg=`<div style="margin-top:6px;padding:8px 10px;background:#2a0a14;border-radius:8px;font-size:13.5px;color:#fff">${esc(e.msg)}</div>`;
-    if(typeof e.lat==="number"&&typeof e.lng==="number"){
-      const maps=`https://www.google.com/maps?q=${e.lat.toFixed(6)},${e.lng.toFixed(6)}`;
-      const mapsDir=`https://www.google.com/maps/dir/?api=1&destination=${e.lat.toFixed(6)},${e.lng.toFixed(6)}`;
-      loc=`<div style="margin-top:8px;padding:10px;background:#1a0a10;border:1px solid #f43f5e55;border-radius:10px">
-        <div class="meta" style="margin-bottom:6px">📍 Live location · ${ago(e.ts)}</div>
-        <div style="font-size:12px;color:#fb7185;margin-bottom:8px">${e.lat.toFixed(5)}, ${e.lng.toFixed(5)}</div>
-        <a class="btn sm pink" href="${maps}" target="_blank" rel="noopener" style="margin:0 6px 6px 0;text-decoration:none">Track on map</a>
-        <a class="btn sm alt" href="${mapsDir}" target="_blank" rel="noopener" style="margin:0 0 6px 0;text-decoration:none">Get directions</a>
+  if(list.length>1){
+    emList.classList.add("multi");
+    if(main) main.classList.add("wide");
+  } else {
+    emList.classList.remove("multi");
+    if(main) main.classList.remove("wide");
+  }
+
+  const existing=new Set();
+  list.forEach((e,i)=>{
+    const key=e.from||("x"+i);
+    existing.add(key);
+    let card=emList.querySelector(`[data-em="${CSS.escape(key)}"]`);
+    const hasLoc=typeof e.lat==="number"&&typeof e.lng==="number";
+    const latR=hasLoc?e.lat.toFixed(4):"";
+    const lngR=hasLoc?e.lng.toFixed(4):"";
+    const embed=hasLoc?`https://maps.google.com/maps?q=${latR},${lngR}&z=17&output=embed`:"";
+    const maps=hasLoc?`https://www.google.com/maps?q=${e.lat.toFixed(6)},${e.lng.toFixed(6)}`:"";
+    const mapsDir=hasLoc?`https://www.google.com/maps/dir/?api=1&destination=${e.lat.toFixed(6)},${e.lng.toFixed(6)}`:"";
+    const num=list.length>1?`<span style="display:inline-block;background:var(--pink);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px;margin-right:6px">#${i+1}</span>`:"";
+
+    if(!card){
+      card=document.createElement("li");
+      card.className="em-item";
+      card.dataset.em=key;
+      emList.appendChild(card);
+    }
+
+    // Build / update content without wiping map iframe if coords barely changed
+    let locHtml="";
+    if(hasLoc){
+      locHtml=`<div class="em-loc" style="margin-top:10px">
+        <div class="em-row-label">📍 Live location · updated ${ago(e.ts)}</div>
+        <div class="em-coords" style="font-size:12px;color:#fda4af;margin:4px 0 8px;font-weight:600">${e.lat.toFixed(5)}, ${e.lng.toFixed(5)}</div>
+        <div class="em-map-wrap" style="border-radius:12px;overflow:hidden;border:1px solid #f43f5e44;margin-bottom:8px;background:#0a0508">
+          <iframe class="em-map" title="Live map" data-pos="${latR},${lngR}" src="${embed}" width="100%" height="220" style="border:0;display:block" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+        </div>
+        <a class="track-btn em-track" href="${maps}" target="_blank" rel="noopener">📍 TRACK ${esc((e.name||"them").toUpperCase())} LIVE</a>
+        <a class="dir-btn em-dir" href="${mapsDir}" target="_blank" rel="noopener">🧭 Get directions</a>
       </div>`;
     } else {
-      loc=`<div style="margin-top:8px;padding:10px;background:#1a0a10;border:1px dashed #f43f5e55;border-radius:10px">
-        <div class="meta">📍 Waiting for live location…</div>
-        <div style="font-size:12px;color:#9b8fb8;margin-top:4px">Phone will send GPS every few seconds. Keep HELP active.</div>
+      locHtml=`<div class="em-loc" style="margin-top:10px;padding:12px;background:#1a0a10;border:1px dashed #f43f5e55;border-radius:10px">
+        <div class="em-row-label">📍 Live location</div>
+        <div style="font-size:13px;color:#fda4af;margin-top:4px">Waiting for GPS…</div>
+        <div style="font-size:12px;color:#9b8fb8;margin-top:4px">Phone sends location every few seconds. Map appears when GPS arrives.</div>
       </div>`;
     }
-    if(e.photo) photo=`<div style="margin-top:6px"><div class="meta">Photo</div><img src="${e.photo}" alt="Emergency photo" style="max-height:220px;object-fit:cover"></div>`;
-    if(e.voice) voice=`<div style="margin-top:6px"><div class="meta">Voice note — tap play ▶</div><audio controls preload="auto" src="${e.voice}" style="width:100%;margin-top:4px"></audio></div>`;
-    return `<li class="em-item"><div class="name">${esc(e.name||"Someone")} is in emergency</div><div class="meta">${ago(e.ts)}</div>${msg}${loc}${photo}${voice}</li>`;
-  }).join("");
+    const msgHtml=e.msg?`<div style="margin-top:8px"><div class="em-row-label">Message</div><div style="padding:8px 10px;background:#2a0a14;border-radius:8px;font-size:13.5px;color:#fff">${esc(e.msg)}</div></div>`:"";
+    const photoHtml=e.photo?`<div style="margin-top:10px"><div class="em-row-label">Photo</div><img src="${e.photo}" alt="Emergency photo" style="max-height:180px;object-fit:cover;width:100%"></div>`:"";
+    const voiceHtml=e.voice?`<div style="margin-top:10px"><div class="em-row-label">Voice note</div><audio controls preload="auto" src="${e.voice}" style="width:100%;margin-top:4px"></audio></div>`:"";
+
+    const prevMap=card.querySelector(".em-map");
+    const prevPos=prevMap?prevMap.getAttribute("data-pos"):"";
+    const sameMap=hasLoc&&prevPos===(latR+","+lngR);
+
+    if(sameMap){
+      // Keep existing iframe — only update text + links
+      const coordsEl=card.querySelector(".em-coords");
+      const labelEl=card.querySelector(".em-loc .em-row-label");
+      const trackEl=card.querySelector(".em-track");
+      const dirEl=card.querySelector(".em-dir");
+      const nameEl=card.querySelector(".name");
+      const metaEl=card.querySelector(".meta");
+      if(coordsEl) coordsEl.textContent=e.lat.toFixed(5)+", "+e.lng.toFixed(5);
+      if(labelEl) labelEl.textContent="📍 Live location · updated "+ago(e.ts);
+      if(trackEl){trackEl.href=maps;trackEl.textContent="📍 TRACK "+(e.name||"them").toUpperCase()+" LIVE"}
+      if(dirEl) dirEl.href=mapsDir;
+      if(nameEl) nameEl.innerHTML=num+esc(e.name||"Someone")+" needs help";
+      if(metaEl) metaEl.textContent=ago(e.ts);
+    } else {
+      card.innerHTML=`
+        <div class="name">${num}${esc(e.name||"Someone")} needs help</div>
+        <div class="meta">${ago(e.ts)}</div>
+        ${msgHtml}${locHtml}${photoHtml}${voiceHtml}`;
+    }
+  });
+
+  // Remove cards for people who cancelled
+  emList.querySelectorAll("[data-em]").forEach(el=>{
+    if(!existing.has(el.dataset.em)) el.remove();
+  });
+
   if(!$("silentMode").checked) startSiren(); else document.body.classList.add("alarm");
 }
 function renderVoiceNotes(){
