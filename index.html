@@ -53,9 +53,11 @@ a.btn{display:block;text-align:center;text-decoration:none}
 button:focus-visible,input:focus-visible,a:focus-visible{
   outline:3px solid var(--accent);outline-offset:2px;
 }
-input{
+input, .name-input{
   width:100%;padding:14px;border:1px solid var(--line);border-radius:12px;
-  background:var(--bg);color:var(--ink);
+  background:var(--bg);color:var(--ink);font:inherit;
+}
+input.code-input{
   font:700 28px/1 ui-monospace,Consolas,monospace;
   letter-spacing:.35em;text-align:center;
 }
@@ -108,6 +110,16 @@ li{margin-bottom:7px}
   margin-left:auto;background:#fff;color:var(--accent);
   border:0;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer;
 }
+.phone-list{
+  margin:10px 0 0;padding:0;list-style:none;font-size:14px;
+}
+.phone-list li{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 0;border-bottom:1px solid var(--line);
+}
+.phone-list li:last-child{border-bottom:0}
+.phone-list .dot{width:8px;height:8px}
+.who{font-weight:700;font-size:18px;margin:4px 0 8px}
 </style>
 </head>
 <body>
@@ -127,9 +139,10 @@ li{margin-bottom:7px}
     <button class="btn alt" id="pickPhone">This is my phone (HELP button)</button>
     <ol class="small">
       <li>Open this page on your <b>laptop</b> and choose “laptop”. It shows a QR code + 6-digit code.</li>
-      <li>Scan the QR with <b>any</b> phone camera / scanner (or type the code).</li>
+      <li>Scan the QR with <b>any</b> phone camera (or type the code). Enter your name.</li>
+      <li>You can link <b>many phones</b> to the same laptop.</li>
       <li>On the laptop press <b>Arm alarm</b> and keep that tab open.</li>
-      <li>When you need help, press the big red <b>HELP</b> button on the phone.</li>
+      <li>When someone needs help, they press the big red <b>HELP</b> button.</li>
     </ol>
     <p class="small" style="margin-top:14px">
       Works from any browser — no special login needed.<br>
@@ -148,6 +161,8 @@ li{margin-bottom:7px}
       <span class="dot" id="ldot"></span>
       <span id="lstat">Connecting…</span>
     </div>
+    <p class="small" id="phoneCount" style="margin:4px 0 0"></p>
+    <ul class="phone-list" id="phoneList"></ul>
     <button class="btn" id="arm">Arm alarm</button>
     <button class="btn alt" id="test">Test alarm (3 seconds)</button>
     <p class="msg" id="lmsg">Press “Arm alarm” once so the browser allows sound. Keep this tab open.</p>
@@ -156,7 +171,8 @@ li{margin-bottom:7px}
 
   <!-- Loud alarm overlay -->
   <section class="card" id="alarmbox" hidden>
-    <h2>🆘 HELP ALERT FROM PHONE</h2>
+    <h2>🆘 HELP ALERT</h2>
+    <p class="who" id="awho"></p>
     <p id="ainfo">Someone needs help. Check on her now.</p>
     <button class="btn" id="stopAlarm" style="background:#14000a;color:#fff;margin-top:16px">Stop alarm</button>
   </section>
@@ -164,16 +180,28 @@ li{margin-bottom:7px}
   <!-- Phone side -->
   <section class="card" id="phone" hidden>
     <b>Phone: HELP button</b>
+
+    <!-- Step 1: enter code -->
     <div id="enter">
       <p class="small">Type the 6-digit code shown on your laptop:</p>
-      <input id="pcode" inputmode="numeric" maxlength="6" autocomplete="off" aria-label="6-digit code" placeholder="••••••">
-      <button class="btn" id="link">Link to laptop</button>
+      <input id="pcode" class="code-input" inputmode="numeric" maxlength="6" autocomplete="off" aria-label="6-digit code" placeholder="••••••">
+      <button class="btn" id="link">Next</button>
     </div>
+
+    <!-- Step 2: enter name -->
+    <div id="nameStep" hidden>
+      <p class="small">What is your name? (shown on the laptop when you press HELP)</p>
+      <input id="pname" class="name-input" maxlength="30" autocomplete="name" placeholder="Your name" aria-label="Your name">
+      <button class="btn" id="saveName">Continue</button>
+    </div>
+
+    <!-- Step 3: ready -->
     <div id="ready" hidden>
       <div class="status">
         <span class="dot" id="pdot"></span>
         <span id="pstat">Connecting…</span>
       </div>
+      <p class="small" id="myNameLabel" style="margin:0 0 4px"></p>
       <button class="help" id="help" aria-label="Press for HELP">HELP</button>
       <p class="msg" id="pmsg">Press HELP to start the alarm on your laptop.</p>
       <button class="btn alt" id="safe" hidden>I’m safe – stop the alarm</button>
@@ -194,9 +222,10 @@ const store = {
   del(k){ try{ localStorage.removeItem(k) }catch(e){} }
 };
 
-let client = null, role = null, code = null, paired = false;
+let client = null, role = null, code = null, myName = "";
 let deferredPrompt = null;
 let heartbeatT = null;
+let phones = {}; // id → {name, lastSeen}
 
 /* ---------- helpers ---------- */
 function show(id){
@@ -217,6 +246,31 @@ function note(t, bad){
   el.className = "msg" + (bad ? " bad" : (bad === false ? " good" : ""));
 }
 
+function updatePhoneList(){
+  const now = Date.now();
+  // Remove phones not seen for 15 seconds
+  Object.keys(phones).forEach(id => {
+    if(now - phones[id].lastSeen > 15000) delete phones[id];
+  });
+  const list = Object.values(phones);
+  const countEl = $("phoneCount");
+  const listEl = $("phoneList");
+  if(list.length === 0){
+    countEl.textContent = "No phones linked yet";
+    listEl.innerHTML = "";
+    setStatus("Waiting for phones…", false);
+  } else {
+    countEl.textContent = list.length + " phone" + (list.length > 1 ? "s" : "") + " linked";
+    listEl.innerHTML = list.map(p => 
+      `<li><span class="dot on"></span> ${escapeHtml(p.name || "Unknown")}</li>`
+    ).join("");
+    setStatus("Ready", true);
+  }
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
 /* ---------- MQTT connection (free public broker) ---------- */
 function topic(base){
   return "safelink/" + code + "/" + base;
@@ -225,7 +279,6 @@ function topic(base){
 function connect(){
   return new Promise((resolve) => {
     try{
-      // Free public HiveMQ broker – no account needed
       client = mqtt.connect("wss://broker.hivemq.com:8884/mqtt", {
         clientId: "sl_" + role + "_" + Math.random().toString(16).slice(2, 10),
         clean: true,
@@ -234,20 +287,20 @@ function connect(){
       });
 
       client.on("connect", () => {
-        setStatus(role === "laptop" ? "Waiting for phone…" : "Looking for laptop…", false);
-        // Subscribe to relevant topics
         if(role === "laptop"){
           client.subscribe(topic("sos"));
           client.subscribe(topic("cancel"));
           client.subscribe(topic("phone"));
+          setStatus("Waiting for phones…", false);
         } else {
           client.subscribe(topic("ack"));
           client.subscribe(topic("stop"));
           client.subscribe(topic("laptop"));
+          setStatus("Looking for laptop…", false);
         }
-        // Announce presence
         publishPresence();
         heartbeatT = setInterval(publishPresence, 4000);
+        if(role === "laptop") setInterval(updatePhoneList, 3000);
         resolve(true);
       });
 
@@ -257,18 +310,11 @@ function connect(){
         handleMessage(t, data);
       });
 
-      client.on("error", () => {
-        setStatus("Connection error – retrying…", false);
-      });
-
+      client.on("error", () => setStatus("Connection error – retrying…", false));
       client.on("close", () => {
         setStatus("Disconnected – reconnecting…", false);
-        paired = false;
       });
-
-      client.on("reconnect", () => {
-        setStatus("Reconnecting…", false);
-      });
+      client.on("reconnect", () => setStatus("Reconnecting…", false));
 
     } catch(e){
       note("Couldn’t connect. Check internet and reload.", true);
@@ -285,18 +331,25 @@ function publish(base, obj){
 }
 
 function publishPresence(){
-  publish(role, { ts: Date.now(), role });
+  if(role === "phone"){
+    publish("phone", {
+      id: client.options.clientId,
+      name: myName || "Phone",
+      ts: Date.now()
+    });
+  } else {
+    publish("laptop", { ts: Date.now() });
+  }
 }
 
 function handleMessage(t, data){
   if(t.endsWith("/sos") && role === "laptop"){
     onSos(data);
-    // Send ack back
     publish("ack", { id: data.id || "" });
   }
   else if(t.endsWith("/cancel") && role === "laptop"){
     stopAlarm();
-    note("Phone user marked safe.", false);
+    note((data.name ? data.name + " marked safe." : "Phone user marked safe."), false);
   }
   else if(t.endsWith("/ack") && role === "phone"){
     if(data.id === sosId){
@@ -310,11 +363,12 @@ function handleMessage(t, data){
     endSos();
   }
   else if(t.endsWith("/phone") && role === "laptop"){
-    paired = true;
-    setStatus("Phone linked ✓", true);
+    if(data.id){
+      phones[data.id] = { name: data.name || "Phone", lastSeen: Date.now() };
+      updatePhoneList();
+    }
   }
   else if(t.endsWith("/laptop") && role === "phone"){
-    paired = true;
     setStatus("Laptop linked ✓", true);
   }
 }
@@ -371,7 +425,7 @@ $("arm").onclick = async () => {
 };
 
 $("test").onclick = () => {
-  startAlarm({ test: true });
+  startAlarm({ test: true, name: "Test" });
   setTimeout(stopAlarm, 3000);
 };
 
@@ -389,16 +443,17 @@ function onSos(d){
 
 function startAlarm(d){
   d = d || {};
+  const name = (d.name || "").trim() || "Someone";
+  $("awho").textContent = name + " needs help!";
   const i = $("ainfo");
-  i.textContent = d.test ? "This is a test." : "Someone needs help. Check on her now.";
-  // clear previous location link
+  i.textContent = d.test ? "This is a test." : "Check on her now.";
   while(i.children.length) i.removeChild(i.lastChild);
   if(validNum(d.lat) && validNum(d.lng)){
     const a = document.createElement("a");
     a.href = "https://www.google.com/maps?q=" + d.lat.toFixed(6) + "," + d.lng.toFixed(6);
     a.target = "_blank";
     a.rel = "noopener noreferrer";
-    a.textContent = " → Open her location on the map";
+    a.textContent = " → Open location on the map";
     a.style.display = "block";
     a.style.marginTop = "8px";
     a.style.fontWeight = "700";
@@ -409,7 +464,6 @@ function startAlarm(d){
   alarmOn = true;
   document.body.classList.add("alarm");
 
-  // Loud siren
   try{
     ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
     ctx.resume();
@@ -427,7 +481,6 @@ function startAlarm(d){
     }, 380);
   } catch(e){}
 
-  // Flashing title
   let t = true;
   titleT = setInterval(() => {
     document.title = t ? "!!! HELP ALERT !!!" : "SafeLink";
@@ -458,16 +511,27 @@ let sosId = null, acked = false, sendT = null, tries = 0, pos = null;
 async function startPhone(){
   role = "phone";
   show("phone");
-  const saved = store.get("sl_code_phone");
-  if(saved){
-    code = saved;
+
+  const savedCode = store.get("sl_code_phone");
+  const savedName = store.get("sl_name_phone");
+
+  if(savedCode && savedName){
+    code = savedCode;
+    myName = savedName;
     $("enter").hidden = true;
+    $("nameStep").hidden = true;
     $("ready").hidden = false;
+    $("myNameLabel").textContent = "You are: " + myName;
     await connect();
+  } else if(savedCode){
+    code = savedCode;
+    $("enter").hidden = true;
+    $("nameStep").hidden = false;
+    $("ready").hidden = true;
   }
 }
 
-$("link").onclick = async () => {
+$("link").onclick = () => {
   const c = $("pcode").value.replace(/\D/g, "");
   if(c.length !== 6){
     $("pcode").focus();
@@ -476,12 +540,27 @@ $("link").onclick = async () => {
   code = c;
   store.set("sl_code_phone", c);
   $("enter").hidden = true;
+  $("nameStep").hidden = false;
+  $("pname").focus();
+};
+
+$("saveName").onclick = async () => {
+  const n = $("pname").value.trim();
+  if(!n || n.length < 2){
+    $("pname").focus();
+    return;
+  }
+  myName = n.slice(0, 30);
+  store.set("sl_name_phone", myName);
+  $("nameStep").hidden = true;
   $("ready").hidden = false;
+  $("myNameLabel").textContent = "You are: " + myName;
   await connect();
 };
 
 $("unlink").onclick = () => {
   store.del("sl_code_phone");
+  store.del("sl_name_phone");
   location.reload();
 };
 
@@ -489,6 +568,7 @@ function sendOnce(){
   tries++;
   publish("sos", {
     id: sosId,
+    name: myName,
     lat: pos ? pos.lat : null,
     lng: pos ? pos.lng : null,
     ts: Date.now()
@@ -523,7 +603,6 @@ $("help").onclick = () => {
   $("safe").hidden = false;
   $("help").classList.add("sending");
 
-  // Optional location
   try{
     navigator.geolocation && navigator.geolocation.getCurrentPosition(
       p => { pos = { lat: p.coords.latitude, lng: p.coords.longitude }; },
@@ -543,7 +622,7 @@ $("help").onclick = () => {
 };
 
 $("safe").onclick = () => {
-  publish("cancel", { id: sosId });
+  publish("cancel", { id: sosId, name: myName });
   endSos();
   note("Alarm cancelled. Glad you’re safe.", false);
 };
@@ -572,12 +651,11 @@ $("pickPhone").onclick = () => {
   startPhone();
 };
 
-// Auto-start from QR (?c=123456) or saved role
+// Auto-start from QR
 function getCodeFromUrl(){
   const params = new URLSearchParams(location.search);
   const fromQuery = params.get("c") || params.get("code");
   if(fromQuery && /^\d{6}$/.test(fromQuery)) return fromQuery;
-
   const hm = /^#p(\d{6})$/.exec(location.hash || "");
   if(hm) return hm[1];
   return null;
