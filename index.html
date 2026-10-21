@@ -2,283 +2,228 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#6a2fb8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="description" content="SafeLink – press HELP on your phone, laptop sounds a loud alarm">
+<meta name="description" content="SafeLink – girls safety SOS app">
 <title>SafeLink</title>
-<link rel="manifest" href="data:application/manifest+json,{&quot;name&quot;:&quot;SafeLink&quot;,&quot;short_name&quot;:&quot;SafeLink&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#0f0a1a&quot;,&quot;theme_color&quot;:&quot;#6a2fb8&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%236a2fb8'/%3E%3Ctext x='96' y='118' font-size='90' text-anchor='middle' fill='white' font-family='system-ui'%3E🆘%3C/text%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;192x192&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}">
+<link rel="manifest" href="data:application/manifest+json,{&quot;name&quot;:&quot;SafeLink&quot;,&quot;short_name&quot;:&quot;SafeLink&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#0f0a1a&quot;,&quot;theme_color&quot;:&quot;#6a2fb8&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%236a2fb8'/%3E%3Ctext x='96' y='118' font-size='90' text-anchor='middle' fill='white'%3E🆘%3C/text%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;192x192&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}">
 <style>
 :root{
-  --bg:#0f0a1a;
-  --surface:#1a1229;
-  --surface2:#241a38;
-  --ink:#f3eefc;
-  --muted:#a89bbf;
-  --line:#3a2d52;
-  --accent:#a78bfa;
-  --accent2:#7c3aed;
-  --sos:#ff2d55;
-  --sos-glow:#ff2d5588;
-  --ok:#34d399;
-  --card-shadow:0 8px 32px rgba(0,0,0,.4);
-  box-sizing:border-box;
-  padding-top:env(safe-area-inset-top,0px);
-  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#0f0a1a;--surface:#1a1229;--surface2:#241a38;--ink:#f3eefc;--muted:#a89bbf;
+  --line:#3a2d52;--accent:#a78bfa;--accent2:#7c3aed;--sos:#ff2d55;--ok:#34d399;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0);padding-bottom:env(safe-area-inset-bottom,0);
 }
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+[data-theme="light"]{
+  --bg:#f5f0ff;--surface:#fff;--surface2:#f0eaf8;--ink:#1e1233;--muted:#6b5b80;
+  --line:#ddd0f0;--accent:#7c3aed;--accent2:#6d28d9;--sos:#e11d48;--ok:#059669;
+}
 *{box-sizing:border-box}
-body{
-  margin:0;background:var(--bg);color:var(--ink);
-  font:16px/1.5 "Segoe UI",system-ui,-apple-system,sans-serif;
-  -webkit-tap-highlight-color:transparent;
-  min-height:100dvh;
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -20%, #4c1d9588, transparent),
-    radial-gradient(ellipse 60% 40% at 100% 100%, #7c3aed22, transparent);
-}
-main{max-width:480px;margin:0 auto;padding:24px 16px 56px}
-h1{
-  font:800 34px/1.1 system-ui,sans-serif;
-  margin:8px 0 6px;
-  background:linear-gradient(135deg,#e9d5ff,#a78bfa,#c084fc);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-clip:text;
-}
-.sub{color:var(--muted);margin:0 0 22px;font-size:15px}
-.card{
-  background:var(--surface);
-  border:1px solid var(--line);
-  border-radius:20px;
-  padding:20px;
-  margin-bottom:16px;
-  box-shadow:var(--card-shadow);
-  backdrop-filter:blur(12px);
-}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,sans-serif;min-height:100dvh;
+  background-image:radial-gradient(ellipse 80% 50% at 50% -20%,#4c1d9588,transparent)}
+[data-theme="light"] body{background-image:radial-gradient(ellipse 80% 50% at 50% -20%,#c4b5fd55,transparent)}
+main{max-width:480px;margin:0 auto;padding:20px 16px 60px}
+h1{font:800 32px/1.1 system-ui;margin:6px 0 4px;background:linear-gradient(135deg,#e9d5ff,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sub{color:var(--muted);margin:0 0 18px;font-size:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 8px 28px #0004}
 .card[hidden],[hidden]{display:none!important}
-.btn{
-  border:0;border-radius:14px;padding:15px 18px;font:inherit;font-weight:700;
-  cursor:pointer;background:linear-gradient(135deg,var(--accent2),#9333ea);
-  color:#fff;width:100%;margin-top:12px;
-  box-shadow:0 4px 20px #7c3aed55;
-  transition:transform .12s,box-shadow .12s;
-}
+.btn{border:0;border-radius:14px;padding:14px 16px;font:inherit;font-weight:700;cursor:pointer;
+  background:linear-gradient(135deg,var(--accent2),#9333ea);color:#fff;width:100%;margin-top:10px;box-shadow:0 4px 18px #7c3aed55}
 .btn:active{transform:scale(.97)}
-.btn.alt{
-  background:transparent;color:var(--ink);
-  border:1px solid var(--line);box-shadow:none;
-}
+.btn.alt{background:transparent;color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.btn.danger{background:var(--sos);box-shadow:0 4px 18px #ff2d5555}
+.btn.small{padding:10px 14px;font-size:14px;width:auto;display:inline-block;margin:4px 4px 0 0}
 a.btn{display:block;text-align:center;text-decoration:none}
-button:focus-visible,input:focus-visible,a:focus-visible{
-  outline:3px solid var(--accent);outline-offset:2px;
-}
-input, .name-input{
-  width:100%;padding:14px 16px;border:1px solid var(--line);border-radius:14px;
-  background:var(--surface2);color:var(--ink);font:inherit;
-}
-input.code-input{
-  font:700 28px/1 ui-monospace,Consolas,monospace;
-  letter-spacing:.35em;text-align:center;
-}
-input::placeholder{color:var(--muted)}
-.code{
-  font:800 52px/1 ui-monospace,Consolas,monospace;
-  letter-spacing:.2em;text-align:center;margin:14px 0;
-  color:var(--accent);
-  text-shadow:0 0 30px #a78bfa66;
-}
-.status{display:flex;align-items:center;gap:10px;color:var(--muted);margin:12px 0}
-.dot{width:10px;height:10px;border-radius:50%;background:var(--line);flex-shrink:0}
-.dot.on{background:var(--ok);box-shadow:0 0 0 4px #34d39933,0 0 12px #34d39988}
-.help{
-  display:block;margin:28px auto;
-  width:min(70vw,260px);height:min(70vw,260px);
-  border-radius:50%;border:0;background:var(--sos);color:#fff;
-  font:800 44px/1 system-ui,sans-serif;cursor:pointer;
-  box-shadow:
-    0 0 0 14px var(--sos-glow),
-    0 0 60px #ff2d5566,
-    0 12px 40px #0008;
-  transition:transform .12s;
-  -webkit-user-select:none;user-select:none;
-  position:relative;
-}
-.help::after{
-  content:"";position:absolute;inset:-18px;border-radius:50%;
-  border:2px solid var(--sos);opacity:.4;
-  animation:ring 2s ease-out infinite;
-}
-@keyframes ring{
-  0%{transform:scale(.9);opacity:.5}
-  100%{transform:scale(1.25);opacity:0}
-}
-.help:active{transform:scale(.93)}
-.help.sending{animation:pulse 1.1s ease-in-out infinite}
-@keyframes pulse{
-  0%,100%{box-shadow:0 0 0 14px var(--sos-glow),0 0 60px #ff2d5566}
-  50%{box-shadow:0 0 0 28px #ff2d5533,0 0 80px #ff2d5588}
-}
-.msg{color:var(--muted);margin:10px 0 0;font-size:14px}
+input,select,textarea{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);color:var(--ink);font:inherit}
+input.code-input{font:700 26px/1 ui-monospace,monospace;letter-spacing:.3em;text-align:center}
+.code{font:800 48px/1 ui-monospace,monospace;letter-spacing:.18em;text-align:center;margin:12px 0;color:var(--accent);text-shadow:0 0 24px #a78bfa55}
+.status{display:flex;align-items:center;gap:8px;color:var(--muted);margin:10px 0;font-size:14px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--line);flex-shrink:0}
+.dot.on{background:var(--ok);box-shadow:0 0 0 3px #34d39933,0 0 10px #34d39988}
+.help{display:block;margin:24px auto;width:min(68vw,240px);height:min(68vw,240px);border-radius:50%;border:0;
+  background:var(--sos);color:#fff;font:800 40px/1 system-ui;cursor:pointer;
+  box-shadow:0 0 0 12px #ff2d5544,0 0 50px #ff2d5566;position:relative;-webkit-user-select:none;user-select:none}
+.help::after{content:"";position:absolute;inset:-16px;border-radius:50%;border:2px solid var(--sos);opacity:.35;animation:ring 2s ease-out infinite}
+@keyframes ring{0%{transform:scale(.9);opacity:.5}100%{transform:scale(1.2);opacity:0}}
+.help:active{transform:scale(.94)}
+.help.sending{animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 12px #ff2d5544}50%{box-shadow:0 0 0 24px #ff2d5533}}
+.msg{color:var(--muted);margin:8px 0 0;font-size:13px}
 .msg.bad{color:var(--sos);font-weight:600}
 .msg.good{color:var(--ok);font-weight:600}
-ol{padding-left:20px;margin:12px 0 0;color:var(--muted);font-size:14px}
-li{margin-bottom:8px}
 .small{font-size:13px;color:var(--muted)}
-.install-banner{
-  background:linear-gradient(135deg,#7c3aed,#a78bfa);
-  color:#fff;border-radius:14px;padding:12px 14px;margin-bottom:16px;
-  display:none;align-items:center;gap:10px;font-size:14px;font-weight:600;
-}
-.install-banner button{
-  margin-left:auto;background:#fff;color:#7c3aed;
-  border:0;border-radius:10px;padding:8px 14px;font-weight:700;cursor:pointer;
-}
-.phone-list{margin:12px 0 0;padding:0;list-style:none}
-.phone-list li{
-  display:flex;align-items:center;gap:10px;
-  padding:10px 12px;margin-bottom:6px;
-  background:var(--surface2);border-radius:12px;
-  font-size:14px;font-weight:600;
-}
+ol{padding-left:18px;margin:10px 0 0;color:var(--muted);font-size:13px}
+li{margin-bottom:6px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.switch{display:flex;align-items:center;gap:10px;margin:10px 0;font-size:14px}
+.switch input{width:auto;accent-color:var(--accent)}
+.phone-list,.history-list,.contact-list{list-style:none;padding:0;margin:8px 0 0}
+.phone-list li,.history-list li,.contact-list li{
+  display:flex;align-items:center;gap:8px;padding:10px 12px;margin-bottom:6px;
+  background:var(--surface2);border-radius:12px;font-size:14px}
 .phone-list .dot{width:8px;height:8px}
-#alarmbox{
-  background:linear-gradient(180deg,#2a0a14,#1a0510);
-  border:2px solid var(--sos);
-  border-radius:20px;
-  text-align:center;
-  position:relative;z-index:20;
-  box-shadow:0 0 60px #ff2d5544, inset 0 0 40px #ff2d5511;
-  animation:alarmPulse 1.2s ease-in-out infinite;
-}
-@keyframes alarmPulse{
-  0%,100%{box-shadow:0 0 40px #ff2d5544}
-  50%{box-shadow:0 0 80px #ff2d5588}
-}
-#alarmbox h2{
-  font:800 26px/1.2 system-ui,sans-serif;
-  margin:0 0 6px;color:#fff;
-  text-shadow:0 0 20px #ff2d55;
-}
-.alarm-count{
-  display:inline-block;
-  background:var(--sos);color:#fff;
-  font-size:13px;font-weight:800;
-  padding:4px 12px;border-radius:20px;
-  margin-bottom:14px;
-}
-.emergency-list{
-  list-style:none;padding:0;margin:0 0 16px;text-align:left;
-}
-.emergency-item{
-  background:#1a0a12;
-  border:1px solid #ff2d5555;
-  border-radius:14px;
-  padding:14px 16px;
-  margin-bottom:10px;
-  display:flex;flex-direction:column;gap:6px;
-}
-.emergency-item .ename{
-  font:800 18px/1.2 system-ui,sans-serif;
-  color:#fff;
-}
-.emergency-item .etime{
-  font-size:12px;color:#ff8fa3;
-}
-.emergency-item .eloc a{
-  display:inline-flex;align-items:center;gap:6px;
-  color:#a78bfa;font-weight:700;font-size:14px;
-  text-decoration:none;
-}
-.emergency-item .eloc a:hover{text-decoration:underline}
-body.alarm{
-  animation:flash .6s steps(1) infinite;
-}
+#alarmbox{background:linear-gradient(180deg,#2a0a14,#1a0510);border:2px solid var(--sos);border-radius:18px;text-align:center;
+  box-shadow:0 0 50px #ff2d5544;animation:alarmPulse 1.2s ease-in-out infinite}
+@keyframes alarmPulse{0%,100%{box-shadow:0 0 30px #ff2d5544}50%{box-shadow:0 0 60px #ff2d5588}}
+#alarmbox h2{font:800 24px/1.2 system-ui;margin:0 0 4px;color:#fff;text-shadow:0 0 16px #ff2d55}
+.alarm-count{display:inline-block;background:var(--sos);color:#fff;font-size:12px;font-weight:800;padding:3px 10px;border-radius:16px;margin-bottom:12px}
+.emergency-list{list-style:none;padding:0;margin:0 0 14px;text-align:left}
+.emergency-item{background:#1a0a12;border:1px solid #ff2d5555;border-radius:12px;padding:12px 14px;margin-bottom:8px}
+.emergency-item .ename{font:800 16px/1.2 system-ui;color:#fff}
+.emergency-item .etime{font-size:11px;color:#ff8fa3}
+.emergency-item a{color:#a78bfa;font-weight:700;font-size:13px;text-decoration:none}
+body.alarm{animation:flash .55s steps(1) infinite}
 @keyframes flash{50%{background:#2a0510}}
-@media (prefers-reduced-motion:reduce){
-  body.alarm{animation:none;background:#2a0510}
-  .help.sending,.help::after,#alarmbox{animation:none}
-}
+@media(prefers-reduced-motion:reduce){body.alarm,.help.sending,.help::after,#alarmbox{animation:none}}
+.topbar{display:flex;justify-content:flex-end;gap:8px;margin-bottom:8px}
+.topbar button{background:var(--surface2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:6px 10px;font-size:12px;cursor:pointer}
+#fakeScreen{position:fixed;inset:0;z-index:9999;background:#111;color:#eee;display:none;flex-direction:column;align-items:center;justify-content:center;font-family:ui-monospace,monospace}
+#fakeScreen .calc{font-size:48px;margin:20px 0}
+#pinLock{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+#pinLock input{max-width:220px;text-align:center;font-size:28px;letter-spacing:.4em}
+.warn{background:#7c3aed22;border:1px solid #a78bfa55;border-radius:12px;padding:10px 12px;margin:8px 0;font-size:13px;color:var(--accent)}
+.section-title{font-weight:700;font-size:15px;margin:14px 0 6px}
+img.sos-photo{max-width:100%;border-radius:10px;margin-top:6px}
 </style>
 </head>
 <body>
-<main>
-  <h1>SafeLink</h1>
-  <p class="sub">Press HELP on your phone → laptop sounds a loud alarm so someone can come help.</p>
+<!-- PIN LOCK (laptop admin) -->
+<div id="pinLock" hidden>
+  <h2 style="margin:0 0 8px">🔐 Admin PIN</h2>
+  <p class="small" style="text-align:center;margin:0 0 16px">Enter PIN to open laptop alarm station</p>
+  <input id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off">
+  <button class="btn" id="pinSubmit" style="max-width:220px;margin-top:14px">Unlock</button>
+  <p class="msg" id="pinMsg"></p>
+  <p class="small" style="margin-top:20px;text-align:center">Default PIN: <b>1234</b><br>Change it after unlock in Settings</p>
+</div>
 
-  <div class="install-banner" id="installBanner">
-    <span>Install on your phone</span>
-    <button id="installBtn">Install</button>
+<!-- Fake calculator hide screen -->
+<div id="fakeScreen">
+  <div style="font-size:14px;opacity:.6;margin-bottom:8px">Calculator</div>
+  <div class="calc" id="fakeDisplay">0</div>
+  <div style="display:grid;grid-template-columns:repeat(4,60px);gap:8px;margin-top:12px">
+    <button class="btn small" data-f="7">7</button><button class="btn small" data-f="8">8</button>
+    <button class="btn small" data-f="9">9</button><button class="btn small" data-f="C">C</button>
+    <button class="btn small" data-f="4">4</button><button class="btn small" data-f="5">5</button>
+    <button class="btn small" data-f="6">6</button><button class="btn small" data-f="+">+</button>
+    <button class="btn small" data-f="1">1</button><button class="btn small" data-f="2">2</button>
+    <button class="btn small" data-f="3">3</button><button class="btn small" data-f="-">-</button>
+    <button class="btn small" data-f="0">0</button><button class="btn small" data-f=".">.</button>
+    <button class="btn small" data-f="=">=</button><button class="btn small" data-f="×">×</button>
+  </div>
+  <p class="small" style="margin-top:24px;opacity:.4">Triple-tap screen to return</p>
+</div>
+
+<main>
+  <div class="topbar">
+    <button id="themeBtn" title="Toggle theme">🌓</button>
+    <button id="langBtn" title="Language">EN / हिं</button>
   </div>
 
+  <h1>SafeLink</h1>
+  <p class="sub" data-i18n="sub">Press HELP → laptop sounds alarm so someone can help you.</p>
+
+  <!-- Picker -->
   <section class="card" id="pick">
-    <b style="font-size:17px">Which device is this?</b>
-    <button class="btn" id="pickLaptop">This is my laptop (alarm station)</button>
-    <button class="btn alt" id="pickPhone">This is my phone (HELP button)</button>
+    <b data-i18n="which">Which device is this?</b>
+    <button class="btn" id="pickLaptop" data-i18n="laptopBtn">This is my laptop (alarm station)</button>
+    <button class="btn alt" id="pickPhone" data-i18n="phoneBtn">This is my phone (HELP button)</button>
     <ol>
-      <li>Open on your <b>laptop</b> → choose “laptop”. QR + code appear.</li>
-      <li>Scan QR with any phone (or type code) → enter your name.</li>
-      <li>Link <b>many phones</b> to one laptop.</li>
-      <li>On laptop press <b>Arm alarm</b> and keep tab open.</li>
-      <li>When help is needed → press the big red <b>HELP</b> button.</li>
+      <li data-i18n="s1">Open on laptop → choose laptop. QR + code appear.</li>
+      <li data-i18n="s2">Scan QR on phone → enter your name.</li>
+      <li data-i18n="s3">Many phones can link to one laptop.</li>
+      <li data-i18n="s4">Arm alarm on laptop and keep tab open.</li>
+      <li data-i18n="s5">Press big red HELP when you need help.</li>
     </ol>
-    <p class="small" style="margin-top:16px">
-      <b>Backup only.</b> In danger call <b>112</b> or <b>1091</b> first.
-    </p>
+    <p class="small" style="margin-top:12px" data-i18n="disclaimer"><b>Backup only.</b> Call 112 or 1091 first if in danger.</p>
   </section>
 
+  <!-- Laptop -->
   <section class="card" id="laptop" hidden>
-    <b style="font-size:17px">Laptop · Alarm station</b>
-    <p class="small" style="margin:12px 0 0">Scan with any phone camera:</p>
-    <div id="qr" style="display:flex;justify-content:center;background:#fff;padding:16px;border-radius:16px;margin:12px 0"></div>
-    <p class="small" style="margin:0;text-align:center">Or type this code:</p>
+    <b data-i18n="laptopTitle">Laptop · Alarm station</b>
+    <p class="small" style="margin:10px 0 0" data-i18n="scanQr">Scan with any phone camera:</p>
+    <div id="qr" style="display:flex;justify-content:center;background:#fff;padding:14px;border-radius:14px;margin:10px 0"></div>
+    <p class="small" style="text-align:center" data-i18n="orCode">Or type this code:</p>
     <div class="code" id="lcode">------</div>
-    <div class="status">
-      <span class="dot" id="ldot"></span>
-      <span id="lstat">Connecting…</span>
-    </div>
-    <p class="small" id="phoneCount" style="margin:4px 0 0"></p>
+    <div class="status"><span class="dot" id="ldot"></span><span id="lstat">Connecting…</span></div>
+    <p class="small" id="phoneCount"></p>
     <ul class="phone-list" id="phoneList"></ul>
-    <button class="btn" id="arm">Arm alarm</button>
-    <button class="btn alt" id="test">Test alarm (3 sec)</button>
-    <p class="msg" id="lmsg">Press “Arm alarm” so the browser allows sound. Keep this tab open.</p>
-    <button class="btn alt" id="newcode">Make a new code</button>
+
+    <div class="section-title" data-i18n="settings">Settings</div>
+    <div class="switch"><input type="checkbox" id="silentMode"><label for="silentMode" data-i18n="silent">Silent mode (no siren, only visual)</label></div>
+    <div class="row">
+      <button class="btn small alt" id="changePin" data-i18n="changePin">Change PIN</button>
+      <button class="btn small alt" id="showHistory" data-i18n="history">History</button>
+    </div>
+    <div id="historyBox" hidden>
+      <ul class="history-list" id="historyList"></ul>
+    </div>
+    <div class="section-title" data-i18n="changePinTitle">Change Admin PIN</div>
+    <div id="pinChangeBox" hidden>
+      <input id="newPin" type="password" inputmode="numeric" maxlength="6" placeholder="New 4-6 digit PIN">
+      <button class="btn small" id="savePin" data-i18n="save">Save PIN</button>
+    </div>
+
+    <button class="btn" id="arm" data-i18n="arm">Arm alarm</button>
+    <button class="btn alt" id="test" data-i18n="test">Test alarm (3 sec)</button>
+    <p class="msg" id="lmsg" data-i18n="armHint">Press Arm so browser allows sound. Keep tab open.</p>
+    <button class="btn alt" id="newcode" data-i18n="newCode">Make a new code</button>
   </section>
 
+  <!-- Alarm / Emergencies -->
   <section class="card" id="alarmbox" hidden>
     <h2>🆘 EMERGENCY</h2>
     <div class="alarm-count" id="alarmCount">1 person needs help</div>
     <ul class="emergency-list" id="emergencyList"></ul>
-    <button class="btn" id="stopAlarm" style="background:#ff2d55;box-shadow:0 4px 20px #ff2d5555">Stop all alarms</button>
+    <button class="btn danger" id="stopAlarm" data-i18n="stopAll">Stop all alarms</button>
   </section>
 
+  <!-- Phone -->
   <section class="card" id="phone" hidden>
-    <b style="font-size:17px">Phone · HELP button</b>
+    <b data-i18n="phoneTitle">Phone · HELP button</b>
 
     <div id="enter">
-      <p class="small">Type the 6-digit code from the laptop:</p>
-      <input id="pcode" class="code-input" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="••••••" aria-label="6-digit code">
-      <button class="btn" id="link">Next</button>
+      <p class="small" data-i18n="enterCode">Type the 6-digit code from laptop:</p>
+      <input id="pcode" class="code-input" inputmode="numeric" maxlength="6" placeholder="••••••">
+      <button class="btn" id="link" data-i18n="next">Next</button>
     </div>
 
     <div id="nameStep" hidden>
-      <p class="small">Your name (shown on laptop when you need help):</p>
-      <input id="pname" class="name-input" maxlength="30" autocomplete="name" placeholder="Your name" aria-label="Your name">
-      <button class="btn" id="saveName">Continue</button>
+      <p class="small" data-i18n="enterName">Your name (shown when you need help):</p>
+      <input id="pname" maxlength="30" placeholder="Your name" autocomplete="name">
+      <button class="btn" id="saveName" data-i18n="continue">Continue</button>
     </div>
 
     <div id="ready" hidden>
-      <div class="status">
-        <span class="dot" id="pdot"></span>
-        <span id="pstat">Connecting…</span>
+      <div class="status"><span class="dot" id="pdot"></span><span id="pstat">Connecting…</span></div>
+      <p class="small" id="myNameLabel"></p>
+      <div id="warnBox"></div>
+
+      <button class="help" id="help">HELP</button>
+      <p class="msg" id="pmsg" data-i18n="pressHelp">Press HELP to alert the laptop.</p>
+      <button class="btn alt" id="safe" hidden data-i18n="imSafe">I’m safe – stop my alarm</button>
+
+      <div class="section-title" data-i18n="contacts">Emergency contacts</div>
+      <ul class="contact-list" id="contactList"></ul>
+      <div class="row">
+        <input id="cName" placeholder="Name" style="flex:1">
+        <input id="cPhone" placeholder="Phone" inputmode="tel" style="flex:1">
       </div>
-      <p class="small" id="myNameLabel" style="margin:0 0 4px"></p>
-      <button class="help" id="help" aria-label="Press for HELP">HELP</button>
-      <p class="msg" id="pmsg">Press HELP to alert the laptop.</p>
-      <button class="btn alt" id="safe" hidden>I’m safe – stop my alarm</button>
-      <a class="btn" href="tel:112" target="_top" style="background:var(--sos);box-shadow:0 4px 20px #ff2d5555;margin-top:18px">Call 112 (Emergency)</a>
-      <a class="btn alt" href="tel:1091" target="_top">Call women helpline 1091</a>
-      <button class="btn alt" id="unlink">Use a different code</button>
+      <button class="btn small alt" id="addContact" data-i18n="addContact">Add contact</button>
+
+      <div class="section-title" data-i18n="options">Options</div>
+      <div class="switch"><input type="checkbox" id="shakeOn"><label for="shakeOn" data-i18n="shake">Shake phone to trigger HELP</label></div>
+      <div class="switch"><input type="checkbox" id="photoOn" checked><label for="photoOn" data-i18n="photo">Send photo with HELP</label></div>
+      <div class="switch"><input type="checkbox" id="liveLoc" checked><label for="liveLoc" data-i18n="liveLoc">Send live location while active</label></div>
+
+      <div class="row" style="margin-top:12px">
+        <button class="btn small alt" id="hideBtn" data-i18n="hide">Hide app (fake calculator)</button>
+      </div>
+
+      <a class="btn danger" href="tel:112" style="margin-top:16px">Call 112</a>
+      <a class="btn alt" href="tel:1091">Call 1091</a>
+      <button class="btn alt" id="unlink" data-i18n="differentCode">Use different code</button>
     </div>
   </section>
 </main>
@@ -290,438 +235,422 @@ const $ = id => document.getElementById(id);
 const store = {
   get(k){ try{ return localStorage.getItem(k) }catch(e){ return null } },
   set(k,v){ try{ localStorage.setItem(k,v) }catch(e){} },
-  del(k){ try{ localStorage.removeItem(k) }catch(e){} }
+  del(k){ try{ localStorage.removeItem(k) }catch(e){} },
+  getJson(k,def){ try{ return JSON.parse(localStorage.getItem(k))||def }catch(e){ return def } },
+  setJson(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)) }catch(e){} }
 };
 
-let client = null, role = null, code = null, myName = "";
-let deferredPrompt = null;
-let heartbeatT = null;
-let phones = {};
-let emergencies = {};
+let client=null, role=null, code=null, myName="";
+let phones={}, emergencies={}, history=[];
+let sosId=null, acked=false, sendT=null, locT=null, tries=0, pos=null;
+let ctx=null, osc=null, sirenT=null, titleT=null, sirenOn=false;
+let lang="en";
 
-function show(id){
-  ["pick","laptop","phone"].forEach(x => $(x).hidden = x !== id);
-}
-function setStatus(text, on){
-  if(role === "laptop"){
-    $("lstat").textContent = text;
-    $("ldot").classList.toggle("on", !!on);
-  } else {
-    $("pstat").textContent = text;
-    $("pdot").classList.toggle("on", !!on);
+/* i18n */
+const i18n = {
+  en:{
+    sub:"Press HELP → laptop sounds alarm so someone can help you.",
+    which:"Which device is this?", laptopBtn:"This is my laptop (alarm station)", phoneBtn:"This is my phone (HELP button)",
+    s1:"Open on laptop → choose laptop. QR + code appear.", s2:"Scan QR on phone → enter your name.",
+    s3:"Many phones can link to one laptop.", s4:"Arm alarm on laptop and keep tab open.", s5:"Press big red HELP when you need help.",
+    disclaimer:"Backup only. Call 112 or 1091 first if in danger.",
+    laptopTitle:"Laptop · Alarm station", scanQr:"Scan with any phone camera:", orCode:"Or type this code:",
+    settings:"Settings", silent:"Silent mode (no siren, only visual)", changePin:"Change PIN", history:"History",
+    changePinTitle:"Change Admin PIN", save:"Save PIN", arm:"Arm alarm", test:"Test alarm (3 sec)",
+    armHint:"Press Arm so browser allows sound. Keep tab open.", newCode:"Make a new code", stopAll:"Stop all alarms",
+    phoneTitle:"Phone · HELP button", enterCode:"Type the 6-digit code from laptop:", next:"Next",
+    enterName:"Your name (shown when you need help):", continue:"Continue", pressHelp:"Press HELP to alert the laptop.",
+    imSafe:"I’m safe – stop my alarm", contacts:"Emergency contacts", addContact:"Add contact", options:"Options",
+    shake:"Shake phone to trigger HELP", photo:"Send photo with HELP", liveLoc:"Send live location while active",
+    hide:"Hide app (fake calculator)", differentCode:"Use different code"
+  },
+  hi:{
+    sub:"HELP दबाएँ → लैपटॉप पर तेज़ अलार्म बजेगा ताकि कोई मदद कर सके।",
+    which:"यह कौन सा डिवाइस है?", laptopBtn:"यह मेरा लैपटॉप है (अलार्म स्टेशन)", phoneBtn:"यह मेरा फोन है (HELP बटन)",
+    s1:"लैपटॉप पर खोलें → लैपटॉप चुनें। QR और कोड दिखेगा।", s2:"फोन से QR स्कैन करें → अपना नाम लिखें।",
+    s3:"एक लैपटॉप से कई फोन जुड़ सकते हैं।", s4:"लैपटॉप पर Arm alarm दबाएँ और टैब खुला रखें।", s5:"मदद चाहिए तो लाल HELP बटन दबाएँ।",
+    disclaimer:"यह केवल बैकअप है। खतरे में पहले 112 या 1091 कॉल करें।",
+    laptopTitle:"लैपटॉप · अलार्म स्टेशन", scanQr:"किसी भी फोन कैमरे से स्कैन करें:", orCode:"या यह कोड टाइप करें:",
+    settings:"सेटिंग्स", silent:"साइलेंट मोड (केवल स्क्रीन, कोई आवाज़ नहीं)", changePin:"PIN बदलें", history:"इतिहास",
+    changePinTitle:"एडमिन PIN बदलें", save:"सेव करें", arm:"अलार्म आर्म करें", test:"टेस्ट अलार्म (3 सेकंड)",
+    armHint:"आवाज़ के लिए Arm दबाएँ। टैब खुला रखें।", newCode:"नया कोड बनाएँ", stopAll:"सभी अलार्म बंद करें",
+    phoneTitle:"फोन · HELP बटन", enterCode:"लैपटॉप का 6 अंकों का कोड लिखें:", next:"आगे",
+    enterName:"आपका नाम (मदद माँगने पर दिखेगा):", continue:"जारी रखें", pressHelp:"लैपटॉप को अलर्ट करने के लिए HELP दबाएँ।",
+    imSafe:"मैं सुरक्षित हूँ – अलार्म बंद करें", contacts:"आपातकालीन संपर्क", addContact:"संपर्क जोड़ें", options:"विकल्प",
+    shake:"फोन हिलाकर HELP भेजें", photo:"HELP के साथ फोटो भेजें", liveLoc:"सक्रिय रहते लाइव लोकेशन भेजें",
+    hide:"ऐप छुपाएँ (नकली कैलकुलेटर)", differentCode:"दूसरा कोड इस्तेमाल करें"
   }
+};
+function applyLang(){
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const k=el.getAttribute("data-i18n");
+    if(i18n[lang][k]) el.textContent=i18n[lang][k];
+  });
 }
-function note(t, bad){
-  const el = role === "laptop" ? $("lmsg") : $("pmsg");
-  el.textContent = t;
-  el.className = "msg" + (bad ? " bad" : (bad === false ? " good" : ""));
+$("langBtn").onclick=()=>{ lang=lang==="en"?"hi":"en"; store.set("sl_lang",lang); applyLang(); };
+$("themeBtn").onclick=()=>{
+  const t=document.documentElement.getAttribute("data-theme")==="light"?"":"light";
+  document.documentElement.setAttribute("data-theme",t);
+  store.set("sl_theme",t);
+};
+
+/* PIN lock for laptop */
+function getPin(){ return store.get("sl_pin")||"1234"; }
+function showPinLock(){
+  $("pinLock").hidden=false;
+  $("pinInput").value="";
+  $("pinInput").focus();
 }
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+$("pinSubmit").onclick=()=>{
+  if($("pinInput").value===getPin()){
+    $("pinLock").hidden=true;
+    startLaptop(true);
+  } else {
+    $("pinMsg").textContent="Wrong PIN";
+    $("pinMsg").className="msg bad";
+  }
+};
+$("pinInput").onkeydown=e=>{ if(e.key==="Enter") $("pinSubmit").click(); };
+
+/* Helpers */
+function show(id){ ["pick","laptop","phone"].forEach(x=>$(x).hidden=x!==id); }
+function setStatus(t,on){
+  if(role==="laptop"){ $("lstat").textContent=t; $("ldot").classList.toggle("on",!!on); }
+  else { $("pstat").textContent=t; $("pdot").classList.toggle("on",!!on); }
 }
-function timeAgo(ts){
-  const s = Math.floor((Date.now() - ts) / 1000);
-  if(s < 5) return "just now";
-  if(s < 60) return s + "s ago";
-  return Math.floor(s/60) + "m ago";
+function note(t,bad){
+  const el=role==="laptop"?$("lmsg"):$("pmsg");
+  el.textContent=t; el.className="msg"+(bad?" bad":(bad===false?" good":""));
 }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function timeAgo(ts){ const s=Math.floor((Date.now()-ts)/1000); if(s<5)return"just now"; if(s<60)return s+"s ago"; return Math.floor(s/60)+"m ago"; }
 
 function updatePhoneList(){
-  const now = Date.now();
-  Object.keys(phones).forEach(id => {
-    if(now - phones[id].lastSeen > 15000) delete phones[id];
-  });
-  const list = Object.values(phones);
-  const countEl = $("phoneCount");
-  const listEl = $("phoneList");
-  if(list.length === 0){
-    countEl.textContent = "No phones linked yet";
-    listEl.innerHTML = "";
-    setStatus("Waiting for phones…", false);
-  } else {
-    countEl.textContent = list.length + " phone" + (list.length > 1 ? "s" : "") + " linked";
-    listEl.innerHTML = list.map(p =>
-      `<li><span class="dot on"></span>${escapeHtml(p.name || "Unknown")}</li>`
-    ).join("");
-    setStatus("Ready", true);
-  }
+  const now=Date.now();
+  Object.keys(phones).forEach(id=>{ if(now-phones[id].lastSeen>15000) delete phones[id]; });
+  const list=Object.values(phones);
+  $("phoneCount").textContent=list.length? list.length+" phone"+(list.length>1?"s":"")+" linked" : "No phones linked yet";
+  $("phoneList").innerHTML=list.map(p=>`<li><span class="dot on"></span>${escapeHtml(p.name||"Unknown")}</li>`).join("");
+  setStatus(list.length?"Ready":"Waiting for phones…", !!list.length);
 }
 
 function renderEmergencies(){
-  const list = Object.values(emergencies).sort((a,b) => b.ts - a.ts);
-  const box = $("alarmbox");
-  const countEl = $("alarmCount");
-  const listEl = $("emergencyList");
-
-  if(list.length === 0){
-    box.hidden = true;
-    stopSirenOnly();
-    return;
-  }
-
-  box.hidden = false;
-  countEl.textContent = list.length === 1
-    ? "1 person needs help"
-    : list.length + " people need help";
-
-  listEl.innerHTML = list.map(e => {
-    let loc = "";
-    if(typeof e.lat === "number" && typeof e.lng === "number"){
-      const url = `https://www.google.com/maps?q=${e.lat.toFixed(6)},${e.lng.toFixed(6)}`;
-      loc = `<div class="eloc"><a href="${url}" target="_blank" rel="noopener">📍 Open location on map</a></div>`;
-    }
+  const list=Object.values(emergencies).sort((a,b)=>b.ts-a.ts);
+  if(!list.length){ $("alarmbox").hidden=true; stopSirenOnly(); return; }
+  $("alarmbox").hidden=false;
+  $("alarmCount").textContent=list.length===1?"1 person needs help":list.length+" people need help";
+  $("emergencyList").innerHTML=list.map(e=>{
+    let loc="", photo="";
+    if(typeof e.lat==="number"&&typeof e.lng==="number")
+      loc=`<div><a href="https://www.google.com/maps?q=${e.lat.toFixed(6)},${e.lng.toFixed(6)}" target="_blank" rel="noopener">📍 Open location</a></div>`;
+    if(e.photo) photo=`<img class="sos-photo" src="${e.photo}" alt="photo">`;
     return `<li class="emergency-item">
-      <div class="ename">${escapeHtml(e.name || "Someone")} is in emergency</div>
-      <div class="etime">${timeAgo(e.ts)}</div>
-      ${loc}
-    </li>`;
+      <div class="ename">${escapeHtml(e.name||"Someone")} is in emergency</div>
+      <div class="etime">${timeAgo(e.ts)}</div>${loc}${photo}</li>`;
   }).join("");
-
-  startSirenOnly();
+  if(!$("silentMode").checked) startSirenOnly();
+  else { document.body.classList.add("alarm"); }
 }
 
-function topic(base){ return "safelink/" + code + "/" + base; }
+function addHistory(e){
+  history.unshift({name:e.name,ts:e.ts,lat:e.lat,lng:e.lng});
+  if(history.length>30) history.pop();
+  store.setJson("sl_history",history);
+}
 
+/* MQTT */
+function topic(b){ return "safelink/"+code+"/"+b; }
 function connect(){
-  return new Promise((resolve) => {
+  return new Promise(resolve=>{
     try{
-      client = mqtt.connect("wss://broker.hivemq.com:8884/mqtt", {
-        clientId: "sl_" + role + "_" + Math.random().toString(16).slice(2, 10),
-        clean: true,
-        reconnectPeriod: 3000,
-        connectTimeout: 8000
+      client=mqtt.connect("wss://broker.hivemq.com:8884/mqtt",{
+        clientId:"sl_"+role+"_"+Math.random().toString(16).slice(2,8),
+        clean:true,reconnectPeriod:3000,connectTimeout:8000
       });
-
-      client.on("connect", () => {
-        if(role === "laptop"){
-          client.subscribe(topic("sos"));
-          client.subscribe(topic("cancel"));
-          client.subscribe(topic("phone"));
-          setStatus("Waiting for phones…", false);
+      client.on("connect",()=>{
+        if(role==="laptop"){
+          client.subscribe(topic("sos")); client.subscribe(topic("cancel")); client.subscribe(topic("phone"));
+          setStatus("Waiting for phones…",false);
         } else {
-          client.subscribe(topic("ack"));
-          client.subscribe(topic("stop"));
-          client.subscribe(topic("laptop"));
-          setStatus("Looking for laptop…", false);
+          client.subscribe(topic("ack")); client.subscribe(topic("stop")); client.subscribe(topic("laptop"));
+          setStatus("Looking for laptop…",false);
         }
         publishPresence();
-        heartbeatT = setInterval(publishPresence, 4000);
-        if(role === "laptop") setInterval(updatePhoneList, 3000);
+        setInterval(publishPresence,4000);
+        if(role==="laptop") setInterval(updatePhoneList,3000);
         resolve(true);
       });
-
-      client.on("message", (t, payload) => {
-        let data = {};
-        try{ data = JSON.parse(payload.toString()); } catch(e){}
-        handleMessage(t, data);
+      client.on("message",(t,payload)=>{
+        let data={}; try{ data=JSON.parse(payload.toString()); }catch(e){}
+        handleMessage(t,data);
       });
-
-      client.on("error", () => setStatus("Connection error – retrying…", false));
-      client.on("close", () => setStatus("Disconnected – reconnecting…", false));
-      client.on("reconnect", () => setStatus("Reconnecting…", false));
-    } catch(e){
-      note("Couldn’t connect. Check internet and reload.", true);
-      resolve(false);
-    }
+      client.on("error",()=>setStatus("Connection error…",false));
+      client.on("close",()=>setStatus("Reconnecting…",false));
+    }catch(e){ note("Couldn’t connect.",true); resolve(false); }
   });
 }
-
-function publish(base, obj){
-  if(!client || !client.connected) return;
-  try{ client.publish(topic(base), JSON.stringify(obj || {}), { qos: 1 }); } catch(e){}
-}
-
+function publish(b,obj){ if(!client||!client.connected)return; try{ client.publish(topic(b),JSON.stringify(obj||{}),{qos:1}); }catch(e){} }
 function publishPresence(){
-  if(role === "phone"){
-    publish("phone", { id: client.options.clientId, name: myName || "Phone", ts: Date.now() });
-  } else {
-    publish("laptop", { ts: Date.now() });
+  if(role==="phone") publish("phone",{id:client.options.clientId,name:myName||"Phone",ts:Date.now()});
+  else publish("laptop",{ts:Date.now()});
+}
+function handleMessage(t,data){
+  if(t.endsWith("/sos")&&role==="laptop"){
+    const id=data.id||("x"+Date.now());
+    emergencies[id]={name:data.name||"Someone",lat:data.lat,lng:data.lng,ts:data.ts||Date.now(),photo:data.photo||null};
+    renderEmergencies();
+    addHistory(emergencies[id]);
+    publish("ack",{id:data.id||""});
   }
+  else if(t.endsWith("/cancel")&&role==="laptop"){
+    if(data.id&&emergencies[data.id]) delete emergencies[data.id];
+    else Object.keys(emergencies).forEach(k=>{ if(emergencies[k].name===data.name) delete emergencies[k]; });
+    renderEmergencies();
+    note((data.name?data.name+" marked safe.":"Someone marked safe."),false);
+  }
+  else if(t.endsWith("/ack")&&role==="phone"){
+    if(data.id===sosId){ acked=true; note("Laptop is sounding the alarm.",false); $("help").classList.remove("sending"); }
+  }
+  else if(t.endsWith("/stop")&&role==="phone"){ note("Laptop stopped the alarms."); endSos(); }
+  else if(t.endsWith("/phone")&&role==="laptop"){
+    if(data.id){ phones[data.id]={name:data.name||"Phone",lastSeen:Date.now()}; updatePhoneList(); }
+  }
+  else if(t.endsWith("/laptop")&&role==="phone") setStatus("Laptop linked ✓",true);
 }
 
-function handleMessage(t, data){
-  if(t.endsWith("/sos") && role === "laptop"){
-    const id = data.id || ("x" + Date.now());
-    emergencies[id] = {
-      name: data.name || "Someone",
-      lat: data.lat,
-      lng: data.lng,
-      ts: data.ts || Date.now()
-    };
-    renderEmergencies();
-    publish("ack", { id: data.id || "" });
-  }
-  else if(t.endsWith("/cancel") && role === "laptop"){
-    if(data.id && emergencies[data.id]){
-      delete emergencies[data.id];
-    } else {
-      Object.keys(emergencies).forEach(k => {
-        if(emergencies[k].name === data.name) delete emergencies[k];
-      });
-    }
-    renderEmergencies();
-    note((data.name ? data.name + " marked safe." : "Someone marked safe."), false);
-  }
-  else if(t.endsWith("/ack") && role === "phone"){
-    if(data.id === sosId){
-      acked = true;
-      note("Your laptop is sounding the alarm.", false);
-      $("help").classList.remove("sending");
-    }
-  }
-  else if(t.endsWith("/stop") && role === "phone"){
-    note("The laptop stopped the alarms.");
-    endSos();
-  }
-  else if(t.endsWith("/phone") && role === "laptop"){
-    if(data.id){
-      phones[data.id] = { name: data.name || "Phone", lastSeen: Date.now() };
-      updatePhoneList();
-    }
-  }
-  else if(t.endsWith("/laptop") && role === "phone"){
-    setStatus("Laptop linked ✓", true);
-  }
-}
-
-function getBaseUrl(){
-  const u = new URL(location.href);
-  u.hash = ""; u.search = "";
-  return u.toString().replace(/\/$/, "") || location.origin + location.pathname;
-}
+/* Laptop */
+function getBaseUrl(){ const u=new URL(location.href); u.hash=""; u.search=""; return u.toString().replace(/\/$/,"")||location.origin+location.pathname; }
 function drawQr(){
-  const q = $("qr"); q.innerHTML = "";
-  try{
-    new QRCode(q, {
-      text: getBaseUrl() + "?c=" + code,
-      width: 200, height: 200,
-      colorDark: "#000", colorLight: "#fff",
-      correctLevel: QRCode.CorrectLevel.M
-    });
-  } catch(e){
-    q.innerHTML = "<p class='small'>QR unavailable. Use the code.</p>";
-  }
+  const q=$("qr"); q.innerHTML="";
+  try{ new QRCode(q,{text:getBaseUrl()+"?c="+code,width:190,height:190,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M}); }
+  catch(e){ q.innerHTML="<p class='small'>QR unavailable</p>"; }
 }
-function makeCode(){ return String(Math.floor(100000 + Math.random() * 900000)); }
+function makeCode(){ return String(Math.floor(100000+Math.random()*900000)); }
 
-async function startLaptop(){
-  role = "laptop";
-  show("laptop");
-  code = store.get("sl_code_laptop") || makeCode();
-  store.set("sl_code_laptop", code);
-  $("lcode").textContent = code;
-  drawQr();
+async function startLaptop(fromPin){
+  if(!fromPin){ showPinLock(); return; }
+  role="laptop"; show("laptop");
+  code=store.get("sl_code_laptop")||makeCode();
+  store.set("sl_code_laptop",code);
+  $("lcode").textContent=code; drawQr();
+  history=store.getJson("sl_history",[]);
   await connect();
 }
 
-let ctx = null, osc = null, sirenT = null, titleT = null, sirenOn = false, wake = null;
-
-$("arm").onclick = async () => {
-  try{
-    ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
-    await ctx.resume();
-  } catch(e){}
-  try{ if(navigator.wakeLock) wake = await navigator.wakeLock.request("screen"); } catch(e){}
-  $("arm").textContent = "Armed ✓";
-  note("Alarm is armed. Keep this tab open.", false);
+$("arm").onclick=async()=>{
+  try{ ctx=ctx||new(window.AudioContext||window.webkitAudioContext)(); await ctx.resume(); }catch(e){}
+  try{ if(navigator.wakeLock) await navigator.wakeLock.request("screen"); }catch(e){}
+  $("arm").textContent="Armed ✓";
+  note("Alarm armed. Keep tab open.",false);
 };
-
-$("test").onclick = () => {
-  emergencies["test"] = { name: "Test User", lat: null, lng: null, ts: Date.now() };
+$("test").onclick=()=>{
+  emergencies["test"]={name:"Test User",lat:null,lng:null,ts:Date.now()};
   renderEmergencies();
-  setTimeout(() => {
-    delete emergencies["test"];
-    renderEmergencies();
-  }, 3000);
+  setTimeout(()=>{ delete emergencies["test"]; renderEmergencies(); },3000);
 };
-
-$("newcode").onclick = () => {
-  store.del("sl_code_laptop");
-  location.reload();
+$("newcode").onclick=()=>{ store.del("sl_code_laptop"); location.reload(); };
+$("changePin").onclick=()=>{ $("pinChangeBox").hidden=!$("pinChangeBox").hidden; };
+$("savePin").onclick=()=>{
+  const p=$("newPin").value.replace(/\D/g,"");
+  if(p.length<4||p.length>6){ alert("PIN must be 4–6 digits"); return; }
+  store.set("sl_pin",p); $("pinChangeBox").hidden=true; $("newPin").value="";
+  note("PIN changed.",false);
+};
+$("showHistory").onclick=()=>{
+  $("historyBox").hidden=!$("historyBox").hidden;
+  $("historyList").innerHTML=history.map(h=>{
+    let loc=h.lat?` · <a href="https://www.google.com/maps?q=${h.lat},${h.lng}" target="_blank">map</a>`:"";
+    return `<li>${escapeHtml(h.name)} · ${new Date(h.ts).toLocaleString()}${loc}</li>`;
+  }).join("")||"<li class='small'>No history yet</li>";
 };
 
 function startSirenOnly(){
-  if(sirenOn) return;
-  sirenOn = true;
-  document.body.classList.add("alarm");
+  if(sirenOn||$("silentMode").checked) return;
+  sirenOn=true; document.body.classList.add("alarm");
   try{
-    ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
-    ctx.resume();
-    osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.type = "square";
-    g.gain.value = 0.65;
-    osc.connect(g); g.connect(ctx.destination);
-    osc.start();
-    let hi = true;
-    sirenT = setInterval(() => {
-      osc.frequency.setValueAtTime(hi ? 1150 : 650, ctx.currentTime);
-      hi = !hi;
-    }, 380);
-  } catch(e){}
-  let t = true;
-  titleT = setInterval(() => {
-    document.title = t ? "!!! EMERGENCY !!!" : "SafeLink";
-    t = !t;
-  }, 450);
+    ctx=ctx||new(window.AudioContext||window.webkitAudioContext)(); ctx.resume();
+    osc=ctx.createOscillator(); const g=ctx.createGain();
+    osc.type="square"; g.gain.value=.6; osc.connect(g); g.connect(ctx.destination); osc.start();
+    let hi=true; sirenT=setInterval(()=>{ osc.frequency.setValueAtTime(hi?1150:650,ctx.currentTime); hi=!hi; },380);
+  }catch(e){}
+  let t=true; titleT=setInterval(()=>{ document.title=t?"!!! EMERGENCY !!!":"SafeLink"; t=!t; },450);
 }
-
 function stopSirenOnly(){
-  if(!sirenOn) return;
-  sirenOn = false;
-  document.body.classList.remove("alarm");
-  clearInterval(sirenT);
-  clearInterval(titleT);
-  document.title = "SafeLink";
-  try{ osc && osc.stop(); } catch(e){}
-  osc = null;
+  if(!sirenOn) return; sirenOn=false; document.body.classList.remove("alarm");
+  clearInterval(sirenT); clearInterval(titleT); document.title="SafeLink";
+  try{ osc&&osc.stop(); }catch(e){} osc=null;
 }
+$("stopAlarm").onclick=()=>{ emergencies={}; renderEmergencies(); publish("stop",{}); };
 
-$("stopAlarm").onclick = () => {
-  emergencies = {};
-  renderEmergencies();
-  publish("stop", {});
-};
-
-let sosId = null, acked = false, sendT = null, tries = 0, pos = null;
-
+/* Phone */
 async function startPhone(){
-  role = "phone";
-  show("phone");
-  const savedCode = store.get("sl_code_phone");
-  const savedName = store.get("sl_name_phone");
+  role="phone"; show("phone");
+  const sc=store.get("sl_code_phone"), sn=store.get("sl_name_phone");
+  if(sc&&sn){ code=sc; myName=sn; $("enter").hidden=true; $("nameStep").hidden=true; $("ready").hidden=false;
+    $("myNameLabel").textContent="You are: "+myName; await connect(); checkWarnings(); loadContacts(); }
+  else if(sc){ code=sc; $("enter").hidden=true; $("nameStep").hidden=false; }
+}
+$("link").onclick=()=>{
+  const c=$("pcode").value.replace(/\D/g,"");
+  if(c.length!==6){ $("pcode").focus(); return; }
+  code=c; store.set("sl_code_phone",c); $("enter").hidden=true; $("nameStep").hidden=false; $("pname").focus();
+};
+$("saveName").onclick=async()=>{
+  const n=$("pname").value.trim();
+  if(n.length<2){ $("pname").focus(); return; }
+  myName=n.slice(0,30); store.set("sl_name_phone",myName);
+  $("nameStep").hidden=true; $("ready").hidden=false; $("myNameLabel").textContent="You are: "+myName;
+  await connect(); checkWarnings(); loadContacts();
+};
+$("unlink").onclick=()=>{ store.del("sl_code_phone"); store.del("sl_name_phone"); location.reload(); };
 
-  if(savedCode && savedName){
-    code = savedCode;
-    myName = savedName;
-    $("enter").hidden = true;
-    $("nameStep").hidden = true;
-    $("ready").hidden = false;
-    $("myNameLabel").textContent = "You are: " + myName;
-    await connect();
-  } else if(savedCode){
-    code = savedCode;
-    $("enter").hidden = true;
-    $("nameStep").hidden = false;
+function checkWarnings(){
+  const box=$("warnBox"); box.innerHTML="";
+  if(navigator.getBattery){
+    navigator.getBattery().then(b=>{
+      if(b.level<0.2) box.innerHTML+=`<div class="warn">⚠️ Battery low (${Math.round(b.level*100)}%)</div>`;
+    });
   }
+  if(!navigator.onLine) box.innerHTML+=`<div class="warn">⚠️ No internet – SOS may fail</div>`;
+  window.addEventListener("offline",()=>{ box.innerHTML+=`<div class="warn">⚠️ Internet lost</div>`; });
 }
 
-$("link").onclick = () => {
-  const c = $("pcode").value.replace(/\D/g, "");
-  if(c.length !== 6){ $("pcode").focus(); return; }
-  code = c;
-  store.set("sl_code_phone", c);
-  $("enter").hidden = true;
-  $("nameStep").hidden = false;
-  $("pname").focus();
-};
-
-$("saveName").onclick = async () => {
-  const n = $("pname").value.trim();
-  if(!n || n.length < 2){ $("pname").focus(); return; }
-  myName = n.slice(0, 30);
-  store.set("sl_name_phone", myName);
-  $("nameStep").hidden = true;
-  $("ready").hidden = false;
-  $("myNameLabel").textContent = "You are: " + myName;
-  await connect();
-};
-
-$("unlink").onclick = () => {
-  store.del("sl_code_phone");
-  store.del("sl_name_phone");
-  location.reload();
-};
-
-function sendOnce(){
-  tries++;
-  publish("sos", {
-    id: sosId,
-    name: myName,
-    lat: pos ? pos.lat : null,
-    lng: pos ? pos.lng : null,
-    ts: Date.now()
+/* Contacts */
+function loadContacts(){
+  const list=store.getJson("sl_contacts",[]);
+  $("contactList").innerHTML=list.map((c,i)=>`
+    <li>${escapeHtml(c.name)} · ${escapeHtml(c.phone)}
+      <a class="btn small" href="tel:${c.phone}" style="margin-left:auto">Call</a>
+      <a class="btn small alt" href="sms:${c.phone}?body=I need help! My location: ">SMS</a>
+      <button class="btn small alt" data-del="${i}">✕</button></li>`).join("");
+  $("contactList").querySelectorAll("[data-del]").forEach(btn=>{
+    btn.onclick=()=>{ list.splice(+btn.dataset.del,1); store.setJson("sl_contacts",list); loadContacts(); };
   });
-  if(acked || tries > 40){ clearInterval(sendT); sendT = null; }
 }
+$("addContact").onclick=()=>{
+  const n=$("cName").value.trim(), p=$("cPhone").value.trim();
+  if(!n||!p) return;
+  const list=store.getJson("sl_contacts",[]);
+  list.push({name:n,phone:p}); store.setJson("sl_contacts",list);
+  $("cName").value=""; $("cPhone").value=""; loadContacts();
+};
 
-function endSos(){
-  clearInterval(sendT); sendT = null;
-  sosId = null; acked = false; tries = 0;
-  $("safe").hidden = true;
-  $("help").classList.remove("sending");
-}
-
-$("help").onclick = () => {
-  if(sendT) return;
-  if(!client || !client.connected){
-    note("Not linked yet. Call 112 if you are in danger.", true);
-    return;
-  }
-  sosId = Date.now().toString(36) + Math.random().toString(16).slice(2,6);
-  acked = false; tries = 0;
-  try{ navigator.vibrate && navigator.vibrate([200,100,200,100,200]); } catch(e){}
-  note("Sending alert to your laptop…");
-  $("safe").hidden = false;
-  $("help").classList.add("sending");
-
+/* Photo capture */
+async function capturePhoto(){
+  if(!$("photoOn").checked) return null;
   try{
-    navigator.geolocation && navigator.geolocation.getCurrentPosition(
-      p => { pos = { lat: p.coords.latitude, lng: p.coords.longitude }; },
-      () => {},
-      { timeout: 6000, maximumAge: 60000, enableHighAccuracy: false }
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"},audio:false});
+    const v=document.createElement("video"); v.srcObject=stream; v.playsInline=true; await v.play();
+    await new Promise(r=>setTimeout(r,400));
+    const c=document.createElement("canvas"); c.width=v.videoWidth; c.height=v.videoHeight;
+    c.getContext("2d").drawImage(v,0,0); stream.getTracks().forEach(t=>t.stop());
+    return c.toDataURL("image/jpeg",0.5);
+  }catch(e){ return null; }
+}
+
+/* SOS */
+function sendOnce(photo){
+  tries++;
+  publish("sos",{id:sosId,name:myName,lat:pos?pos.lat:null,lng:pos?pos.lng:null,ts:Date.now(),photo:photo||null});
+  if(acked||tries>40){ clearInterval(sendT); sendT=null; }
+}
+function endSos(){
+  clearInterval(sendT); clearInterval(locT); sendT=null; locT=null;
+  sosId=null; acked=false; tries=0;
+  $("safe").hidden=true; $("help").classList.remove("sending");
+}
+$("help").onclick=async()=>{
+  if(sendT) return;
+  if(!client||!client.connected){ note("Not linked. Call 112 if in danger.",true); return; }
+  sosId=Date.now().toString(36)+Math.random().toString(16).slice(2,5);
+  acked=false; tries=0;
+  try{ navigator.vibrate&&navigator.vibrate([200,100,200,100,200]); }catch(e){}
+  note("Sending alert…"); $("safe").hidden=false; $("help").classList.add("sending");
+
+  // location
+  try{
+    navigator.geolocation&&navigator.geolocation.getCurrentPosition(
+      p=>{ pos={lat:p.coords.latitude,lng:p.coords.longitude}; },
+      ()=>{}, {timeout:5000,maximumAge:30000}
     );
-  } catch(e){}
+  }catch(e){}
 
-  sendOnce();
-  sendT = setInterval(sendOnce, 1800);
+  const photo=await capturePhoto();
+  sendOnce(photo);
+  sendT=setInterval(()=>sendOnce(null),2000);
 
-  setTimeout(() => {
-    if(!acked && sendT){
-      note("No reply yet. Still trying. Call 112 if in danger.", true);
-    }
-  }, 9000);
+  // live location
+  if($("liveLoc").checked){
+    locT=setInterval(()=>{
+      try{
+        navigator.geolocation.getCurrentPosition(p=>{
+          pos={lat:p.coords.latitude,lng:p.coords.longitude};
+          publish("sos",{id:sosId,name:myName,lat:pos.lat,lng:pos.lng,ts:Date.now()});
+        },()=>{},{timeout:4000,maximumAge:10000});
+      }catch(e){}
+    },8000);
+  }
+
+  // SMS fallback links already available via contacts
+  setTimeout(()=>{ if(!acked&&sendT) note("No reply yet. Still trying. Call 112.",true); },9000);
 };
+$("safe").onclick=()=>{ publish("cancel",{id:sosId,name:myName}); endSos(); note("Alarm cancelled.",false); };
 
-$("safe").onclick = () => {
-  publish("cancel", { id: sosId, name: myName });
-  endSos();
-  note("Alarm cancelled. Glad you’re safe.", false);
+/* Shake detection */
+let lastShake=0;
+$("shakeOn").onchange=()=>store.set("sl_shake",$("shakeOn").checked?"1":"0");
+if(store.get("sl_shake")==="1") $("shakeOn").checked=true;
+window.addEventListener("devicemotion",e=>{
+  if(!$("shakeOn")||!$("shakeOn").checked||role!=="phone"||!$("ready")||$("ready").hidden) return;
+  const a=e.accelerationIncludingGravity;
+  if(!a) return;
+  const force=Math.abs(a.x)+Math.abs(a.y)+Math.abs(a.z);
+  if(force>40 && Date.now()-lastShake>3000){ lastShake=Date.now(); $("help").click(); }
+},{passive:true});
+
+/* Fake calculator hide */
+$("hideBtn").onclick=()=>{ $("fakeScreen").style.display="flex"; };
+let taps=0,tapT=null;
+$("fakeScreen").onclick=()=>{
+  taps++;
+  clearTimeout(tapT);
+  tapT=setTimeout(()=>taps=0,600);
+  if(taps>=3){ $("fakeScreen").style.display="none"; taps=0; }
 };
-
-window.addEventListener("beforeinstallprompt", e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  $("installBanner").style.display = "flex";
+let fakeVal="0";
+$("fakeScreen").querySelectorAll("[data-f]").forEach(b=>{
+  b.onclick=e=>{
+    e.stopPropagation();
+    const k=b.dataset.f;
+    if(k==="C") fakeVal="0";
+    else if(k==="="){ try{ fakeVal=String(eval(fakeVal.replace(/×/g,"*"))); }catch(e){ fakeVal="Err"; } }
+    else fakeVal=(fakeVal==="0"?"":fakeVal)+k;
+    $("fakeDisplay").textContent=fakeVal.slice(0,12);
+  };
 });
-$("installBtn").onclick = async () => {
-  if(!deferredPrompt) return;
-  deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
-  deferredPrompt = null;
-  $("installBanner").style.display = "none";
-};
 
-$("pickLaptop").onclick = () => { store.set("sl_role","laptop"); startLaptop(); };
-$("pickPhone").onclick = () => { store.set("sl_role","phone"); startPhone(); };
+/* Start */
+$("pickLaptop").onclick=()=>{ store.set("sl_role","laptop"); showPinLock(); };
+$("pickPhone").onclick=()=>{ store.set("sl_role","phone"); startPhone(); };
 
 function getCodeFromUrl(){
-  const params = new URLSearchParams(location.search);
-  const q = params.get("c") || params.get("code");
-  if(q && /^\d{6}$/.test(q)) return q;
-  const hm = /^#p(\d{6})$/.exec(location.hash || "");
-  return hm ? hm[1] : null;
+  const p=new URLSearchParams(location.search);
+  const q=p.get("c")||p.get("code");
+  if(q&&/^\d{6}$/.test(q)) return q;
+  const hm=/^#p(\d{6})$/.exec(location.hash||"");
+  return hm?hm[1]:null;
 }
 
-const codeFromUrl = getCodeFromUrl();
-if(codeFromUrl){
-  store.set("sl_role","phone");
-  store.set("sl_code_phone", codeFromUrl);
-  startPhone();
-} else {
-  const r = store.get("sl_role");
-  if(r === "laptop") startLaptop();
-  else if(r === "phone") startPhone();
+// restore theme & lang
+if(store.get("sl_theme")==="light") document.documentElement.setAttribute("data-theme","light");
+lang=store.get("sl_lang")||"en"; applyLang();
+
+const codeFromUrl=getCodeFromUrl();
+if(codeFromUrl){ store.set("sl_role","phone"); store.set("sl_code_phone",codeFromUrl); startPhone(); }
+else {
+  const r=store.get("sl_role");
+  if(r==="laptop") showPinLock();
+  else if(r==="phone") startPhone();
 }
 </script>
 </body>
