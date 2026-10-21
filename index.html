@@ -9,23 +9,11 @@
 <title>SafeLink</title>
 <link rel="manifest" href="data:application/manifest+json,{&quot;name&quot;:&quot;SafeLink&quot;,&quot;short_name&quot;:&quot;SafeLink&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#0c0814&quot;,&quot;theme_color&quot;:&quot;#7c3aed&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='42' fill='%237c3aed'/%3E%3Ctext x='96' y='120' font-size='88' text-anchor='middle' fill='white'%3E🆘%3C/text%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;192x192&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}">
 <style>
-:root {
-  --bg:#0c0814;--card:#161022;--card2:#1e1730;--ink:#f4f0ff;--muted:#9b8fb8;
-  --line:#2e2545;--purple:#8b5cf6;--purple2:#7c3aed;--pink:#f43f5e;--green:#10b981;
-  --radius:18px;--safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
-}
-[data-theme="light"] {
-  --bg:#f8f5ff;--card:#fff;--card2:#f3effc;--ink:#1a1225;--muted:#6b5f80;
-  --line:#e4dcf5;--purple:#7c3aed;--purple2:#6d28d9;--pink:#e11d48;--green:#059669;
-}
+:root{--bg:#0c0814;--card:#161022;--card2:#1e1730;--ink:#f4f0ff;--muted:#9b8fb8;--line:#2e2545;--purple:#8b5cf6;--purple2:#7c3aed;--pink:#f43f5e;--green:#10b981;--radius:18px;--safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px)}
+[data-theme="light"]{--bg:#f8f5ff;--card:#fff;--card2:#f3effc;--ink:#1a1225;--muted:#6b5f80;--line:#e4dcf5;--purple:#7c3aed;--purple2:#6d28d9;--pink:#e11d48;--green:#059669}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{
-  background:var(--bg);color:var(--ink);
-  font:15px/1.5 system-ui,-apple-system,sans-serif;min-height:100dvh;
-  padding-top:var(--safe-top);padding-bottom:var(--safe-bot);
-  background-image:radial-gradient(ellipse 100% 60% at 50% -30%,#5b21b680,transparent 70%);
-}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,sans-serif;min-height:100dvh;padding-top:var(--safe-top);padding-bottom:var(--safe-bot);background-image:radial-gradient(ellipse 100% 60% at 50% -30%,#5b21b680,transparent 70%)}
 [data-theme="light"] body{background-image:radial-gradient(ellipse 100% 60% at 50% -30%,#c4b5fd55,transparent 70%)}
 main{max-width:440px;margin:0 auto;padding:16px 16px 48px}
 .topbar{display:flex;justify-content:flex-end;gap:6px;margin-bottom:4px}
@@ -34,14 +22,14 @@ h1{font:800 30px/1.15 system-ui;letter-spacing:-.03em;background:linear-gradient
 .sub{color:var(--muted);font-size:13.5px;margin-bottom:18px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:12px;box-shadow:0 4px 24px #00000030}
 .card[hidden],[hidden]{display:none!important}
-.card-title{font-weight:700;font-size:15px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
-.btn{display:block;width:100%;border:0;border-radius:14px;padding:14px 16px;font:700 15px/1 system-ui;cursor:pointer;background:linear-gradient(135deg,var(--purple2),#9333ea);color:#fff;margin-top:10px;box-shadow:0 4px 16px #7c3aed40;transition:transform .1s}
+.card-title{font-weight:700;font-size:15px;margin-bottom:10px}
+.btn{display:block;width:100%;border:0;border-radius:14px;padding:14px 16px;font:700 15px/1 system-ui;cursor:pointer;background:linear-gradient(135deg,var(--purple2),#9333ea);color:#fff;margin-top:10px;box-shadow:0 4px 16px #7c3aed40}
 .btn:active{transform:scale(.975)}
 .btn.alt{background:transparent;color:var(--ink);border:1px solid var(--line);box-shadow:none}
 .btn.pink{background:linear-gradient(135deg,#e11d48,#f43f5e);box-shadow:0 4px 16px #f43f5e40}
 .btn.sm{display:inline-block;width:auto;padding:8px 14px;font-size:13px;margin:4px 4px 0 0}
 a.btn{text-align:center;text-decoration:none}
-input,select{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card2);color:var(--ink);font:inherit;outline:none}
+input{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card2);color:var(--ink);font:inherit;outline:none}
 input:focus{border-color:var(--purple)}
 input.code-in{font:700 26px/1 ui-monospace,monospace;letter-spacing:.28em;text-align:center}
 input::placeholder{color:var(--muted)}
@@ -49,12 +37,12 @@ input::placeholder{color:var(--muted)}
 .status{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;margin:10px 0}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--line);flex-shrink:0}
 .dot.on{background:var(--green);box-shadow:0 0 0 3px #10b98133,0 0 8px #10b98166}
-.help{display:block;margin:22px auto;width:min(64vw,220px);height:min(64vw,220px);border-radius:50%;border:0;background:var(--pink);color:#fff;font:800 38px/1 system-ui;cursor:pointer;box-shadow:0 0 0 12px #f43f5e33,0 0 48px #f43f5e44,0 10px 32px #0006;position:relative;-webkit-user-select:none;user-select:none;transition:transform .1s}
+.help{display:block;margin:22px auto;width:min(64vw,220px);height:min(64vw,220px);border-radius:50%;border:0;background:var(--pink);color:#fff;font:800 38px/1 system-ui;cursor:pointer;box-shadow:0 0 0 12px #f43f5e33,0 0 48px #f43f5e44,0 10px 32px #0006;position:relative;-webkit-user-select:none;user-select:none}
 .help::after{content:"";position:absolute;inset:-14px;border-radius:50%;border:2px solid var(--pink);opacity:.3;animation:ring 2s ease-out infinite}
 @keyframes ring{0%{transform:scale(.92);opacity:.4}100%{transform:scale(1.18);opacity:0}}
 .help:active{transform:scale(.94)}
 .help.busy{animation:pulse 1s ease-in-out infinite;pointer-events:none}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 12px #f43f5e33,0 0 48px #f43f5e44}50%{box-shadow:0 0 0 22px #f43f5e22,0 0 64px #f43f5e55}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 12px #f43f5e33}50%{box-shadow:0 0 0 22px #f43f5e22}}
 .list{list-style:none;margin:8px 0 0}
 .list li{display:flex;align-items:center;gap:8px;padding:10px 12px;margin-bottom:5px;background:var(--card2);border-radius:12px;font-size:13.5px;font-weight:600;flex-wrap:wrap}
 .list .dot{width:7px;height:7px}
@@ -67,7 +55,8 @@ input::placeholder{color:var(--muted)}
 .em-item .name{font:800 15px/1.2 system-ui;color:#fff}
 .em-item .meta{font-size:11px;color:#fb7185;margin-top:2px}
 .em-item a{color:#a78bfa;font-weight:700;font-size:12.5px;text-decoration:none}
-.em-item img,.em-item audio{max-width:100%;border-radius:8px;margin-top:6px;display:block}
+.em-item img{max-width:100%;border-radius:8px;margin-top:6px;display:block}
+.em-item audio{width:100%;margin-top:8px;display:block;border-radius:8px}
 .msg{color:var(--muted);font-size:12.5px;margin-top:8px}
 .msg.bad{color:var(--pink);font-weight:600}
 .msg.good{color:var(--green);font-weight:600}
@@ -78,7 +67,7 @@ ol.steps li{margin-bottom:5px}
 .switch input{width:auto;accent-color:var(--purple)}
 .section{font-weight:700;font-size:13px;margin:14px 0 6px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .warn{background:#7c3aed18;border:1px solid #8b5cf640;border-radius:10px;padding:8px 10px;margin:6px 0;font-size:12.5px;color:var(--purple)}
-.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center}
 #pinLock{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background-image:radial-gradient(ellipse 80% 50% at 50% 0%,#5b21b650,transparent)}
 #pinLock input{max-width:200px;text-align:center;font-size:26px;letter-spacing:.35em}
 #fake{position:fixed;inset:0;z-index:200;background:#0d0d0d;color:#eee;display:none;flex-direction:column;align-items:center;justify-content:center;font-family:ui-monospace,monospace}
@@ -88,8 +77,10 @@ ol.steps li{margin-bottom:5px}
 body.alarm{animation:flash .55s steps(1) infinite}
 @keyframes flash{50%{background:#1a050c}}
 @media(prefers-reduced-motion:reduce){body.alarm,.help.busy,.help::after,#alarmbox{animation:none}}
-.rec-btn{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 14px;color:var(--ink);font-weight:600;cursor:pointer;font-size:13px}
-.rec-btn.rec{border-color:var(--pink);color:var(--pink);animation:pulse 1s infinite}
+.rec-btn{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 16px;color:var(--ink);font-weight:600;cursor:pointer;font-size:14px;-webkit-user-select:none;user-select:none;touch-action:none}
+.rec-btn.rec{border-color:var(--pink);color:var(--pink);background:#f43f5e18}
+#voiceBox{margin-top:8px;padding:10px;background:var(--card2);border-radius:12px;border:1px solid var(--line)}
+#voiceBox audio{width:100%;margin-top:6px}
 </style>
 </head>
 <body>
@@ -113,8 +104,8 @@ body.alarm{animation:flash .55s steps(1) infinite}
 
 <main>
   <div class="topbar">
-    <button class="icon-btn" id="themeBtn" title="Theme">🌓</button>
-    <button class="icon-btn" id="langBtn" title="Language">EN</button>
+    <button class="icon-btn" id="themeBtn">🌓</button>
+    <button class="icon-btn" id="langBtn">EN</button>
   </div>
   <h1>SafeLink</h1>
   <p class="sub" id="subText">Press HELP → laptop sounds alarm so someone can help.</p>
@@ -124,9 +115,8 @@ body.alarm{animation:flash .55s steps(1) infinite}
     <button class="btn" id="pickLaptop">Laptop — alarm station</button>
     <button class="btn alt" id="pickPhone">Phone — HELP button</button>
     <ol class="steps">
-      <li>Open on <b>laptop</b> → unlock with PIN → QR appears</li>
-      <li>Scan QR on phone → enter your <b>name</b></li>
-      <li>Many phones can link to one laptop</li>
+      <li>Open on <b>laptop</b> → unlock with PIN → one QR appears</li>
+      <li>Everyone scans the <b>same QR</b> → enter name</li>
       <li>Arm alarm on laptop, keep tab open</li>
       <li>Press red <b>HELP</b> when you need help</li>
     </ol>
@@ -135,7 +125,7 @@ body.alarm{animation:flash .55s steps(1) infinite}
 
   <section class="card" id="laptop" hidden>
     <div class="card-title">💻 Laptop · Alarm station</div>
-    <p class="small">Scan with any phone camera:</p>
+    <p class="small">One QR for everyone — scan with any phone:</p>
     <div id="qr" style="display:flex;justify-content:center;background:#fff;padding:14px;border-radius:14px;margin:10px 0"></div>
     <p class="small" style="text-align:center">Or type this code:</p>
     <div class="code-big" id="lcode">------</div>
@@ -156,7 +146,6 @@ body.alarm{animation:flash .55s steps(1) infinite}
     <button class="btn" id="arm">Arm alarm</button>
     <button class="btn alt" id="test">Test (3 sec)</button>
     <p class="msg" id="lmsg">Press Arm so browser allows sound. Keep tab open.</p>
-    <button class="btn alt" id="newcode">New code</button>
   </section>
 
   <section class="card" id="alarmbox" hidden>
@@ -190,13 +179,14 @@ body.alarm{animation:flash .55s steps(1) infinite}
       <p class="msg" id="pmsg">Press HELP to alert the laptop.</p>
       <button class="btn alt" id="safeBtn" hidden>I'm safe — stop my alarm</button>
 
-      <!-- Voice note -->
       <div class="section">Voice note (optional)</div>
-      <div class="row">
-        <button class="rec-btn" id="recBtn">🎙 Hold to record</button>
-        <span class="small" id="recStatus"></span>
+      <p class="small">Hold the button, speak (max ~6 sec), then release. Preview appears below. It is sent only when you press HELP.</p>
+      <button class="rec-btn" id="recBtn" type="button">🎙 Hold to record</button>
+      <div id="voiceBox" hidden>
+        <p class="small" id="recStatus">Voice ready — will send with HELP</p>
+        <audio id="voicePreview" controls playsinline></audio>
+        <button class="btn sm alt" id="clearVoice" style="margin-top:6px">Clear voice</button>
       </div>
-      <audio id="voicePreview" controls style="display:none;width:100%;margin-top:6px"></audio>
 
       <div class="section">Emergency contacts</div>
       <ul class="list" id="contactList"></ul>
@@ -209,13 +199,11 @@ body.alarm{animation:flash .55s steps(1) infinite}
       <div class="section">Options</div>
       <div class="switch"><input type="checkbox" id="shakeOn"><label for="shakeOn">Shake phone to trigger HELP</label></div>
       <div class="switch"><input type="checkbox" id="photoOn"><label for="photoOn">Attach photo when sending HELP</label></div>
-      <p class="small" style="margin-top:4px">📍 Location: sent once. Live updates every 5s only if battery &gt; 20%.</p>
+      <p class="small" style="margin-top:6px">📍 <b>Live location</b> updates every 5 seconds while HELP is active (if battery &gt; 20%). Below 20% only one location is sent.</p>
 
       <button class="btn sm alt" id="hideBtn" style="margin-top:10px">Hide app (fake calculator)</button>
-
       <a class="btn pink" href="tel:112" style="margin-top:14px">Call 112</a>
       <a class="btn alt" href="tel:1091">Call 1091</a>
-      <button class="btn alt" id="unlink">Different code</button>
     </div>
   </section>
 </main>
@@ -236,20 +224,18 @@ let client=null,role=null,code=null,myName="",myId=null;
 let phones={},emergencies={},history=[];
 let sosActive=false,acked=false,sendT=null,locT=null,tries=0,pos=null;
 let ctx=null,osc=null,sirenT=null,titleT=null,sirenOn=false;
-let lang="en", batteryLevel=1, voiceBlob=null, voiceUrl=null;
-let mediaRec=null, recChunks=[];
+let lang="en", batteryLevel=1;
+let voiceDataUrl=null; // base64 data URL shown on phone + sent to laptop
+let mediaRec=null, recChunks=[], recStream=null, recTimer=null;
 
-/* Theme & lang */
 $("themeBtn").onclick=()=>{const t=document.documentElement.getAttribute("data-theme")==="light"?"":"light";document.documentElement.setAttribute("data-theme",t);store.set("sl_theme",t)};
 $("langBtn").onclick=()=>{lang=lang==="en"?"hi":"en";store.set("sl_lang",lang);$("langBtn").textContent=lang==="en"?"EN":"हिं";$("subText").textContent=lang==="en"?"Press HELP → laptop sounds alarm so someone can help.":"HELP दबाएँ → लैपटॉप पर अलार्म बजेगा।"};
 
-/* PIN */
 function getPin(){return store.get("sl_pin")||"1234"}
 function showPin(){$("pinLock").hidden=false;$("pinIn").value="";setTimeout(()=>$("pinIn").focus(),100)}
 $("pinGo").onclick=()=>{if($("pinIn").value===getPin()){$("pinLock").hidden=true;startLaptop(true)}else{$("pinMsg").textContent="Wrong PIN";$("pinMsg").className="msg bad"}};
 $("pinIn").onkeydown=e=>{if(e.key==="Enter")$("pinGo").click()};
 
-/* Helpers */
 function show(id){["pick","laptop","phone"].forEach(x=>$(x).hidden=x!==id)}
 function setStatus(t,on){if(role==="laptop"){$("lstat").textContent=t;$("ldot").classList.toggle("on",!!on)}else{$("pstat").textContent=t;$("pdot").classList.toggle("on",!!on)}}
 function note(t,bad){const el=role==="laptop"?$("lmsg"):$("pmsg");el.textContent=t;el.className="msg"+(bad?" bad":bad===false?" good":"")}
@@ -273,15 +259,15 @@ function renderEmergencies(){
   $("emList").innerHTML=list.map(e=>{
     let loc="",photo="",voice="";
     if(typeof e.lat==="number"&&typeof e.lng==="number")
-      loc=`<div style="margin-top:4px"><a href="https://www.google.com/maps?q=${e.lat.toFixed(5)},${e.lng.toFixed(5)}" target="_blank" rel="noopener">📍 Open location</a></div>`;
+      loc=`<div style="margin-top:4px"><a href="https://www.google.com/maps?q=${e.lat.toFixed(5)},${e.lng.toFixed(5)}" target="_blank" rel="noopener">📍 Live location on map</a></div>`;
     if(e.photo) photo=`<img src="${e.photo}" alt="">`;
-    if(e.voice) voice=`<audio controls src="${e.voice}" style="width:100%;margin-top:6px"></audio>`;
+    // Always show playable audio control when voice is present
+    if(e.voice) voice=`<div style="margin-top:8px"><p class="small" style="color:#fb7185;margin-bottom:4px">Voice note</p><audio controls playsinline src="${e.voice}"></audio></div>`;
     return `<li class="em-item"><div class="name">${esc(e.name||"Someone")} is in emergency</div><div class="meta">${ago(e.ts)}</div>${loc}${photo}${voice}</li>`;
   }).join("");
   if(!$("silentMode").checked) startSiren(); else document.body.classList.add("alarm");
 }
 
-/* MQTT */
 function topic(b){return"safelink/"+code+"/"+b}
 function connect(){
   return new Promise(resolve=>{
@@ -307,11 +293,22 @@ function beat(){if(role==="phone") pub("phone",{id:myId,name:myName||"Phone",ts:
 function onMsg(t,d){
   if(t.endsWith("/sos")&&role==="laptop"){
     const key=d.from||d.id||("x"+Date.now());
-    emergencies[key]={name:d.name||"Someone",lat:d.lat,lng:d.lng,ts:d.ts||Date.now(),photo:d.photo||null,voice:d.voice||null,from:key};
+    const prev=emergencies[key]||{};
+    emergencies[key]={
+      name:d.name||prev.name||"Someone",
+      lat:typeof d.lat==="number"?d.lat:prev.lat,
+      lng:typeof d.lng==="number"?d.lng:prev.lng,
+      ts:d.ts||Date.now(),
+      photo:d.photo||prev.photo||null,
+      voice:d.voice||prev.voice||null,
+      from:key
+    };
     renderEmergencies();
-    history.unshift({name:emergencies[key].name,ts:emergencies[key].ts,lat:d.lat,lng:d.lng});
-    if(history.length>40) history.pop();
-    store.setJson("sl_history",history);
+    if(d.photo||d.voice||!prev.ts){
+      history.unshift({name:emergencies[key].name,ts:emergencies[key].ts,lat:emergencies[key].lat,lng:emergencies[key].lng});
+      if(history.length>40) history.pop();
+      store.setJson("sl_history",history);
+    }
     pub("ack",{id:d.id||"",to:key});
   }
   else if(t.endsWith("/cancel")&&role==="laptop"){
@@ -329,7 +326,6 @@ function onMsg(t,d){
   else if(t.endsWith("/laptop")&&role==="phone") setStatus("Laptop linked ✓",true);
 }
 
-/* Laptop */
 function baseUrl(){const u=new URL(location.href);u.hash="";u.search="";return u.toString().replace(/\/$/,"")||location.origin+location.pathname}
 function drawQr(){const q=$("qr");q.innerHTML="";try{new QRCode(q,{text:baseUrl()+"?c="+code,width:180,height:180,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M})}catch(e){q.innerHTML="<p class='small'>QR unavailable</p>"}}
 function makeCode(){return String(Math.floor(100000+Math.random()*900000))}
@@ -337,13 +333,14 @@ function makeCode(){return String(Math.floor(100000+Math.random()*900000))}
 async function startLaptop(ok){
   if(!ok){showPin();return}
   role="laptop";show("laptop");
-  code=store.get("sl_code_laptop")||makeCode();store.set("sl_code_laptop",code);
+  // Stable code — one QR for everyone, do not offer "new code"
+  code=store.get("sl_code_laptop")||makeCode();
+  store.set("sl_code_laptop",code);
   $("lcode").textContent=code;drawQr();history=store.json("sl_history",[]);
   await connect();
 }
 $("arm").onclick=async()=>{try{ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();await ctx.resume()}catch(e){}try{if(navigator.wakeLock)await navigator.wakeLock.request("screen")}catch(e){}$("arm").textContent="Armed ✓";note("Alarm armed. Keep this tab open.",false)};
 $("test").onclick=()=>{emergencies["test"]={name:"Test",lat:null,lng:null,ts:Date.now()};renderEmergencies();setTimeout(()=>{delete emergencies["test"];renderEmergencies()},3000)};
-$("newcode").onclick=()=>{store.del("sl_code_laptop");location.reload()};
 $("btnHistory").onclick=()=>{$("historyBox").hidden=!$("historyBox").hidden;$("historyList").innerHTML=history.length?history.map(h=>{const loc=h.lat?` · <a href="https://www.google.com/maps?q=${h.lat},${h.lng}" target="_blank">map</a>`:"";return`<li>${esc(h.name)} · ${new Date(h.ts).toLocaleString()}${loc}</li>`}).join(""):"<li class='small'>No history yet</li>"};
 $("btnPin").onclick=()=>{$("pinBox").hidden=!$("pinBox").hidden};
 $("savePin").onclick=()=>{const p=$("newPin").value.replace(/\D/g,"");if(p.length<4||p.length>6){alert("PIN must be 4–6 digits");return}store.set("sl_pin",p);$("pinBox").hidden=true;$("newPin").value="";note("PIN saved.",false)};
@@ -352,7 +349,6 @@ function startSiren(){if(sirenOn||$("silentMode").checked)return;sirenOn=true;do
 function stopSiren(){if(!sirenOn)return;sirenOn=false;document.body.classList.remove("alarm");clearInterval(sirenT);clearInterval(titleT);document.title="SafeLink";try{osc&&osc.stop()}catch(e){}osc=null}
 $("stopAll").onclick=()=>{emergencies={};renderEmergencies();pub("stop",{})};
 
-/* Phone */
 async function startPhone(){
   role="phone";show("phone");
   const sc=store.get("sl_code_phone"),sn=store.get("sl_name_phone");
@@ -361,11 +357,10 @@ async function startPhone(){
 }
 $("btnCode").onclick=()=>{const c=$("pcode").value.replace(/\D/g,"");if(c.length!==6){$("pcode").focus();return}code=c;store.set("sl_code_phone",c);$("stepCode").hidden=true;$("stepName").hidden=false;$("pname").focus()};
 $("btnName").onclick=async()=>{const n=$("pname").value.trim();if(n.length<2){$("pname").focus();return}myName=n.slice(0,24);store.set("sl_name_phone",myName);$("stepName").hidden=true;$("stepReady").hidden=false;$("nameLabel").textContent="You are: "+myName;await connect();warnings();loadContacts();readBattery()};
-$("unlink").onclick=()=>{store.del("sl_code_phone");store.del("sl_name_phone");location.reload()};
 
 function warnings(){
   const box=$("warnBox");box.innerHTML="";
-  if(navigator.getBattery) navigator.getBattery().then(b=>{if(b.level<0.2) box.innerHTML+=`<div class="warn">⚠️ Battery low (${Math.round(b.level*100)}%) — location sent once only</div>`});
+  if(navigator.getBattery) navigator.getBattery().then(b=>{if(b.level<0.2) box.innerHTML+=`<div class="warn">⚠️ Battery low (${Math.round(b.level*100)}%) — one-time location only</div>`});
   if(!navigator.onLine) box.innerHTML+=`<div class="warn">⚠️ No internet</div>`;
 }
 function readBattery(){
@@ -375,11 +370,10 @@ function readBattery(){
   });
 }
 
-/* Contacts + SMS */
 function loadContacts(){
   const list=store.json("sl_contacts",[]);
   $("contactList").innerHTML=list.map((c,i)=>{
-    const smsBody=encodeURIComponent("🆘 HELP! I need help. - "+(myName||"SafeLink user"));
+    const smsBody=encodeURIComponent("🆘 HELP! I need help. - "+(myName||"SafeLink user")+(pos?` https://maps.google.com/?q=${pos.lat},${pos.lng}`:""));
     return `<li>${esc(c.name)} · ${esc(c.phone)}
       <a class="btn sm" href="tel:${c.phone}" style="margin-left:auto">Call</a>
       <a class="btn sm alt" href="sms:${c.phone}?body=${smsBody}">SMS</a>
@@ -397,80 +391,109 @@ $("addContact").onclick=()=>{
   $("cName").value="";$("cPhone").value="";loadContacts();
 };
 
-/* Voice note */
-$("recBtn").onpointerdown=$("recBtn").ontouchstart=async e=>{
+/* Voice — record, show preview on phone, send only with HELP */
+function pickMime(){
+  const types=["audio/webm;codecs=opus","audio/webm","audio/mp4","audio/ogg"];
+  for(const t of types){ if(window.MediaRecorder&&MediaRecorder.isTypeSupported(t)) return t; }
+  return "";
+}
+async function startRec(e){
   e.preventDefault();
   if(mediaRec) return;
   try{
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    recStream=await navigator.mediaDevices.getUserMedia({audio:true});
     recChunks=[];
-    mediaRec=new MediaRecorder(stream,{mimeType:MediaRecorder.isTypeSupported("audio/webm")?"audio/webm":"audio/mp4"});
-    mediaRec.ondataavailable=ev=>{if(ev.data.size) recChunks.push(ev.data)};
-    mediaRec.onstop=()=>{
-      stream.getTracks().forEach(t=>t.stop());
-      voiceBlob=new Blob(recChunks,{type:mediaRec.mimeType});
-      if(voiceUrl) URL.revokeObjectURL(voiceUrl);
-      voiceUrl=URL.createObjectURL(voiceBlob);
-      $("voicePreview").src=voiceUrl;$("voicePreview").style.display="block";
-      $("recStatus").textContent="Voice saved ✓";
-      $("recBtn").classList.remove("rec");$("recBtn").textContent="🎙 Hold to record";
+    const mime=pickMime();
+    mediaRec=mime?new MediaRecorder(recStream,{mimeType:mime,audioBitsPerSecond:24000}):new MediaRecorder(recStream);
+    mediaRec.ondataavailable=ev=>{if(ev.data&&ev.data.size) recChunks.push(ev.data)};
+    mediaRec.onstop=async()=>{
+      if(recStream){recStream.getTracks().forEach(t=>t.stop());recStream=null}
+      clearTimeout(recTimer);
+      const blob=new Blob(recChunks,{type:mediaRec.mimeType||"audio/webm"});
       mediaRec=null;
+      if(blob.size<500){ $("recStatus").textContent="Too short — try again"; return; }
+      // Cap size for MQTT (~80KB base64 max practical)
+      if(blob.size>60000){
+        $("recStatus").textContent="Too long — hold ~3–5 sec only";
+        return;
+      }
+      const reader=new FileReader();
+      reader.onload=()=>{
+        voiceDataUrl=reader.result;
+        $("voiceBox").hidden=false;
+        $("recStatus").textContent="Voice ready — will send with HELP";
+        const a=$("voicePreview");
+        a.src=voiceDataUrl;
+        a.style.display="block";
+        try{ a.load(); }catch(e){}
+      };
+      reader.readAsDataURL(blob);
+      $("recBtn").classList.remove("rec");
+      $("recBtn").textContent="🎙 Hold to record";
     };
-    mediaRec.start();
-    $("recBtn").classList.add("rec");$("recBtn").textContent="● Recording…";
-    $("recStatus").textContent="";
-  }catch(err){$("recStatus").textContent="Mic not allowed"}
-};
-function stopRec(){if(mediaRec&&mediaRec.state==="recording") mediaRec.stop()}
-$("recBtn").onpointerup=$("recBtn").onmouseleave=$("recBtn").ontouchend=$("recBtn").ontouchcancel=stopRec;
-
-async function voiceToDataUrl(){
-  if(!voiceBlob) return null;
-  return new Promise(res=>{
-    const r=new FileReader();
-    r.onload=()=>res(r.result);
-    r.onerror=()=>res(null);
-    r.readAsDataURL(voiceBlob);
-  });
+    mediaRec.start(200);
+    $("recBtn").classList.add("rec");
+    $("recBtn").textContent="● Recording… release to stop";
+    // Auto-stop at 6 seconds so payload stays small
+    recTimer=setTimeout(()=>{ if(mediaRec&&mediaRec.state==="recording") mediaRec.stop(); },6000);
+  }catch(err){
+    $("recStatus").textContent="Microphone permission needed";
+    $("voiceBox").hidden=false;
+  }
 }
+function stopRec(e){
+  if(e) e.preventDefault();
+  if(mediaRec&&mediaRec.state==="recording") mediaRec.stop();
+}
+$("recBtn").addEventListener("pointerdown",startRec);
+$("recBtn").addEventListener("pointerup",stopRec);
+$("recBtn").addEventListener("pointerleave",stopRec);
+$("recBtn").addEventListener("pointercancel",stopRec);
+$("clearVoice").onclick=()=>{
+  voiceDataUrl=null;
+  $("voicePreview").removeAttribute("src");
+  $("voiceBox").hidden=true;
+  $("recBtn").textContent="🎙 Hold to record";
+};
 
-/* Photo */
 async function snap(){
   if(!$("photoOn").checked) return null;
   try{
     const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"},audio:false});
     const v=document.createElement("video");v.srcObject=stream;v.playsInline=true;await v.play();
-    await new Promise(r=>setTimeout(r,350));
-    const c=document.createElement("canvas");c.width=v.videoWidth;c.height=v.videoHeight;
-    c.getContext("2d").drawImage(v,0,0);stream.getTracks().forEach(t=>t.stop());
-    return c.toDataURL("image/jpeg",0.45);
+    await new Promise(r=>setTimeout(r,300));
+    const c=document.createElement("canvas");c.width=Math.min(v.videoWidth,640);c.height=Math.min(v.videoHeight,480);
+    c.getContext("2d").drawImage(v,0,0,c.width,c.height);
+    stream.getTracks().forEach(t=>t.stop());
+    return c.toDataURL("image/jpeg",0.4);
   }catch(e){return null}
 }
-
-/* Location */
 function getLocOnce(){
   return new Promise(resolve=>{
     if(!navigator.geolocation){resolve(null);return}
     navigator.geolocation.getCurrentPosition(
       p=>resolve({lat:p.coords.latitude,lng:p.coords.longitude}),
       ()=>resolve(null),
-      {timeout:6000,maximumAge:20000,enableHighAccuracy:false}
+      {timeout:6000,maximumAge:10000,enableHighAccuracy:true}
     );
   });
 }
 
-/* SOS */
 let sosId=null;
-function sendOnce(extra){
+function sendPayload(extra){
   tries++;
-  pub("sos",{
+  const msg={
     id:sosId,from:myId,name:myName,
     lat:pos?pos.lat:null,lng:pos?pos.lng:null,
-    ts:Date.now(),
-    photo:extra&&extra.photo||null,
-    voice:extra&&extra.voice||null
-  });
-  if(acked||tries>35){clearInterval(sendT);sendT=null}
+    ts:Date.now()
+  };
+  // Attach heavy media only on first few sends
+  if(extra){
+    if(extra.photo) msg.photo=extra.photo;
+    if(extra.voice) msg.voice=extra.voice;
+  }
+  pub("sos",msg);
+  if(acked||tries>40){clearInterval(sendT);sendT=null}
 }
 function endSos(){
   clearInterval(sendT);clearInterval(locT);sendT=null;locT=null;
@@ -483,37 +506,31 @@ $("helpBtn").onclick=async()=>{
   if(!client||!client.connected){note("Not linked yet. Call 112 if in danger.",true);return}
   sosActive=true;sosId=Date.now().toString(36);acked=false;tries=0;
   try{navigator.vibrate&&navigator.vibrate([180,80,180,80,180])}catch(e){}
-  note("Sending alert…");$("safeBtn").hidden=false;$("helpBtn").classList.add("busy");
+  note("Sending alert + live location…");
+  $("safeBtn").hidden=false;$("helpBtn").classList.add("busy");
 
-  // One-time location always
   pos=await getLocOnce();
   const photo=await snap();
-  const voice=await voiceToDataUrl();
-  sendOnce({photo,voice});
-  sendT=setInterval(()=>sendOnce(null),2200);
+  const voice=voiceDataUrl||null;
+  sendPayload({photo,voice});
+  sendT=setInterval(()=>sendPayload(null),2000);
 
-  // Live location every 5s ONLY if battery > 20%
+  // LIVE location every 5 seconds when battery > 20%
   if(batteryLevel>0.20){
     locT=setInterval(async()=>{
       const p=await getLocOnce();
-      if(p){pos=p;pub("sos",{id:sosId,from:myId,name:myName,lat:p.lat,lng:p.lng,ts:Date.now()})}
+      if(p){
+        pos=p;
+        pub("sos",{id:sosId,from:myId,name:myName,lat:p.lat,lng:p.lng,ts:Date.now()});
+        loadContacts(); // refresh SMS links with latest coords
+      }
     },5000);
-  }
-
-  // SMS to contacts (open SMS apps with pre-filled message + location if available)
-  const list=store.json("sl_contacts",[]);
-  if(list.length&&pos){
-    // We can't auto-send SMS without user action in browsers, but contacts already have SMS buttons.
-    // Optionally open first contact SMS as a helper:
-    // (kept manual via contact buttons for reliability & permission)
   }
 
   setTimeout(()=>{if(!acked&&sendT) note("No reply yet. Still trying. Call 112 if needed.",true)},10000);
 };
-
 $("safeBtn").onclick=()=>{pub("cancel",{id:sosId,from:myId,name:myName});endSos();note("Alarm cancelled. Glad you're safe.",false)};
 
-/* Shake */
 let lastShake=0;
 $("shakeOn").onchange=()=>store.set("sl_shake",$("shakeOn").checked?"1":"0");
 if(store.get("sl_shake")==="1") $("shakeOn").checked=true;
@@ -523,13 +540,11 @@ window.addEventListener("devicemotion",e=>{
   if(Math.abs(a.x)+Math.abs(a.y)+Math.abs(a.z)>42&&Date.now()-lastShake>4000){lastShake=Date.now();$("helpBtn").click()}
 },{passive:true});
 
-/* Fake calculator */
 $("hideBtn").onclick=()=>{$("fake").style.display="flex"};
 let taps=0,tapTimer=null;
 $("fake").onclick=()=>{taps++;clearTimeout(tapTimer);tapTimer=setTimeout(()=>taps=0,500);if(taps>=3){$("fake").style.display="none";taps=0}};
 (function(){const keys=["7","8","9","C","4","5","6","+","1","2","3","-","0",".","=","×"];const pad=$("fakePad");let val="0";keys.forEach(k=>{const b=document.createElement("button");b.textContent=k;b.onclick=e=>{e.stopPropagation();if(k==="C")val="0";else if(k==="="){try{val=String(eval(val.replace(/×/g,"*")))}catch(e){val="Err"}}else val=(val==="0"?"":val)+k;$("fakeDisp").textContent=val.slice(0,12)};pad.appendChild(b)})})();
 
-/* Start */
 $("pickLaptop").onclick=()=>{store.set("sl_role","laptop");showPin()};
 $("pickPhone").onclick=()=>{store.set("sl_role","phone");startPhone()};
 if(store.get("sl_theme")==="light") document.documentElement.setAttribute("data-theme","light");
