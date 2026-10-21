@@ -8,24 +8,24 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="description" content="SafeLink – press HELP on your phone, laptop sounds a loud alarm">
 <title>SafeLink</title>
-<link rel="manifest" href="data:application/manifest+json,{&quot;name&quot;:&quot;SafeLink&quot;,&quot;short_name&quot;:&quot;SafeLink&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#f6f2fb&quot;,&quot;theme_color&quot;:&quot;#6a2fb8&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%236a2fb8'/%3E%3Ctext x='96' y='118' font-size='90' text-anchor='middle' fill='white' font-family='system-ui'%3E🆘%3C/text%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;192x192&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}">
+<link rel="manifest" href="data:application/manifest+json,{&quot;name&quot;:&quot;SafeLink&quot;,&quot;short_name&quot;:&quot;SafeLink&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#0f0a1a&quot;,&quot;theme_color&quot;:&quot;#6a2fb8&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%236a2fb8'/%3E%3Ctext x='96' y='118' font-size='90' text-anchor='middle' fill='white' font-family='system-ui'%3E🆘%3C/text%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;192x192&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}">
 <style>
 :root{
-  --bg:#f6f2fb;--surface:#fff;--ink:#241a35;--muted:#665a78;--line:#ddd3ea;
-  --accent:#6a2fb8;--accent-ink:#fff;--sos:#d4113f;--ok:#14803c;
+  --bg:#0f0a1a;
+  --surface:#1a1229;
+  --surface2:#241a38;
+  --ink:#f3eefc;
+  --muted:#a89bbf;
+  --line:#3a2d52;
+  --accent:#a78bfa;
+  --accent2:#7c3aed;
+  --sos:#ff2d55;
+  --sos-glow:#ff2d5588;
+  --ok:#34d399;
+  --card-shadow:0 8px 32px rgba(0,0,0,.4);
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
-}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --bg:#150f20;--surface:#211832;--ink:#f1eaf9;--muted:#b3a6c6;
-    --line:#3a2d52;--accent:#b690ff;--accent-ink:#1b0f2e;--sos:#ff4d6d;--ok:#4ade80;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#150f20;--surface:#211832;--ink:#f1eaf9;--muted:#b3a6c6;
-  --line:#3a2d52;--accent:#b690ff;--accent-ink:#1b0f2e;--sos:#ff4d6d;--ok:#4ade80;
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
@@ -33,93 +33,172 @@ body{
   margin:0;background:var(--bg);color:var(--ink);
   font:16px/1.5 "Segoe UI",system-ui,-apple-system,sans-serif;
   -webkit-tap-highlight-color:transparent;
+  min-height:100dvh;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, #4c1d9588, transparent),
+    radial-gradient(ellipse 60% 40% at 100% 100%, #7c3aed22, transparent);
 }
-main{max-width:520px;margin:0 auto;padding:20px 16px 48px}
-h1{font:700 30px/1.1 Georgia,serif;margin:6px 0 4px}
-.sub{color:var(--muted);margin:0 0 18px}
+main{max-width:480px;margin:0 auto;padding:24px 16px 56px}
+h1{
+  font:800 34px/1.1 system-ui,sans-serif;
+  margin:8px 0 6px;
+  background:linear-gradient(135deg,#e9d5ff,#a78bfa,#c084fc);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.sub{color:var(--muted);margin:0 0 22px;font-size:15px}
 .card{
-  background:var(--surface);border:1px solid var(--line);
-  border-radius:16px;padding:18px;margin-bottom:14px;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:20px;
+  margin-bottom:16px;
+  box-shadow:var(--card-shadow);
+  backdrop-filter:blur(12px);
 }
 .card[hidden],[hidden]{display:none!important}
 .btn{
-  border:0;border-radius:12px;padding:14px 18px;font:inherit;font-weight:700;
-  cursor:pointer;background:var(--accent);color:var(--accent-ink);
-  width:100%;margin-top:10px;transition:transform .1s;
+  border:0;border-radius:14px;padding:15px 18px;font:inherit;font-weight:700;
+  cursor:pointer;background:linear-gradient(135deg,var(--accent2),#9333ea);
+  color:#fff;width:100%;margin-top:12px;
+  box-shadow:0 4px 20px #7c3aed55;
+  transition:transform .12s,box-shadow .12s;
 }
-.btn:active{transform:scale(.98)}
-.btn.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:active{transform:scale(.97)}
+.btn.alt{
+  background:transparent;color:var(--ink);
+  border:1px solid var(--line);box-shadow:none;
+}
 a.btn{display:block;text-align:center;text-decoration:none}
 button:focus-visible,input:focus-visible,a:focus-visible{
   outline:3px solid var(--accent);outline-offset:2px;
 }
 input, .name-input{
-  width:100%;padding:14px;border:1px solid var(--line);border-radius:12px;
-  background:var(--bg);color:var(--ink);font:inherit;
+  width:100%;padding:14px 16px;border:1px solid var(--line);border-radius:14px;
+  background:var(--surface2);color:var(--ink);font:inherit;
 }
 input.code-input{
   font:700 28px/1 ui-monospace,Consolas,monospace;
   letter-spacing:.35em;text-align:center;
 }
+input::placeholder{color:var(--muted)}
 .code{
-  font:700 48px/1 ui-monospace,Consolas,monospace;
-  letter-spacing:.25em;text-align:center;margin:12px 0;
+  font:800 52px/1 ui-monospace,Consolas,monospace;
+  letter-spacing:.2em;text-align:center;margin:14px 0;
+  color:var(--accent);
+  text-shadow:0 0 30px #a78bfa66;
 }
-.status{display:flex;align-items:center;gap:8px;color:var(--muted);margin:10px 0}
-.dot{width:12px;height:12px;border-radius:50%;background:var(--line);flex-shrink:0}
-.dot.on{background:var(--ok);box-shadow:0 0 0 4px color-mix(in srgb,var(--ok) 25%,transparent)}
+.status{display:flex;align-items:center;gap:10px;color:var(--muted);margin:12px 0}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--line);flex-shrink:0}
+.dot.on{background:var(--ok);box-shadow:0 0 0 4px #34d39933,0 0 12px #34d39988}
 .help{
-  display:block;margin:22px auto;
-  width:min(72vw,280px);height:min(72vw,280px);
+  display:block;margin:28px auto;
+  width:min(70vw,260px);height:min(70vw,260px);
   border-radius:50%;border:0;background:var(--sos);color:#fff;
-  font:800 42px/1 "Segoe UI",system-ui,sans-serif;cursor:pointer;
-  box-shadow:0 0 0 12px color-mix(in srgb,var(--sos) 22%,transparent),
-             0 8px 32px color-mix(in srgb,var(--sos) 40%,transparent);
-  transition:transform .12s,box-shadow .12s;
+  font:800 44px/1 system-ui,sans-serif;cursor:pointer;
+  box-shadow:
+    0 0 0 14px var(--sos-glow),
+    0 0 60px #ff2d5566,
+    0 12px 40px #0008;
+  transition:transform .12s;
   -webkit-user-select:none;user-select:none;
+  position:relative;
 }
-.help:active{transform:scale(.94)}
-.help.sending{animation:pulse 1.2s ease-in-out infinite}
+.help::after{
+  content:"";position:absolute;inset:-18px;border-radius:50%;
+  border:2px solid var(--sos);opacity:.4;
+  animation:ring 2s ease-out infinite;
+}
+@keyframes ring{
+  0%{transform:scale(.9);opacity:.5}
+  100%{transform:scale(1.25);opacity:0}
+}
+.help:active{transform:scale(.93)}
+.help.sending{animation:pulse 1.1s ease-in-out infinite}
 @keyframes pulse{
-  0%,100%{box-shadow:0 0 0 12px color-mix(in srgb,var(--sos) 22%,transparent)}
-  50%{box-shadow:0 0 0 22px color-mix(in srgb,var(--sos) 35%,transparent)}
+  0%,100%{box-shadow:0 0 0 14px var(--sos-glow),0 0 60px #ff2d5566}
+  50%{box-shadow:0 0 0 28px #ff2d5533,0 0 80px #ff2d5588}
 }
-.msg{color:var(--muted);margin:8px 0 0;font-size:15px}
+.msg{color:var(--muted);margin:10px 0 0;font-size:14px}
 .msg.bad{color:var(--sos);font-weight:600}
 .msg.good{color:var(--ok);font-weight:600}
-ol{padding-left:20px;margin:10px 0 0}
-li{margin-bottom:7px}
-.alarm{animation:flash .55s steps(1) infinite}
-@keyframes flash{50%{background:#d4113f}}
-@media (prefers-reduced-motion:reduce){
-  .alarm{animation:none;background:#d4113f}
-  .help.sending{animation:none}
-}
-#alarmbox{
-  background:#fff;color:#14000a;border:5px solid #14000a;
-  text-align:center;position:relative;z-index:10;
-}
-#alarmbox h2{font:800 32px/1.15 Georgia,serif;margin:0 0 10px}
-.small{font-size:14px;color:var(--muted)}
+ol{padding-left:20px;margin:12px 0 0;color:var(--muted);font-size:14px}
+li{margin-bottom:8px}
+.small{font-size:13px;color:var(--muted)}
 .install-banner{
-  background:var(--accent);color:var(--accent-ink);
-  border-radius:12px;padding:12px 14px;margin-bottom:14px;
-  display:none;align-items:center;gap:10px;font-size:14px;
+  background:linear-gradient(135deg,#7c3aed,#a78bfa);
+  color:#fff;border-radius:14px;padding:12px 14px;margin-bottom:16px;
+  display:none;align-items:center;gap:10px;font-size:14px;font-weight:600;
 }
 .install-banner button{
-  margin-left:auto;background:#fff;color:var(--accent);
-  border:0;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer;
+  margin-left:auto;background:#fff;color:#7c3aed;
+  border:0;border-radius:10px;padding:8px 14px;font-weight:700;cursor:pointer;
 }
-.phone-list{
-  margin:10px 0 0;padding:0;list-style:none;font-size:14px;
-}
+.phone-list{margin:12px 0 0;padding:0;list-style:none}
 .phone-list li{
-  display:flex;align-items:center;gap:8px;
-  padding:6px 0;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;margin-bottom:6px;
+  background:var(--surface2);border-radius:12px;
+  font-size:14px;font-weight:600;
 }
-.phone-list li:last-child{border-bottom:0}
 .phone-list .dot{width:8px;height:8px}
-.who{font-weight:700;font-size:18px;margin:4px 0 8px}
+#alarmbox{
+  background:linear-gradient(180deg,#2a0a14,#1a0510);
+  border:2px solid var(--sos);
+  border-radius:20px;
+  text-align:center;
+  position:relative;z-index:20;
+  box-shadow:0 0 60px #ff2d5544, inset 0 0 40px #ff2d5511;
+  animation:alarmPulse 1.2s ease-in-out infinite;
+}
+@keyframes alarmPulse{
+  0%,100%{box-shadow:0 0 40px #ff2d5544}
+  50%{box-shadow:0 0 80px #ff2d5588}
+}
+#alarmbox h2{
+  font:800 26px/1.2 system-ui,sans-serif;
+  margin:0 0 6px;color:#fff;
+  text-shadow:0 0 20px #ff2d55;
+}
+.alarm-count{
+  display:inline-block;
+  background:var(--sos);color:#fff;
+  font-size:13px;font-weight:800;
+  padding:4px 12px;border-radius:20px;
+  margin-bottom:14px;
+}
+.emergency-list{
+  list-style:none;padding:0;margin:0 0 16px;text-align:left;
+}
+.emergency-item{
+  background:#1a0a12;
+  border:1px solid #ff2d5555;
+  border-radius:14px;
+  padding:14px 16px;
+  margin-bottom:10px;
+  display:flex;flex-direction:column;gap:6px;
+}
+.emergency-item .ename{
+  font:800 18px/1.2 system-ui,sans-serif;
+  color:#fff;
+}
+.emergency-item .etime{
+  font-size:12px;color:#ff8fa3;
+}
+.emergency-item .eloc a{
+  display:inline-flex;align-items:center;gap:6px;
+  color:#a78bfa;font-weight:700;font-size:14px;
+  text-decoration:none;
+}
+.emergency-item .eloc a:hover{text-decoration:underline}
+body.alarm{
+  animation:flash .6s steps(1) infinite;
+}
+@keyframes flash{50%{background:#2a0510}}
+@media (prefers-reduced-motion:reduce){
+  body.alarm{animation:none;background:#2a0510}
+  .help.sending,.help::after,#alarmbox{animation:none}
+}
 </style>
 </head>
 <body>
@@ -128,34 +207,31 @@ li{margin-bottom:7px}
   <p class="sub">Press HELP on your phone → laptop sounds a loud alarm so someone can come help.</p>
 
   <div class="install-banner" id="installBanner">
-    <span>Install SafeLink on your phone for quick access</span>
+    <span>Install on your phone</span>
     <button id="installBtn">Install</button>
   </div>
 
-  <!-- Device picker -->
   <section class="card" id="pick">
-    <b>Which device is this?</b>
+    <b style="font-size:17px">Which device is this?</b>
     <button class="btn" id="pickLaptop">This is my laptop (alarm station)</button>
     <button class="btn alt" id="pickPhone">This is my phone (HELP button)</button>
-    <ol class="small">
-      <li>Open this page on your <b>laptop</b> and choose “laptop”. It shows a QR code + 6-digit code.</li>
-      <li>Scan the QR with <b>any</b> phone camera (or type the code). Enter your name.</li>
-      <li>You can link <b>many phones</b> to the same laptop.</li>
-      <li>On the laptop press <b>Arm alarm</b> and keep that tab open.</li>
-      <li>When someone needs help, they press the big red <b>HELP</b> button.</li>
+    <ol>
+      <li>Open on your <b>laptop</b> → choose “laptop”. QR + code appear.</li>
+      <li>Scan QR with any phone (or type code) → enter your name.</li>
+      <li>Link <b>many phones</b> to one laptop.</li>
+      <li>On laptop press <b>Arm alarm</b> and keep tab open.</li>
+      <li>When help is needed → press the big red <b>HELP</b> button.</li>
     </ol>
-    <p class="small" style="margin-top:14px">
-      Works from any browser — no special login needed.<br>
-      <b>This is a backup only.</b> In danger call <b>112</b> (emergency) or <b>1091</b> (women helpline) first.
+    <p class="small" style="margin-top:16px">
+      <b>Backup only.</b> In danger call <b>112</b> or <b>1091</b> first.
     </p>
   </section>
 
-  <!-- Laptop side -->
   <section class="card" id="laptop" hidden>
-    <b>Laptop: alarm station</b>
-    <p class="small" style="margin:10px 0 0">Scan this QR with <b>any</b> phone camera or QR scanner:</p>
-    <div id="qr" style="display:flex;justify-content:center;background:#fff;padding:16px;border-radius:12px;margin:10px 0"></div>
-    <p class="small" style="margin:0">Or type this 6-digit code on the phone:</p>
+    <b style="font-size:17px">Laptop · Alarm station</b>
+    <p class="small" style="margin:12px 0 0">Scan with any phone camera:</p>
+    <div id="qr" style="display:flex;justify-content:center;background:#fff;padding:16px;border-radius:16px;margin:12px 0"></div>
+    <p class="small" style="margin:0;text-align:center">Or type this code:</p>
     <div class="code" id="lcode">------</div>
     <div class="status">
       <span class="dot" id="ldot"></span>
@@ -164,38 +240,33 @@ li{margin-bottom:7px}
     <p class="small" id="phoneCount" style="margin:4px 0 0"></p>
     <ul class="phone-list" id="phoneList"></ul>
     <button class="btn" id="arm">Arm alarm</button>
-    <button class="btn alt" id="test">Test alarm (3 seconds)</button>
-    <p class="msg" id="lmsg">Press “Arm alarm” once so the browser allows sound. Keep this tab open.</p>
+    <button class="btn alt" id="test">Test alarm (3 sec)</button>
+    <p class="msg" id="lmsg">Press “Arm alarm” so the browser allows sound. Keep this tab open.</p>
     <button class="btn alt" id="newcode">Make a new code</button>
   </section>
 
-  <!-- Loud alarm overlay -->
   <section class="card" id="alarmbox" hidden>
-    <h2>🆘 HELP ALERT</h2>
-    <p class="who" id="awho"></p>
-    <p id="ainfo">Someone needs help. Check on her now.</p>
-    <button class="btn" id="stopAlarm" style="background:#14000a;color:#fff;margin-top:16px">Stop alarm</button>
+    <h2>🆘 EMERGENCY</h2>
+    <div class="alarm-count" id="alarmCount">1 person needs help</div>
+    <ul class="emergency-list" id="emergencyList"></ul>
+    <button class="btn" id="stopAlarm" style="background:#ff2d55;box-shadow:0 4px 20px #ff2d5555">Stop all alarms</button>
   </section>
 
-  <!-- Phone side -->
   <section class="card" id="phone" hidden>
-    <b>Phone: HELP button</b>
+    <b style="font-size:17px">Phone · HELP button</b>
 
-    <!-- Step 1: enter code -->
     <div id="enter">
-      <p class="small">Type the 6-digit code shown on your laptop:</p>
-      <input id="pcode" class="code-input" inputmode="numeric" maxlength="6" autocomplete="off" aria-label="6-digit code" placeholder="••••••">
+      <p class="small">Type the 6-digit code from the laptop:</p>
+      <input id="pcode" class="code-input" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="••••••" aria-label="6-digit code">
       <button class="btn" id="link">Next</button>
     </div>
 
-    <!-- Step 2: enter name -->
     <div id="nameStep" hidden>
-      <p class="small">What is your name? (shown on the laptop when you press HELP)</p>
+      <p class="small">Your name (shown on laptop when you need help):</p>
       <input id="pname" class="name-input" maxlength="30" autocomplete="name" placeholder="Your name" aria-label="Your name">
       <button class="btn" id="saveName">Continue</button>
     </div>
 
-    <!-- Step 3: ready -->
     <div id="ready" hidden>
       <div class="status">
         <span class="dot" id="pdot"></span>
@@ -203,9 +274,9 @@ li{margin-bottom:7px}
       </div>
       <p class="small" id="myNameLabel" style="margin:0 0 4px"></p>
       <button class="help" id="help" aria-label="Press for HELP">HELP</button>
-      <p class="msg" id="pmsg">Press HELP to start the alarm on your laptop.</p>
-      <button class="btn alt" id="safe" hidden>I’m safe – stop the alarm</button>
-      <a class="btn" href="tel:112" target="_top" style="background:var(--sos);color:#fff;margin-top:16px">Call 112 (Emergency)</a>
+      <p class="msg" id="pmsg">Press HELP to alert the laptop.</p>
+      <button class="btn alt" id="safe" hidden>I’m safe – stop my alarm</button>
+      <a class="btn" href="tel:112" target="_top" style="background:var(--sos);box-shadow:0 4px 20px #ff2d5555;margin-top:18px">Call 112 (Emergency)</a>
       <a class="btn alt" href="tel:1091" target="_top">Call women helpline 1091</a>
       <button class="btn alt" id="unlink">Use a different code</button>
     </div>
@@ -225,9 +296,9 @@ const store = {
 let client = null, role = null, code = null, myName = "";
 let deferredPrompt = null;
 let heartbeatT = null;
-let phones = {}; // id → {name, lastSeen}
+let phones = {};
+let emergencies = {};
 
-/* ---------- helpers ---------- */
 function show(id){
   ["pick","laptop","phone"].forEach(x => $(x).hidden = x !== id);
 }
@@ -245,10 +316,18 @@ function note(t, bad){
   el.textContent = t;
   el.className = "msg" + (bad ? " bad" : (bad === false ? " good" : ""));
 }
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function timeAgo(ts){
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if(s < 5) return "just now";
+  if(s < 60) return s + "s ago";
+  return Math.floor(s/60) + "m ago";
+}
 
 function updatePhoneList(){
   const now = Date.now();
-  // Remove phones not seen for 15 seconds
   Object.keys(phones).forEach(id => {
     if(now - phones[id].lastSeen > 15000) delete phones[id];
   });
@@ -261,20 +340,47 @@ function updatePhoneList(){
     setStatus("Waiting for phones…", false);
   } else {
     countEl.textContent = list.length + " phone" + (list.length > 1 ? "s" : "") + " linked";
-    listEl.innerHTML = list.map(p => 
-      `<li><span class="dot on"></span> ${escapeHtml(p.name || "Unknown")}</li>`
+    listEl.innerHTML = list.map(p =>
+      `<li><span class="dot on"></span>${escapeHtml(p.name || "Unknown")}</li>`
     ).join("");
     setStatus("Ready", true);
   }
 }
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function renderEmergencies(){
+  const list = Object.values(emergencies).sort((a,b) => b.ts - a.ts);
+  const box = $("alarmbox");
+  const countEl = $("alarmCount");
+  const listEl = $("emergencyList");
+
+  if(list.length === 0){
+    box.hidden = true;
+    stopSirenOnly();
+    return;
+  }
+
+  box.hidden = false;
+  countEl.textContent = list.length === 1
+    ? "1 person needs help"
+    : list.length + " people need help";
+
+  listEl.innerHTML = list.map(e => {
+    let loc = "";
+    if(typeof e.lat === "number" && typeof e.lng === "number"){
+      const url = `https://www.google.com/maps?q=${e.lat.toFixed(6)},${e.lng.toFixed(6)}`;
+      loc = `<div class="eloc"><a href="${url}" target="_blank" rel="noopener">📍 Open location on map</a></div>`;
+    }
+    return `<li class="emergency-item">
+      <div class="ename">${escapeHtml(e.name || "Someone")} is in emergency</div>
+      <div class="etime">${timeAgo(e.ts)}</div>
+      ${loc}
+    </li>`;
+  }).join("");
+
+  startSirenOnly();
 }
 
-/* ---------- MQTT connection (free public broker) ---------- */
-function topic(base){
-  return "safelink/" + code + "/" + base;
-}
+function topic(base){ return "safelink/" + code + "/" + base; }
 
 function connect(){
   return new Promise((resolve) => {
@@ -311,11 +417,8 @@ function connect(){
       });
 
       client.on("error", () => setStatus("Connection error – retrying…", false));
-      client.on("close", () => {
-        setStatus("Disconnected – reconnecting…", false);
-      });
+      client.on("close", () => setStatus("Disconnected – reconnecting…", false));
       client.on("reconnect", () => setStatus("Reconnecting…", false));
-
     } catch(e){
       note("Couldn’t connect. Check internet and reload.", true);
       resolve(false);
@@ -325,18 +428,12 @@ function connect(){
 
 function publish(base, obj){
   if(!client || !client.connected) return;
-  try{
-    client.publish(topic(base), JSON.stringify(obj || {}), { qos: 1 });
-  } catch(e){}
+  try{ client.publish(topic(base), JSON.stringify(obj || {}), { qos: 1 }); } catch(e){}
 }
 
 function publishPresence(){
   if(role === "phone"){
-    publish("phone", {
-      id: client.options.clientId,
-      name: myName || "Phone",
-      ts: Date.now()
-    });
+    publish("phone", { id: client.options.clientId, name: myName || "Phone", ts: Date.now() });
   } else {
     publish("laptop", { ts: Date.now() });
   }
@@ -344,12 +441,26 @@ function publishPresence(){
 
 function handleMessage(t, data){
   if(t.endsWith("/sos") && role === "laptop"){
-    onSos(data);
+    const id = data.id || ("x" + Date.now());
+    emergencies[id] = {
+      name: data.name || "Someone",
+      lat: data.lat,
+      lng: data.lng,
+      ts: data.ts || Date.now()
+    };
+    renderEmergencies();
     publish("ack", { id: data.id || "" });
   }
   else if(t.endsWith("/cancel") && role === "laptop"){
-    stopAlarm();
-    note((data.name ? data.name + " marked safe." : "Phone user marked safe."), false);
+    if(data.id && emergencies[data.id]){
+      delete emergencies[data.id];
+    } else {
+      Object.keys(emergencies).forEach(k => {
+        if(emergencies[k].name === data.name) delete emergencies[k];
+      });
+    }
+    renderEmergencies();
+    note((data.name ? data.name + " marked safe." : "Someone marked safe."), false);
   }
   else if(t.endsWith("/ack") && role === "phone"){
     if(data.id === sosId){
@@ -359,7 +470,7 @@ function handleMessage(t, data){
     }
   }
   else if(t.endsWith("/stop") && role === "phone"){
-    note("The laptop alarm was stopped.");
+    note("The laptop stopped the alarms.");
     endSos();
   }
   else if(t.endsWith("/phone") && role === "laptop"){
@@ -373,29 +484,22 @@ function handleMessage(t, data){
   }
 }
 
-/* ---------- Laptop ---------- */
 function getBaseUrl(){
   const u = new URL(location.href);
-  u.hash = "";
-  u.search = "";
+  u.hash = ""; u.search = "";
   return u.toString().replace(/\/$/, "") || location.origin + location.pathname;
 }
-
 function drawQr(){
-  const q = $("qr");
-  q.innerHTML = "";
-  const link = getBaseUrl() + "?c=" + code;
+  const q = $("qr"); q.innerHTML = "";
   try{
     new QRCode(q, {
-      text: link,
-      width: 210,
-      height: 210,
-      colorDark: "#000000",
-      colorLight: "#ffffff",
+      text: getBaseUrl() + "?c=" + code,
+      width: 200, height: 200,
+      colorDark: "#000", colorLight: "#fff",
       correctLevel: QRCode.CorrectLevel.M
     });
   } catch(e){
-    q.innerHTML = "<p class='small'>QR unavailable. Type the code on the phone.</p>";
+    q.innerHTML = "<p class='small'>QR unavailable. Use the code.</p>";
   }
 }
 function makeCode(){ return String(Math.floor(100000 + Math.random() * 900000)); }
@@ -410,23 +514,25 @@ async function startLaptop(){
   await connect();
 }
 
-let ctx = null, osc = null, sirenT = null, titleT = null, alarmOn = false, wake = null;
+let ctx = null, osc = null, sirenT = null, titleT = null, sirenOn = false, wake = null;
 
 $("arm").onclick = async () => {
   try{
     ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
     await ctx.resume();
   } catch(e){}
-  try{
-    if(navigator.wakeLock) wake = await navigator.wakeLock.request("screen");
-  } catch(e){}
+  try{ if(navigator.wakeLock) wake = await navigator.wakeLock.request("screen"); } catch(e){}
   $("arm").textContent = "Armed ✓";
-  note("Alarm is armed. Keep this tab open and the laptop awake.", false);
+  note("Alarm is armed. Keep this tab open.", false);
 };
 
 $("test").onclick = () => {
-  startAlarm({ test: true, name: "Test" });
-  setTimeout(stopAlarm, 3000);
+  emergencies["test"] = { name: "Test User", lat: null, lng: null, ts: Date.now() };
+  renderEmergencies();
+  setTimeout(() => {
+    delete emergencies["test"];
+    renderEmergencies();
+  }, 3000);
 };
 
 $("newcode").onclick = () => {
@@ -434,36 +540,10 @@ $("newcode").onclick = () => {
   location.reload();
 };
 
-function validNum(n){ return typeof n === "number" && isFinite(n); }
-
-function onSos(d){
-  d = d || {};
-  startAlarm(d);
-}
-
-function startAlarm(d){
-  d = d || {};
-  const name = (d.name || "").trim() || "Someone";
-  $("awho").textContent = name + " needs help!";
-  const i = $("ainfo");
-  i.textContent = d.test ? "This is a test." : "Check on her now.";
-  while(i.children.length) i.removeChild(i.lastChild);
-  if(validNum(d.lat) && validNum(d.lng)){
-    const a = document.createElement("a");
-    a.href = "https://www.google.com/maps?q=" + d.lat.toFixed(6) + "," + d.lng.toFixed(6);
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    a.textContent = " → Open location on the map";
-    a.style.display = "block";
-    a.style.marginTop = "8px";
-    a.style.fontWeight = "700";
-    i.appendChild(a);
-  }
-  $("alarmbox").hidden = false;
-  if(alarmOn) return;
-  alarmOn = true;
+function startSirenOnly(){
+  if(sirenOn) return;
+  sirenOn = true;
   document.body.classList.add("alarm");
-
   try{
     ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
     ctx.resume();
@@ -471,8 +551,7 @@ function startAlarm(d){
     const g = ctx.createGain();
     osc.type = "square";
     g.gain.value = 0.65;
-    osc.connect(g);
-    g.connect(ctx.destination);
+    osc.connect(g); g.connect(ctx.destination);
     osc.start();
     let hi = true;
     sirenT = setInterval(() => {
@@ -480,19 +559,17 @@ function startAlarm(d){
       hi = !hi;
     }, 380);
   } catch(e){}
-
   let t = true;
   titleT = setInterval(() => {
-    document.title = t ? "!!! HELP ALERT !!!" : "SafeLink";
+    document.title = t ? "!!! EMERGENCY !!!" : "SafeLink";
     t = !t;
   }, 450);
 }
 
-function stopAlarm(){
-  if(!alarmOn) return;
-  alarmOn = false;
+function stopSirenOnly(){
+  if(!sirenOn) return;
+  sirenOn = false;
   document.body.classList.remove("alarm");
-  $("alarmbox").hidden = true;
   clearInterval(sirenT);
   clearInterval(titleT);
   document.title = "SafeLink";
@@ -501,17 +578,16 @@ function stopAlarm(){
 }
 
 $("stopAlarm").onclick = () => {
-  stopAlarm();
+  emergencies = {};
+  renderEmergencies();
   publish("stop", {});
 };
 
-/* ---------- Phone ---------- */
 let sosId = null, acked = false, sendT = null, tries = 0, pos = null;
 
 async function startPhone(){
   role = "phone";
   show("phone");
-
   const savedCode = store.get("sl_code_phone");
   const savedName = store.get("sl_name_phone");
 
@@ -527,16 +603,12 @@ async function startPhone(){
     code = savedCode;
     $("enter").hidden = true;
     $("nameStep").hidden = false;
-    $("ready").hidden = true;
   }
 }
 
 $("link").onclick = () => {
   const c = $("pcode").value.replace(/\D/g, "");
-  if(c.length !== 6){
-    $("pcode").focus();
-    return;
-  }
+  if(c.length !== 6){ $("pcode").focus(); return; }
   code = c;
   store.set("sl_code_phone", c);
   $("enter").hidden = true;
@@ -546,10 +618,7 @@ $("link").onclick = () => {
 
 $("saveName").onclick = async () => {
   const n = $("pname").value.trim();
-  if(!n || n.length < 2){
-    $("pname").focus();
-    return;
-  }
+  if(!n || n.length < 2){ $("pname").focus(); return; }
   myName = n.slice(0, 30);
   store.set("sl_name_phone", myName);
   $("nameStep").hidden = true;
@@ -573,18 +642,12 @@ function sendOnce(){
     lng: pos ? pos.lng : null,
     ts: Date.now()
   });
-  if(acked || tries > 40){
-    clearInterval(sendT);
-    sendT = null;
-  }
+  if(acked || tries > 40){ clearInterval(sendT); sendT = null; }
 }
 
 function endSos(){
-  clearInterval(sendT);
-  sendT = null;
-  sosId = null;
-  acked = false;
-  tries = 0;
+  clearInterval(sendT); sendT = null;
+  sosId = null; acked = false; tries = 0;
   $("safe").hidden = true;
   $("help").classList.remove("sending");
 }
@@ -595,10 +658,9 @@ $("help").onclick = () => {
     note("Not linked yet. Call 112 if you are in danger.", true);
     return;
   }
-  sosId = Date.now().toString(36);
-  acked = false;
-  tries = 0;
-  try{ navigator.vibrate && navigator.vibrate([200, 100, 200, 100, 200]); } catch(e){}
+  sosId = Date.now().toString(36) + Math.random().toString(16).slice(2,6);
+  acked = false; tries = 0;
+  try{ navigator.vibrate && navigator.vibrate([200,100,200,100,200]); } catch(e){}
   note("Sending alert to your laptop…");
   $("safe").hidden = false;
   $("help").classList.add("sending");
@@ -616,7 +678,7 @@ $("help").onclick = () => {
 
   setTimeout(() => {
     if(!acked && sendT){
-      note("No reply from the laptop yet. Still trying. Call 112 if you are in danger.", true);
+      note("No reply yet. Still trying. Call 112 if in danger.", true);
     }
   }, 9000);
 };
@@ -627,7 +689,6 @@ $("safe").onclick = () => {
   note("Alarm cancelled. Glad you’re safe.", false);
 };
 
-/* ---------- Install (PWA) ---------- */
 window.addEventListener("beforeinstallprompt", e => {
   e.preventDefault();
   deferredPrompt = e;
@@ -641,29 +702,20 @@ $("installBtn").onclick = async () => {
   $("installBanner").style.display = "none";
 };
 
-/* ---------- Start ---------- */
-$("pickLaptop").onclick = () => {
-  store.set("sl_role", "laptop");
-  startLaptop();
-};
-$("pickPhone").onclick = () => {
-  store.set("sl_role", "phone");
-  startPhone();
-};
+$("pickLaptop").onclick = () => { store.set("sl_role","laptop"); startLaptop(); };
+$("pickPhone").onclick = () => { store.set("sl_role","phone"); startPhone(); };
 
-// Auto-start from QR
 function getCodeFromUrl(){
   const params = new URLSearchParams(location.search);
-  const fromQuery = params.get("c") || params.get("code");
-  if(fromQuery && /^\d{6}$/.test(fromQuery)) return fromQuery;
+  const q = params.get("c") || params.get("code");
+  if(q && /^\d{6}$/.test(q)) return q;
   const hm = /^#p(\d{6})$/.exec(location.hash || "");
-  if(hm) return hm[1];
-  return null;
+  return hm ? hm[1] : null;
 }
 
 const codeFromUrl = getCodeFromUrl();
 if(codeFromUrl){
-  store.set("sl_role", "phone");
+  store.set("sl_role","phone");
   store.set("sl_code_phone", codeFromUrl);
   startPhone();
 } else {
