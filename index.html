@@ -355,11 +355,15 @@ function renderEmergencies(){
     }
     const msgHtml=e.msg?`<div style="margin-top:8px"><div class="em-row-label">Message</div><div style="padding:8px 10px;background:#2a0a14;border-radius:8px;font-size:13.5px;color:#fff">${esc(e.msg)}</div></div>`:"";
     const photoHtml=e.photo?`<div style="margin-top:10px"><div class="em-row-label">Photo</div><img src="${e.photo}" alt="Emergency photo" style="max-height:180px;object-fit:cover;width:100%"></div>`:"";
-    const voiceHtml=e.voice?`<div style="margin-top:10px"><div class="em-row-label">Voice note</div><audio controls preload="auto" src="${e.voice}" style="width:100%;margin-top:4px"></audio></div>`:"";
+    const voiceHtml=e.voice?`<div style="margin-top:10px"><div class="em-row-label">Voice note — tap play ▶</div><audio controls playsinline preload="auto" src="${e.voice}" style="width:100%;margin-top:6px;min-height:40px"></audio></div>`:"";
 
     const prevMap=card.querySelector(".em-map");
     const prevPos=prevMap?prevMap.getAttribute("data-pos"):"";
-    const sameMap=hasLoc&&prevPos===(latR+","+lngR);
+    const hadVoice=!!card.querySelector("audio");
+    const hadPhoto=!!card.querySelector("img");
+    const hadMsg=!!card.querySelector(".em-row-label")&&card.innerHTML.includes("Message");
+    // Only skip full rebuild if map pos same AND media already present when needed
+    const sameMap=hasLoc&&prevPos===(latR+","+lngR)&&(!e.voice||hadVoice)&&(!e.photo||hadPhoto)&&(!e.msg||hadMsg);
 
     if(sameMap){
       // Keep existing iframe — only update text + links
@@ -388,7 +392,7 @@ function renderEmergencies(){
     if(!existing.has(el.dataset.em)) el.remove();
   });
 
-  if(!$("silentMode").checked) startSiren(); else document.body.classList.add("alarm");
+  startSiren();
 }
 function renderVoiceNotes(){
   const el=$("voiceList");
@@ -400,7 +404,7 @@ function renderVoiceNotes(){
         <strong>${esc(v.name||"Someone")}</strong>
         <span class="small">${ago(v.ts)}</span>
       </div>
-      <audio controls preload="auto" src="${v.voice}" style="width:100%;margin-top:6px"></audio>
+      <audio controls playsinline preload="auto" src="${v.voice}" style="width:100%;margin-top:6px;min-height:40px"></audio>
     </li>`).join("");
 }
 
@@ -498,9 +502,46 @@ $("btnHistory").onclick=()=>{$("historyBox").hidden=!$("historyBox").hidden;$("h
 $("btnPin").onclick=()=>{$("pinBox").hidden=!$("pinBox").hidden};
 $("savePin").onclick=()=>{const p=$("newPin").value.replace(/\D/g,"");if(p.length<4||p.length>6){alert("PIN must be 4–6 digits");return}store.set("sl_pin",p);$("pinBox").hidden=true;$("newPin").value="";note("PIN saved.",false)};
 
-function startSiren(){if(sirenOn||$("silentMode").checked)return;sirenOn=true;document.body.classList.add("alarm");try{ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();ctx.resume();osc=ctx.createOscillator();const g=ctx.createGain();osc.type="square";g.gain.value=.55;osc.connect(g);g.connect(ctx.destination);osc.start();let hi=true;sirenT=setInterval(()=>{osc.frequency.setValueAtTime(hi?1150:650,ctx.currentTime);hi=!hi},380)}catch(e){}let t=true;titleT=setInterval(()=>{document.title=t?"!!! EMERGENCY !!!":"SafeLink";t=!t},450)}
-function stopSiren(){if(!sirenOn)return;sirenOn=false;document.body.classList.remove("alarm");clearInterval(sirenT);clearInterval(titleT);document.title="SafeLink";try{osc&&osc.stop()}catch(e){}osc=null}
-$("stopAll").onclick=()=>{emergencies={};renderEmergencies();pub("stop",{})};
+function startSiren(){
+  if(sirenOn) return;
+  if($("silentMode")&&$("silentMode").checked){
+    document.body.classList.add("alarm");
+    return;
+  }
+  sirenOn=true;
+  document.body.classList.add("alarm");
+  try{
+    ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();
+    ctx.resume();
+    osc=ctx.createOscillator();
+    const g=ctx.createGain();
+    osc.type="square";
+    g.gain.value=.55;
+    osc.connect(g);g.connect(ctx.destination);
+    osc.start();
+    let hi=true;
+    sirenT=setInterval(()=>{osc.frequency.setValueAtTime(hi?1150:650,ctx.currentTime);hi=!hi},380);
+  }catch(e){}
+  let t=true;
+  titleT=setInterval(()=>{document.title=t?"!!! EMERGENCY !!!":"SafeLink";t=!t},450);
+}
+function stopSiren(){
+  // Always clear red flash + sound, even if silent mode only set the class
+  sirenOn=false;
+  document.body.classList.remove("alarm");
+  clearInterval(sirenT);sirenT=null;
+  clearInterval(titleT);titleT=null;
+  document.title="SafeLink";
+  try{if(osc){osc.stop();osc.disconnect()}}catch(e){}
+  osc=null;
+}
+$("stopAll").onclick=()=>{
+  emergencies={};
+  stopSiren();
+  renderEmergencies();
+  pub("stop",{});
+  note("All alarms stopped.",false);
+};
 
 /* Phone */
 async function startPhone(){
@@ -545,28 +586,41 @@ $("addContact").onclick=()=>{
   $("cName").value="";$("cPhone").value="";loadContacts();
 };
 
-/* Voice note */
+/* Voice note — short, compatible audio so laptop can play */
+function pickAudioMime(){
+  const types=["audio/webm;codecs=opus","audio/webm","audio/mp4","audio/ogg"];
+  for(const t of types){if(window.MediaRecorder&&MediaRecorder.isTypeSupported(t)) return t}
+  return "";
+}
+let recMaxTimer=null;
 $("recBtn").onpointerdown=$("recBtn").ontouchstart=async e=>{
   e.preventDefault();
   if(mediaRec) return;
   try{
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,channelCount:1}});
     recChunks=[];
-    mediaRec=new MediaRecorder(stream,{mimeType:MediaRecorder.isTypeSupported("audio/webm")?"audio/webm":"audio/mp4"});
-    mediaRec.ondataavailable=ev=>{if(ev.data.size) recChunks.push(ev.data)};
+    const mime=pickAudioMime();
+    mediaRec=mime?new MediaRecorder(stream,{mimeType:mime,audioBitsPerSecond:24000}):new MediaRecorder(stream);
+    mediaRec.ondataavailable=ev=>{if(ev.data&&ev.data.size) recChunks.push(ev.data)};
     mediaRec.onstop=async()=>{
+      clearTimeout(recMaxTimer);recMaxTimer=null;
       stream.getTracks().forEach(t=>t.stop());
-      voiceBlob=new Blob(recChunks,{type:mediaRec.mimeType});
+      const blobType=(mediaRec&&mediaRec.mimeType)||mime||"audio/webm";
+      voiceBlob=new Blob(recChunks,{type:blobType});
       if(voiceUrl) URL.revokeObjectURL(voiceUrl);
       voiceUrl=URL.createObjectURL(voiceBlob);
       $("voicePreview").src=voiceUrl;$("voicePreview").style.display="block";
       $("clearVoice").style.display="inline-block";
       $("recBtn").classList.remove("rec");$("recBtn").textContent="🎙 Hold to record";
       mediaRec=null;
-      // Auto-send voice to laptop immediately on release
       $("recStatus").textContent="Sending to laptop…";
       try{
         const dataUrl=await voiceToDataUrl();
+        // MQTT has size limits — keep under ~180KB
+        if(dataUrl&&dataUrl.length>180000){
+          $("recStatus").textContent="Recording too long — keep under ~10s";
+          return;
+        }
         if(dataUrl&&client&&client.connected){
           pub("voice",{from:myId,name:myName||"Someone",voice:dataUrl,ts:Date.now()});
           $("recStatus").textContent="Sent to laptop ✓ — they can play it now";
@@ -577,9 +631,12 @@ $("recBtn").onpointerdown=$("recBtn").ontouchstart=async e=>{
         $("recStatus").textContent="Saved — send failed, will retry with HELP";
       }
     };
-    mediaRec.start();
+    // timeslice so data is flushed regularly
+    mediaRec.start(250);
+    // auto-stop at 12s so payload stays playable over MQTT
+    recMaxTimer=setTimeout(()=>{if(mediaRec&&mediaRec.state==="recording") mediaRec.stop()},12000);
     $("recBtn").classList.add("rec");$("recBtn").textContent="● Recording…";
-    $("recStatus").textContent="";
+    $("recStatus").textContent="Max 12 sec";
   }catch(err){$("recStatus").textContent="Mic not allowed"}
 };
 function stopRec(){if(mediaRec&&mediaRec.state==="recording") mediaRec.stop()}
