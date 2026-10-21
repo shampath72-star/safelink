@@ -77,9 +77,7 @@ input{
   -webkit-user-select:none;user-select:none;
 }
 .help:active{transform:scale(.94)}
-.help.sending{
-  animation:pulse 1.2s ease-in-out infinite;
-}
+.help.sending{animation:pulse 1.2s ease-in-out infinite}
 @keyframes pulse{
   0%,100%{box-shadow:0 0 0 12px color-mix(in srgb,var(--sos) 22%,transparent)}
   50%{box-shadow:0 0 0 22px color-mix(in srgb,var(--sos) 35%,transparent)}
@@ -110,11 +108,6 @@ li{margin-bottom:7px}
   margin-left:auto;background:#fff;color:var(--accent);
   border:0;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer;
 }
-.badge{
-  display:inline-block;background:color-mix(in srgb,var(--ok) 18%,transparent);
-  color:var(--ok);font-size:12px;font-weight:700;padding:3px 8px;
-  border-radius:20px;margin-left:6px;
-}
 </style>
 </head>
 <body>
@@ -134,12 +127,12 @@ li{margin-bottom:7px}
     <button class="btn alt" id="pickPhone">This is my phone (HELP button)</button>
     <ol class="small">
       <li>Open this page on your <b>laptop</b> and choose “laptop”. It shows a QR code + 6-digit code.</li>
-      <li>Scan the QR with <b>any</b> phone camera / scanner (iPhone Camera, Google Lens, WhatsApp, etc.) — or type the code.</li>
-      <li>On the laptop press <b>Arm alarm</b> and keep that tab open (and laptop awake).</li>
+      <li>Scan the QR with <b>any</b> phone camera / scanner (or type the code).</li>
+      <li>On the laptop press <b>Arm alarm</b> and keep that tab open.</li>
       <li>When you need help, press the big red <b>HELP</b> button on the phone.</li>
     </ol>
     <p class="small" style="margin-top:14px">
-      Both devices must be signed in to Claude for the live link.<br>
+      Works from any browser — no special login needed.<br>
       <b>This is a backup only.</b> In danger call <b>112</b> (emergency) or <b>1091</b> (women helpline) first.
     </p>
   </section>
@@ -153,7 +146,7 @@ li{margin-bottom:7px}
     <div class="code" id="lcode">------</div>
     <div class="status">
       <span class="dot" id="ldot"></span>
-      <span id="lstat">Waiting for your phone…</span>
+      <span id="lstat">Connecting…</span>
     </div>
     <button class="btn" id="arm">Arm alarm</button>
     <button class="btn alt" id="test">Test alarm (3 seconds)</button>
@@ -179,7 +172,7 @@ li{margin-bottom:7px}
     <div id="ready" hidden>
       <div class="status">
         <span class="dot" id="pdot"></span>
-        <span id="pstat">Looking for your laptop…</span>
+        <span id="pstat">Connecting…</span>
       </div>
       <button class="help" id="help" aria-label="Press for HELP">HELP</button>
       <p class="msg" id="pmsg">Press HELP to start the alarm on your laptop.</p>
@@ -192,6 +185,7 @@ li{margin-bottom:7px}
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script>
 const $ = id => document.getElementById(id);
 const store = {
@@ -200,69 +194,133 @@ const store = {
   del(k){ try{ localStorage.removeItem(k) }catch(e){} }
 };
 
-let room = null, role = null, code = null, paired = false;
+let client = null, role = null, code = null, paired = false;
 let deferredPrompt = null;
+let heartbeatT = null;
 
 /* ---------- helpers ---------- */
 function show(id){
   ["pick","laptop","phone"].forEach(x => $(x).hidden = x !== id);
 }
-function dots(on){
-  ["ldot","pdot"].forEach(d => $(d).classList.toggle("on", on));
-  $("lstat").textContent = on ? "Phone linked ✓" : "Waiting for your phone…";
-  $("pstat").textContent = on ? "Laptop linked ✓" : "Looking for your laptop…";
+function setStatus(text, on){
+  if(role === "laptop"){
+    $("lstat").textContent = text;
+    $("ldot").classList.toggle("on", !!on);
+  } else {
+    $("pstat").textContent = text;
+    $("pdot").classList.toggle("on", !!on);
+  }
 }
 function note(t, bad){
   const el = role === "laptop" ? $("lmsg") : $("pmsg");
   el.textContent = t;
-  el.className = "msg" + (bad ? " bad" : "");
+  el.className = "msg" + (bad ? " bad" : (bad === false ? " good" : ""));
 }
 
-/* ---------- Claude room connection ---------- */
-async function connect(){
-  try{
-    const api = window.claude && await claude.use("room");
-    if(!api){
-      note("Live link isn’t available. Open this page while signed in to Claude.", true);
-      return;
-    }
-    room = await api.join("safelink-" + code);
-    room.presence({ role });
-    room.onPeers(() => {
-      paired = room.peers().some(p => !p.sameTab && p.presence && p.presence.role && p.presence.role !== role);
-      dots(paired);
-    });
-    if(role === "laptop"){
-      room.on("sos", onSos);
-      room.on("cancel", () => {
-        stopAlarm();
-        $("lmsg").textContent = "Phone user marked safe.";
-        $("lmsg").className = "msg good";
+/* ---------- MQTT connection (free public broker) ---------- */
+function topic(base){
+  return "safelink/" + code + "/" + base;
+}
+
+function connect(){
+  return new Promise((resolve) => {
+    try{
+      // Free public HiveMQ broker – no account needed
+      client = mqtt.connect("wss://broker.hivemq.com:8884/mqtt", {
+        clientId: "sl_" + role + "_" + Math.random().toString(16).slice(2, 10),
+        clean: true,
+        reconnectPeriod: 3000,
+        connectTimeout: 8000
       });
-    } else {
-      room.on("ack", m => {
-        if(m.data && m.data.id === sosId){
-          acked = true;
-          $("pmsg").className = "msg good";
-          $("pmsg").textContent = "Your laptop is sounding the alarm.";
-          $("help").classList.remove("sending");
+
+      client.on("connect", () => {
+        setStatus(role === "laptop" ? "Waiting for phone…" : "Looking for laptop…", false);
+        // Subscribe to relevant topics
+        if(role === "laptop"){
+          client.subscribe(topic("sos"));
+          client.subscribe(topic("cancel"));
+          client.subscribe(topic("phone"));
+        } else {
+          client.subscribe(topic("ack"));
+          client.subscribe(topic("stop"));
+          client.subscribe(topic("laptop"));
         }
+        // Announce presence
+        publishPresence();
+        heartbeatT = setInterval(publishPresence, 4000);
+        resolve(true);
       });
-      room.on("stop", () => {
-        $("pmsg").className = "msg";
-        $("pmsg").textContent = "The laptop alarm was stopped.";
-        endSos();
+
+      client.on("message", (t, payload) => {
+        let data = {};
+        try{ data = JSON.parse(payload.toString()); } catch(e){}
+        handleMessage(t, data);
       });
+
+      client.on("error", () => {
+        setStatus("Connection error – retrying…", false);
+      });
+
+      client.on("close", () => {
+        setStatus("Disconnected – reconnecting…", false);
+        paired = false;
+      });
+
+      client.on("reconnect", () => {
+        setStatus("Reconnecting…", false);
+      });
+
+    } catch(e){
+      note("Couldn’t connect. Check internet and reload.", true);
+      resolve(false);
     }
-  } catch(e){
-    note("Couldn’t connect. Check internet and reload.", true);
+  });
+}
+
+function publish(base, obj){
+  if(!client || !client.connected) return;
+  try{
+    client.publish(topic(base), JSON.stringify(obj || {}), { qos: 1 });
+  } catch(e){}
+}
+
+function publishPresence(){
+  publish(role, { ts: Date.now(), role });
+}
+
+function handleMessage(t, data){
+  if(t.endsWith("/sos") && role === "laptop"){
+    onSos(data);
+    // Send ack back
+    publish("ack", { id: data.id || "" });
+  }
+  else if(t.endsWith("/cancel") && role === "laptop"){
+    stopAlarm();
+    note("Phone user marked safe.", false);
+  }
+  else if(t.endsWith("/ack") && role === "phone"){
+    if(data.id === sosId){
+      acked = true;
+      note("Your laptop is sounding the alarm.", false);
+      $("help").classList.remove("sending");
+    }
+  }
+  else if(t.endsWith("/stop") && role === "phone"){
+    note("The laptop alarm was stopped.");
+    endSos();
+  }
+  else if(t.endsWith("/phone") && role === "laptop"){
+    paired = true;
+    setStatus("Phone linked ✓", true);
+  }
+  else if(t.endsWith("/laptop") && role === "phone"){
+    paired = true;
+    setStatus("Laptop linked ✓", true);
   }
 }
 
 /* ---------- Laptop ---------- */
-// Full public URL so ANY phone camera / QR scanner can open it
 function getBaseUrl(){
-  // Prefer the clean page URL without hash or query
   const u = new URL(location.href);
   u.hash = "";
   u.search = "";
@@ -272,7 +330,6 @@ function getBaseUrl(){
 function drawQr(){
   const q = $("qr");
   q.innerHTML = "";
-  // Use ?c=XXXXXX — works with almost every scanner (camera, Google Lens, WhatsApp, etc.)
   const link = getBaseUrl() + "?c=" + code;
   try{
     new QRCode(q, {
@@ -310,8 +367,7 @@ $("arm").onclick = async () => {
     if(navigator.wakeLock) wake = await navigator.wakeLock.request("screen");
   } catch(e){}
   $("arm").textContent = "Armed ✓";
-  $("lmsg").className = "msg good";
-  $("lmsg").textContent = "Alarm is armed. Keep this tab open and the laptop awake.";
+  note("Alarm is armed. Keep this tab open and the laptop awake.", false);
 };
 
 $("test").onclick = () => {
@@ -326,16 +382,17 @@ $("newcode").onclick = () => {
 
 function validNum(n){ return typeof n === "number" && isFinite(n); }
 
-function onSos(m){
-  const d = m.data || {};
+function onSos(d){
+  d = d || {};
   startAlarm(d);
-  room.emit("ack", { id: typeof d.id === "string" ? d.id.slice(0, 20) : "" });
 }
 
 function startAlarm(d){
   d = d || {};
   const i = $("ainfo");
   i.textContent = d.test ? "This is a test." : "Someone needs help. Check on her now.";
+  // clear previous location link
+  while(i.children.length) i.removeChild(i.lastChild);
   if(validNum(d.lat) && validNum(d.lng)){
     const a = document.createElement("a");
     a.href = "https://www.google.com/maps?q=" + d.lat.toFixed(6) + "," + d.lng.toFixed(6);
@@ -392,7 +449,7 @@ function stopAlarm(){
 
 $("stopAlarm").onclick = () => {
   stopAlarm();
-  if(room) room.emit("stop", {});
+  publish("stop", {});
 };
 
 /* ---------- Phone ---------- */
@@ -429,14 +486,14 @@ $("unlink").onclick = () => {
 };
 
 function sendOnce(){
-  if(!room) return;
   tries++;
-  room.emit("sos", {
+  publish("sos", {
     id: sosId,
     lat: pos ? pos.lat : null,
-    lng: pos ? pos.lng : null
+    lng: pos ? pos.lng : null,
+    ts: Date.now()
   });
-  if(acked || tries > 45){
+  if(acked || tries > 40){
     clearInterval(sendT);
     sendT = null;
   }
@@ -454,21 +511,19 @@ function endSos(){
 
 $("help").onclick = () => {
   if(sendT) return;
-  if(!room){
-    $("pmsg").className = "msg bad";
-    $("pmsg").textContent = "Not linked yet. Call 112 if you are in danger.";
+  if(!client || !client.connected){
+    note("Not linked yet. Call 112 if you are in danger.", true);
     return;
   }
   sosId = Date.now().toString(36);
   acked = false;
   tries = 0;
   try{ navigator.vibrate && navigator.vibrate([200, 100, 200, 100, 200]); } catch(e){}
-  $("pmsg").className = "msg";
-  $("pmsg").textContent = "Sending alert to your laptop…";
+  note("Sending alert to your laptop…");
   $("safe").hidden = false;
   $("help").classList.add("sending");
 
-  // Try to get location (optional, privacy-friendly)
+  // Optional location
   try{
     navigator.geolocation && navigator.geolocation.getCurrentPosition(
       p => { pos = { lat: p.coords.latitude, lng: p.coords.longitude }; },
@@ -482,17 +537,15 @@ $("help").onclick = () => {
 
   setTimeout(() => {
     if(!acked && sendT){
-      $("pmsg").className = "msg bad";
-      $("pmsg").textContent = "No reply from the laptop yet. Still trying. Call 112 if you are in danger.";
+      note("No reply from the laptop yet. Still trying. Call 112 if you are in danger.", true);
     }
   }, 9000);
 };
 
 $("safe").onclick = () => {
-  if(room) room.emit("cancel", { id: sosId });
+  publish("cancel", { id: sosId });
   endSos();
-  $("pmsg").className = "msg good";
-  $("pmsg").textContent = "Alarm cancelled. Glad you’re safe.";
+  note("Alarm cancelled. Glad you’re safe.", false);
 };
 
 /* ---------- Install (PWA) ---------- */
@@ -519,18 +572,14 @@ $("pickPhone").onclick = () => {
   startPhone();
 };
 
-// Auto-start from QR (works with any scanner)
-// Supports both ?c=123456 (preferred) and old #p123456 style
+// Auto-start from QR (?c=123456) or saved role
 function getCodeFromUrl(){
-  // Query param (best compatibility with all scanners)
   const params = new URLSearchParams(location.search);
   const fromQuery = params.get("c") || params.get("code");
   if(fromQuery && /^\d{6}$/.test(fromQuery)) return fromQuery;
 
-  // Hash fallback (old style)
   const hm = /^#p(\d{6})$/.exec(location.hash || "");
   if(hm) return hm[1];
-
   return null;
 }
 
