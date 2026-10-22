@@ -1184,67 +1184,140 @@ function cancelCountdown(){
   if($("cancelCountBtn")) $("cancelCountBtn").hidden=true;
   note("HELP cancelled.",false);
 }
+function buildHelpSmsBody(loc, extraMsg){
+  let body = "SOS HELP! I need help right now.";
+  if(myName) body += " - " + myName;
+  if(extraMsg) body += "\n" + extraMsg;
+  if(loc && typeof loc.lat === "number" && typeof loc.lng === "number"){
+    body += "\nMap: https://maps.google.com/?q=" + loc.lat.toFixed(5) + "," + loc.lng.toFixed(5);
+  } else {
+    body += "\n(Location unavailable)";
+  }
+  const bat = getBatteryPct();
+  if(bat !== null) body += "\nBattery: " + bat + "%";
+  body += "\nvia SafeLink";
+  return body.slice(0, 320);
+}
+function openOfflineSms(loc, extraMsg){
+  const list = store.json("sl_contacts", []);
+  if(!list.length){
+    note("Add emergency contacts below for offline SMS. Call 112 now if in danger!", true);
+    return false;
+  }
+  const body = encodeURIComponent(buildHelpSmsBody(loc, extraMsg));
+  const phones = list.map(c => String(c.phone || "").replace(/\s+/g, "")).filter(Boolean);
+  if(!phones.length){
+    note("Contact has no phone number. Call 112!", true);
+    return false;
+  }
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent || "");
+  // iOS: one number + &body= ; Android: can try multiple with ?
+  const to = isIOS ? phones[0] : phones.slice(0, 3).join(",");
+  const href = isIOS ? ("sms:" + to + "&body=" + body) : ("sms:" + to + "?body=" + body);
+  try{
+    window.location.href = href;
+    note("SMS app opened — tap Send to alert contacts.", false);
+    return true;
+  }catch(e){
+    note("Could not open SMS. Call 112!", true);
+    return false;
+  }
+}
 async function fireHelp(){
   if(sosActive) return;
-  if(!client||!client.connected){note("Not linked yet. Call 112 if in danger.",true);return}
-  sosActive=true;sosId=Date.now().toString(36);acked=false;tries=0;
-  try{navigator.vibrate&&navigator.vibrate([180,80,180,80,180])}catch(e){}
-  note("Sending alert…");$("safeBtn").hidden=false;$("helpBtn").classList.add("busy");
+  const linked = !!(client && client.connected);
+  const online = navigator.onLine !== false;
+  const wantSms = !$("offlineSmsOn") || $("offlineSmsOn").checked;
+
+  sosActive = true;
+  sosId = Date.now().toString(36);
+  acked = false;
+  tries = 0;
+  try{ navigator.vibrate && navigator.vibrate([180, 80, 180, 80, 180]); }catch(e){}
+  $("safeBtn").hidden = false;
+  $("helpBtn").classList.add("busy");
   $("helpBtn").classList.remove("counting");
-  if($("cancelCountBtn")) $("cancelCountBtn").hidden=true;
-  const ov=$("countOverlay");if(ov)ov.hidden=true;
+  if($("cancelCountBtn")) $("cancelCountBtn").hidden = true;
+  const ov = $("countOverlay");
+  if(ov) ov.hidden = true;
   updateNetBatUI();
 
-  const smsMsg=($("smsText")&&$("smsText").value||"").trim().slice(0,280);
+  const smsMsg = ($("smsText") && $("smsText").value || "").trim().slice(0, 280);
 
-  const [loc,photo,voice]=await Promise.all([getLocOnce(),snap(),voiceToDataUrl()]);
-  pos=loc;
-  sendOnce({photo,voice,msg:smsMsg||null});
-  sendT=setInterval(()=>sendOnce({msg:smsMsg||null}),1200);
+  // Always try to get location fast
+  let loc = null, photo = null, voice = null;
+  try{
+    const jobs = [getLocOnce()];
+    if(linked){ jobs.push(snap()); jobs.push(voiceToDataUrl()); }
+    const res = await Promise.all(jobs);
+    loc = res[0];
+    if(linked){ photo = res[1]; voice = res[2]; }
+  }catch(e){}
+  pos = loc;
+
+  // Offline / not linked → SMS fallback
+  if(!linked || !online){
+    note(!online ? "No internet — opening SMS alert…" : "Not linked to server — opening SMS alert…", true);
+    if(wantSms) openOfflineSms(loc, smsMsg || null);
+    else note("Turn on Offline SMS backup or call 112!", true);
+    // Keep UI in SOS state so user can still mark safe; no MQTT retries
+    return;
+  }
+
+  note("Sending alert…", false);
+  sendOnce({ photo, voice, msg: smsMsg || null });
+  sendT = setInterval(() => sendOnce({ msg: smsMsg || null }), 1200);
 
   if(navigator.geolocation){
     try{
-      watchId=navigator.geolocation.watchPosition(
-        p=>{
-          pos={lat:p.coords.latitude,lng:p.coords.longitude};
-          pub("sos",{
-            id:sosId,from:myId,name:myName,lat:pos.lat,lng:pos.lng,ts:Date.now(),
-            msg:smsMsg||null,battery:getBatteryPct(),network:getNetworkLabel()
+      watchId = navigator.geolocation.watchPosition(
+        p => {
+          pos = { lat: p.coords.latitude, lng: p.coords.longitude };
+          pub("sos", {
+            id: sosId, from: myId, name: myName, lat: pos.lat, lng: pos.lng, ts: Date.now(),
+            msg: smsMsg || null, battery: getBatteryPct(), network: getNetworkLabel()
           });
         },
-        ()=>{},
-        {enableHighAccuracy:true,maximumAge:2000,timeout:8000}
+        () => {},
+        { enableHighAccuracy: true, maximumAge: 2000, timeout: 8000 }
       );
     }catch(e){}
   }
-  locT=setInterval(async()=>{
-    const p=await getLocOnce();
+  locT = setInterval(async () => {
+    const p = await getLocOnce();
     if(p){
-      pos=p;
-      pub("sos",{
-        id:sosId,from:myId,name:myName,lat:p.lat,lng:p.lng,ts:Date.now(),
-        msg:smsMsg||null,battery:getBatteryPct(),network:getNetworkLabel()
+      pos = p;
+      pub("sos", {
+        id: sosId, from: myId, name: myName, lat: p.lat, lng: p.lng, ts: Date.now(),
+        msg: smsMsg || null, battery: getBatteryPct(), network: getNetworkLabel()
       });
     }
-  },4000);
+  }, 4000);
 
-  setTimeout(()=>{if(!acked&&sendT) note("No reply yet. Still trying. Call 112 if needed.",true)},8000);
+  // If server never acks, open SMS backup
+  setTimeout(() => {
+    if(!acked && sendT){
+      note("No reply from server yet. Opening SMS backup…", true);
+      if(wantSms) openOfflineSms(pos, smsMsg || null);
+    }
+  }, 9000);
 
   // Auto-call first contact offer
-  if($("autoCallOn")&&$("autoCallOn").checked){
-    const list=store.json("sl_contacts",[]);
-    if(list.length&&list[0].phone){
-      setTimeout(()=>{
-        if(confirm("Call "+list[0].name+" ("+list[0].phone+") now?")){
-          location.href="tel:"+list[0].phone;
+  if($("autoCallOn") && $("autoCallOn").checked){
+    const list = store.json("sl_contacts", []);
+    if(list.length && list[0].phone){
+      setTimeout(() => {
+        if(confirm("Call " + list[0].name + " (" + list[0].phone + ") now?")){
+          location.href = "tel:" + list[0].phone;
         }
-      },600);
+      }, 600);
     }
   }
 }
+
 $("helpBtn").onclick=()=>{
   if(sosActive||counting) return;
-  if(!client||!client.connected){note("Not linked yet. Call 112 if in danger.",true);return}
+  // Allow HELP offline — SMS backup will run inside fireHelp
   counting=true;
   let n=3;
   const ov=$("countOverlay");
@@ -1269,6 +1342,19 @@ if($("cancelCountBtn")) $("cancelCountBtn").onclick=cancelCountdown;
 
 
 $("safeBtn").onclick=()=>{pub("cancel",{id:sosId,from:myId,name:myName});endSos();note("Alarm cancelled. Glad you're safe.",false)};
+
+
+/* Offline SMS settings */
+if($("offlineSmsOn")){
+  $("offlineSmsOn").checked = store.get("sl_offline_sms") !== "0";
+  $("offlineSmsOn").onchange = () => store.set("sl_offline_sms", $("offlineSmsOn").checked ? "1" : "0");
+}
+if($("btnSmsNow")) $("btnSmsNow").onclick = async () => {
+  note("Getting location for SMS…");
+  const loc = await getLocOnce();
+  const smsMsg = ($("smsText") && $("smsText").value || "").trim().slice(0, 280);
+  openOfflineSms(loc, smsMsg || null);
+};
 
 /* Shake */
 let lastShake=0;
