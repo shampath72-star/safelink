@@ -263,7 +263,7 @@ body.alarm{animation:flash .55s steps(1) infinite}
   <input id="pinIn" type="password" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off">
   <button class="btn" id="pinGo" style="max-width:200px;margin-top:12px">Unlock</button>
   <p class="msg" id="pinMsg"></p>
-  <p class="small" style="margin-top:20px;text-align:center;opacity:.7">Default PIN: <b>1234</b></p>
+  
 </div>
 
 <div id="fake">
@@ -462,7 +462,7 @@ $("themeBtn").onclick=()=>{const t=document.documentElement.getAttribute("data-t
 $("langBtn").onclick=()=>{lang=lang==="en"?"hi":"en";store.set("sl_lang",lang);$("langBtn").textContent=lang==="en"?"EN":"हिं";$("subText").textContent=lang==="en"?"Press HELP → server sounds alarm so someone can help.":"HELP दबाएँ → सर्वर पर अलार्म बजेगा।"};
 
 /* PIN */
-function getPin(){return store.get("sl_pin")||"1234"}
+function getPin(){return store.get("sl_pin")||"956597"}
 function showPin(){$("pinLock").hidden=false;$("pinIn").value="";setTimeout(()=>$("pinIn").focus(),100)}
 $("pinGo").onclick=()=>{if($("pinIn").value===getPin()){$("pinLock").hidden=true;startServer(true)}else{$("pinMsg").textContent="Wrong PIN";$("pinMsg").className="msg bad"}};
 $("pinIn").onkeydown=e=>{if(e.key==="Enter")$("pinGo").click()};
