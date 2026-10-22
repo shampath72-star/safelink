@@ -50,12 +50,30 @@ input::placeholder{color:var(--muted)}
 .status{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;margin:10px 0}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--line);flex-shrink:0}
 .dot.on{background:var(--green);box-shadow:0 0 0 3px #10b98133,0 0 8px #10b98166}
-.help{display:block;margin:22px auto;width:min(64vw,220px);height:min(64vw,220px);border-radius:50%;border:0;background:var(--pink);color:#fff;font:800 38px/1 system-ui;cursor:pointer;box-shadow:0 0 0 12px #f43f5e33,0 0 48px #f43f5e44,0 10px 32px #0006;position:relative;-webkit-user-select:none;user-select:none;transition:transform .1s}
-.help::after{content:"";position:absolute;inset:-14px;border-radius:50%;border:2px solid var(--pink);opacity:.3;animation:ring 2s ease-out infinite}
+.help{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  margin:22px auto;width:min(64vw,220px);height:min(64vw,220px);border-radius:50%;border:0;
+  background:linear-gradient(160deg,#e11d48 0%,#be123c 45%,#9f1239 100%);
+  color:#fff;cursor:pointer;
+  box-shadow:0 0 0 12px #f43f5e33,0 0 48px #f43f5e44,0 10px 32px #0006;
+  position:relative;-webkit-user-select:none;user-select:none;transition:transform .1s;
+  overflow:hidden;
+}
+.help::before{
+  content:"";position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.18),transparent 55%);
+  pointer-events:none;
+}
+.help::after{content:"";position:absolute;inset:-14px;border-radius:50%;border:2px solid var(--pink);opacity:.3;animation:ring 2s ease-out infinite;pointer-events:none}
+.help-icon{width:72px;height:72px;display:block;position:relative;z-index:1;filter:drop-shadow(0 2px 6px #0006)}
+.help-label{font:800 22px/1 system-ui;letter-spacing:.06em;position:relative;z-index:1;text-shadow:0 2px 8px #0005}
 @keyframes ring{0%{transform:scale(.92);opacity:.4}100%{transform:scale(1.18);opacity:0}}
 .help:active{transform:scale(.94)}
 .help.busy{animation:pulse 1s ease-in-out infinite;pointer-events:none}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 12px #f43f5e33,0 0 48px #f43f5e44}50%{box-shadow:0 0 0 22px #f43f5e22,0 0 64px #f43f5e55}}
+.net-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0;padding:10px 12px;background:var(--card2);border:1px solid var(--line);border-radius:12px;font-size:12.5px;color:var(--muted)}
+.net-bar strong{color:var(--ink);font-weight:700}
+.net-ok{color:var(--green)}.net-mid{color:#f59e0b}.net-bad{color:var(--pink)}
 .list{list-style:none;margin:8px 0 0}
 .list li{display:flex;align-items:center;gap:8px;padding:10px 12px;margin-bottom:5px;background:var(--card2);border-radius:12px;font-size:13.5px;font-weight:600;flex-wrap:wrap}
 .list .dot{width:7px;height:7px}
@@ -207,19 +225,31 @@ body.alarm{animation:flash .55s steps(1) infinite}
       <div class="status"><span class="dot" id="pdot"></span><span id="pstat">Connecting…</span></div>
       <p class="small" id="nameLabel"></p>
       <div id="warnBox"></div>
+      <div class="net-bar" id="netBar">
+        <span>📶 Network: <strong id="netStatus">Checking…</strong></span>
+        <span>🔋 Battery: <strong id="batStatus">—</strong></span>
+      </div>
 
-      <button class="help" id="helpBtn">HELP</button>
+      <button class="help" id="helpBtn" aria-label="HELP — emergency">
+        <svg class="help-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="32" cy="14" r="10" fill="#fff"/>
+          <path fill="#fff" d="M18 58c0-12 6.5-20 14-20s14 8 14 20H18z"/>
+          <path fill="#fff" d="M22 32c-4 2-7 6-8 11h8c1-4 3-7 6-9l-6-2zm20 0l-6 2c3 2 5 5 6 9h8c-1-5-4-9-8-11z"/>
+          <path fill="#fda4af" d="M28 22c2 3 6 3 8 0-1 4-7 4-8 0z" opacity=".9"/>
+        </svg>
+        <span class="help-label">HELP</span>
+      </button>
       <p class="msg" id="pmsg">Press HELP to alert the laptop.</p>
       <button class="btn alt" id="safeBtn" hidden>I'm safe — stop my alarm</button>
 
       <!-- Voice note — release = auto-send to laptop -->
       <div class="section">Voice note</div>
-      <p class="small" style="margin-bottom:6px">Hold → speak → release. Sends to laptop instantly so they can hear you.</p>
+      <p class="small" style="margin-bottom:6px">Hold → speak → release (max 8 sec). Sends to laptop so they can hear you.</p>
       <div class="row">
         <button class="rec-btn" id="recBtn">🎙 Hold to record</button>
         <span class="small" id="recStatus"></span>
       </div>
-      <audio id="voicePreview" controls style="display:none;width:100%;margin-top:6px"></audio>
+      <audio id="voicePreview" controls playsinline style="display:none;width:100%;margin-top:6px"></audio>
       <button class="btn sm alt" id="clearVoice" style="display:none;margin-top:4px">Clear voice note</button>
 
       <!-- Quick SMS / text (sent with HELP) -->
@@ -272,7 +302,7 @@ $("themeBtn").onclick=()=>{const t=document.documentElement.getAttribute("data-t
 $("langBtn").onclick=()=>{lang=lang==="en"?"hi":"en";store.set("sl_lang",lang);$("langBtn").textContent=lang==="en"?"EN":"हिं";$("subText").textContent=lang==="en"?"Press HELP → laptop sounds alarm so someone can help.":"HELP दबाएँ → लैपटॉप पर अलार्म बजेगा।"};
 
 /* PIN */
-function getPin(){return store.get("sl_pin")||"956597"}
+function getPin(){return store.get("sl_pin")||"1234"}
 function showPin(){$("pinLock").hidden=false;$("pinIn").value="";setTimeout(()=>$("pinIn").focus(),100)}
 $("pinGo").onclick=()=>{if($("pinIn").value===getPin()){$("pinLock").hidden=true;startLaptop(true)}else{$("pinMsg").textContent="Wrong PIN";$("pinMsg").className="msg bad"}};
 $("pinIn").onkeydown=e=>{if(e.key==="Enter")$("pinGo").click()};
@@ -353,6 +383,13 @@ function renderEmergencies(){
         <div style="font-size:12px;color:#9b8fb8;margin-top:4px">Phone sends location every few seconds. Map appears when GPS arrives.</div>
       </div>`;
     }
+    const batNet=(()=>{
+      const parts=[];
+      if(typeof e.battery==="number") parts.push(`🔋 ${e.battery}%`);
+      if(e.network) parts.push(`📶 ${esc(e.network)}`);
+      if(!parts.length) return "";
+      return `<div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;font-size:13px;font-weight:700;color:#fda4af">${parts.map(p=>`<span style="background:#2a0a14;padding:6px 10px;border-radius:8px;border:1px solid #f43f5e40">${p}</span>`).join("")}</div>`;
+    })();
     const msgHtml=e.msg?`<div style="margin-top:8px"><div class="em-row-label">Message</div><div style="padding:8px 10px;background:#2a0a14;border-radius:8px;font-size:13.5px;color:#fff">${esc(e.msg)}</div></div>`:"";
     const photoHtml=e.photo?`<div style="margin-top:10px"><div class="em-row-label">Photo</div><img src="${e.photo}" alt="Emergency photo" style="max-height:180px;object-fit:cover;width:100%"></div>`:"";
     const voiceHtml=e.voice?`<div style="margin-top:10px"><div class="em-row-label">Voice note — tap play ▶</div><audio controls playsinline preload="auto" src="${e.voice}" style="width:100%;margin-top:6px;min-height:40px"></audio></div>`:"";
@@ -383,7 +420,7 @@ function renderEmergencies(){
       card.innerHTML=`
         <div class="name">${num}${esc(e.name||"Someone")} needs help</div>
         <div class="meta">${ago(e.ts)}</div>
-        ${msgHtml}${locHtml}${photoHtml}${voiceHtml}`;
+        ${batNet}${msgHtml}${locHtml}${photoHtml}${voiceHtml}`;
     }
   });
 
@@ -443,6 +480,8 @@ function onMsg(t,d){
       photo:d.photo||prev.photo||null,
       voice:d.voice||prev.voice||null,
       msg:d.msg||prev.msg||null,
+      battery:typeof d.battery==="number"?d.battery:prev.battery,
+      network:d.network||prev.network||null,
       from:key
     };
     renderEmergencies();
@@ -547,11 +586,11 @@ $("stopAll").onclick=()=>{
 async function startPhone(){
   role="phone";show("phone");
   const sc=store.get("sl_code_phone"),sn=store.get("sl_name_phone");
-  if(sc&&sn){code=sc;myName=sn;$("stepCode").hidden=true;$("stepName").hidden=true;$("stepReady").hidden=false;$("nameLabel").textContent="You are: "+myName;await connect();warnings();loadContacts();readBattery()}
+  if(sc&&sn){code=sc;myName=sn;$("stepCode").hidden=true;$("stepName").hidden=true;$("stepReady").hidden=false;$("nameLabel").textContent="You are: "+myName;await connect();warnings();loadContacts();readBattery();startNetBatWatch()}
   else if(sc){code=sc;$("stepCode").hidden=true;$("stepName").hidden=false}
 }
 $("btnCode").onclick=()=>{const c=$("pcode").value.replace(/\D/g,"");if(c.length!==6){$("pcode").focus();return}code=c;store.set("sl_code_phone",c);$("stepCode").hidden=true;$("stepName").hidden=false;$("pname").focus()};
-$("btnName").onclick=async()=>{const n=$("pname").value.trim();if(n.length<2){$("pname").focus();return}myName=n.slice(0,24);store.set("sl_name_phone",myName);$("stepName").hidden=true;$("stepReady").hidden=false;$("nameLabel").textContent="You are: "+myName;await connect();warnings();loadContacts();readBattery()};
+$("btnName").onclick=async()=>{const n=$("pname").value.trim();if(n.length<2){$("pname").focus();return}myName=n.slice(0,24);store.set("sl_name_phone",myName);$("stepName").hidden=true;$("stepReady").hidden=false;$("nameLabel").textContent="You are: "+myName;await connect();warnings();loadContacts();readBattery();startNetBatWatch()};
 function warnings(){
   const box=$("warnBox");box.innerHTML="";
   if(navigator.getBattery) navigator.getBattery().then(b=>{if(b.level<0.2) box.innerHTML+=`<div class="warn">⚠️ Battery low (${Math.round(b.level*100)}%) — live location still sent</div>`});
@@ -560,7 +599,8 @@ function warnings(){
 function readBattery(){
   if(navigator.getBattery) navigator.getBattery().then(b=>{
     batteryLevel=b.level;
-    b.addEventListener("levelchange",()=>{batteryLevel=b.level});
+    updateNetBatUI();
+    b.addEventListener("levelchange",()=>{batteryLevel=b.level;updateNetBatUI()});
   });
 }
 
@@ -586,71 +626,80 @@ $("addContact").onclick=()=>{
   $("cName").value="";$("cPhone").value="";loadContacts();
 };
 
-/* Voice note — short, compatible audio so laptop can play */
+/* Voice note — robust hold-to-record (max 8s for MQTT) */
 function pickAudioMime(){
-  const types=["audio/webm;codecs=opus","audio/webm","audio/mp4","audio/ogg"];
-  for(const t of types){if(window.MediaRecorder&&MediaRecorder.isTypeSupported(t)) return t}
+  const types=["audio/webm;codecs=opus","audio/webm","audio/mp4","audio/ogg;codecs=opus","audio/ogg"];
+  for(const t of types){try{if(window.MediaRecorder&&MediaRecorder.isTypeSupported(t)) return t}catch(e){}}
   return "";
 }
-let recMaxTimer=null;
-$("recBtn").onpointerdown=$("recBtn").ontouchstart=async e=>{
-  e.preventDefault();
-  if(mediaRec) return;
+let recMaxTimer=null, recStarting=false, recMime="";
+async function startRec(e){
+  if(e){e.preventDefault();e.stopPropagation()}
+  if(mediaRec||recStarting) return;
+  recStarting=true;
   try{
     const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,channelCount:1}});
     recChunks=[];
-    const mime=pickAudioMime();
-    mediaRec=mime?new MediaRecorder(stream,{mimeType:mime,audioBitsPerSecond:24000}):new MediaRecorder(stream);
-    mediaRec.ondataavailable=ev=>{if(ev.data&&ev.data.size) recChunks.push(ev.data)};
+    recMime=pickAudioMime();
+    try{
+      mediaRec=recMime?new MediaRecorder(stream,{mimeType:recMime,audioBitsPerSecond:16000}):new MediaRecorder(stream);
+    }catch(err){
+      mediaRec=recMime?new MediaRecorder(stream,{mimeType:recMime}):new MediaRecorder(stream);
+    }
+    mediaRec.ondataavailable=ev=>{if(ev.data&&ev.data.size>0) recChunks.push(ev.data)};
+    mediaRec.onerror=()=>{$("recStatus").textContent="Recorder error";stopRec()};
     mediaRec.onstop=async()=>{
       clearTimeout(recMaxTimer);recMaxTimer=null;
-      stream.getTracks().forEach(t=>t.stop());
-      const blobType=(mediaRec&&mediaRec.mimeType)||mime||"audio/webm";
+      try{stream.getTracks().forEach(t=>t.stop())}catch(e){}
+      const blobType=(mediaRec&&mediaRec.mimeType)||recMime||"audio/webm";
+      mediaRec=null;recStarting=false;
+      if(!recChunks.length){
+        $("recStatus").textContent="No audio captured — try again";
+        $("recBtn").classList.remove("rec");$("recBtn").textContent="🎙 Hold to record";
+        return;
+      }
       voiceBlob=new Blob(recChunks,{type:blobType});
       if(voiceUrl) URL.revokeObjectURL(voiceUrl);
       voiceUrl=URL.createObjectURL(voiceBlob);
       $("voicePreview").src=voiceUrl;$("voicePreview").style.display="block";
+      try{$("voicePreview").load()}catch(e){}
       $("clearVoice").style.display="inline-block";
       $("recBtn").classList.remove("rec");$("recBtn").textContent="🎙 Hold to record";
-      mediaRec=null;
       $("recStatus").textContent="Sending to laptop…";
       try{
         const dataUrl=await voiceToDataUrl();
-        // MQTT has size limits — keep under ~180KB
-        if(dataUrl&&dataUrl.length>180000){
-          $("recStatus").textContent="Recording too long — keep under ~10s";
-          return;
-        }
-        if(dataUrl&&client&&client.connected){
+        if(!dataUrl||dataUrl.length<100){$("recStatus").textContent="Empty recording — try again";return}
+        if(dataUrl.length>160000){$("recStatus").textContent="Too long — keep under ~8s";return}
+        if(client&&client.connected){
           pub("voice",{from:myId,name:myName||"Someone",voice:dataUrl,ts:Date.now()});
-          $("recStatus").textContent="Sent to laptop ✓ — they can play it now";
-        }else{
-          $("recStatus").textContent="Saved (not linked yet — will send with HELP)";
-        }
-      }catch(err){
-        $("recStatus").textContent="Saved — send failed, will retry with HELP";
-      }
+          $("recStatus").textContent="Sent to laptop ✓ — they can play it";
+        }else $("recStatus").textContent="Saved (will send with HELP)";
+      }catch(err){$("recStatus").textContent="Saved — send failed, retry with HELP"}
     };
-    // timeslice so data is flushed regularly
-    mediaRec.start(250);
-    // auto-stop at 12s so payload stays playable over MQTT
-    recMaxTimer=setTimeout(()=>{if(mediaRec&&mediaRec.state==="recording") mediaRec.stop()},12000);
+    mediaRec.start(200);
+    recMaxTimer=setTimeout(()=>{if(mediaRec&&mediaRec.state==="recording"){try{mediaRec.requestData()}catch(e){}mediaRec.stop()}},8000);
     $("recBtn").classList.add("rec");$("recBtn").textContent="● Recording…";
-    $("recStatus").textContent="Max 12 sec";
-  }catch(err){$("recStatus").textContent="Mic not allowed"}
-};
-function stopRec(){if(mediaRec&&mediaRec.state==="recording") mediaRec.stop()}
-$("recBtn").onpointerup=$("recBtn").onmouseleave=$("recBtn").ontouchend=$("recBtn").ontouchcancel=stopRec;
+    $("recStatus").textContent="Recording (max 8s)";
+  }catch(err){recStarting=false;$("recStatus").textContent="Mic not allowed — check permissions"}
+}
+function stopRec(e){
+  if(e){e.preventDefault();e.stopPropagation()}
+  if(!mediaRec) return;
+  if(mediaRec.state==="recording"){try{mediaRec.requestData()}catch(err){}try{mediaRec.stop()}catch(err){}}
+}
+$("recBtn").addEventListener("pointerdown",startRec);
+$("recBtn").addEventListener("pointerup",stopRec);
+$("recBtn").addEventListener("pointercancel",stopRec);
+$("recBtn").addEventListener("pointerleave",e=>{if(e.pointerType==="mouse") stopRec(e)});
 $("clearVoice").onclick=()=>{
   voiceBlob=null;
   if(voiceUrl){URL.revokeObjectURL(voiceUrl);voiceUrl=null}
-  $("voicePreview").src="";$("voicePreview").style.display="none";
+  $("voicePreview").removeAttribute("src");$("voicePreview").style.display="none";
   $("clearVoice").style.display="none";
   $("recStatus").textContent="";
 };
-
 async function voiceToDataUrl(){
-  if(!voiceBlob) return null;
+  if(!voiceBlob||!voiceBlob.size) return null;
   return new Promise(res=>{
     const r=new FileReader();
     r.onload=()=>res(r.result);
@@ -697,6 +746,38 @@ function getLocOnce(){
   });
 }
 
+/* Network + battery status on phone */
+function getNetworkLabel(){
+  if(!navigator.onLine) return "Offline";
+  const c=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+  if(!c) return "Online";
+  const t=(c.effectiveType||"").toUpperCase()||"Online";
+  const parts=[t];
+  if(typeof c.downlink==="number") parts.push(c.downlink+" Mbps");
+  if(c.saveData) parts.push("Data saver");
+  return parts.join(" · ");
+}
+function updateNetBatUI(){
+  const ns=$("netStatus"), bs=$("batStatus");
+  if(!ns||!bs) return;
+  const label=getNetworkLabel();
+  ns.textContent=label;
+  ns.className=(!navigator.onLine)?"net-bad":(label.indexOf("2G")>=0||label.indexOf("slow")>=0)?"net-mid":"net-ok";
+  if(typeof batteryLevel==="number"){
+    const pct=Math.round(batteryLevel*100);
+    bs.textContent=pct+"%";
+    bs.className=pct<=20?"net-bad":pct<=40?"net-mid":"net-ok";
+  }
+}
+function startNetBatWatch(){
+  updateNetBatUI();
+  window.addEventListener("online",updateNetBatUI);
+  window.addEventListener("offline",updateNetBatUI);
+  const c=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+  if(c&&c.addEventListener) c.addEventListener("change",updateNetBatUI);
+  setInterval(updateNetBatUI,8000);
+}
+
 /* SOS */
 let sosId=null, watchId=null;
 function sendOnce(extra){
@@ -707,7 +788,9 @@ function sendOnce(extra){
     ts:Date.now(),
     photo:extra&&extra.photo||null,
     voice:extra&&extra.voice||null,
-    msg:extra&&extra.msg||null
+    msg:extra&&extra.msg||null,
+    battery:Math.round((typeof batteryLevel==="number"?batteryLevel:1)*100),
+    network:getNetworkLabel()
   };
   pub("sos",payload);
   if(acked||tries>40){clearInterval(sendT);sendT=null}
@@ -725,33 +808,43 @@ $("helpBtn").onclick=async()=>{
   sosActive=true;sosId=Date.now().toString(36);acked=false;tries=0;
   try{navigator.vibrate&&navigator.vibrate([180,80,180,80,180])}catch(e){}
   note("Sending alert…");$("safeBtn").hidden=false;$("helpBtn").classList.add("busy");
+  updateNetBatUI();
 
   const smsMsg=($("smsText")&&$("smsText").value||"").trim().slice(0,280);
 
-  // Fire location + media as fast as possible in parallel
   const [loc,photo,voice]=await Promise.all([getLocOnce(),snap(),voiceToDataUrl()]);
   pos=loc;
   sendOnce({photo,voice,msg:smsMsg||null});
-  // Fast retries until laptop acks
   sendT=setInterval(()=>sendOnce({msg:smsMsg||null}),1200);
 
-  // Continuous live location via watchPosition (real GPS stream)
   if(navigator.geolocation){
     try{
       watchId=navigator.geolocation.watchPosition(
         p=>{
           pos={lat:p.coords.latitude,lng:p.coords.longitude};
-          pub("sos",{id:sosId,from:myId,name:myName,lat:pos.lat,lng:pos.lng,ts:Date.now(),msg:smsMsg||null});
+          pub("sos",{
+            id:sosId,from:myId,name:myName,lat:pos.lat,lng:pos.lng,ts:Date.now(),
+            msg:smsMsg||null,
+            battery:Math.round((typeof batteryLevel==="number"?batteryLevel:1)*100),
+            network:getNetworkLabel()
+          });
         },
         ()=>{},
         {enableHighAccuracy:true,maximumAge:2000,timeout:8000}
       );
     }catch(e){}
   }
-  // Backup interval if watch fails
   locT=setInterval(async()=>{
     const p=await getLocOnce();
-    if(p){pos=p;pub("sos",{id:sosId,from:myId,name:myName,lat:p.lat,lng:p.lng,ts:Date.now(),msg:smsMsg||null})}
+    if(p){
+      pos=p;
+      pub("sos",{
+        id:sosId,from:myId,name:myName,lat:p.lat,lng:p.lng,ts:Date.now(),
+        msg:smsMsg||null,
+        battery:Math.round((typeof batteryLevel==="number"?batteryLevel:1)*100),
+        network:getNetworkLabel()
+      });
+    }
   },4000);
 
   setTimeout(()=>{if(!acked&&sendT) note("No reply yet. Still trying. Call 112 if needed.",true)},8000);
