@@ -164,6 +164,101 @@ body.alarm{animation:flash .55s steps(1) infinite}
   animation:logoFloat 2.2s ease-in-out infinite;
 }
 
+
+/* Advanced dark ambient background */
+body::before{
+  content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%,#7f1d1d55,transparent 55%),
+    radial-gradient(ellipse 60% 40% at 90% 10%,#be123c33,transparent 50%),
+    radial-gradient(ellipse 50% 40% at 50% 100%,#450a0a44,transparent 55%),
+    linear-gradient(180deg,#050308 0%,#0a0608 40%,#12080c 100%);
+}
+body::after{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(244,63,94,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(244,63,94,.04) 1px, transparent 1px);
+  background-size:48px 48px;
+  mask-image:radial-gradient(ellipse 70% 60% at 50% 40%,#000 20%,transparent 75%);
+  animation:gridDrift 28s linear infinite;
+  opacity:.9;
+}
+@keyframes gridDrift{
+  0%{background-position:0 0,0 0}
+  100%{background-position:48px 48px,48px 48px}
+}
+.bg-fx{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.bg-fx .blob{
+  position:absolute;border-radius:50%;filter:blur(60px);opacity:.35;
+  animation:blobFloat 12s ease-in-out infinite alternate;
+}
+.bg-fx .b1{width:42vw;height:42vw;min-width:280px;min-height:280px;left:-8%;top:5%;background:#be123c;animation-duration:14s}
+.bg-fx .b2{width:36vw;height:36vw;min-width:220px;min-height:220px;right:-6%;bottom:8%;background:#9f1239;animation-duration:11s;animation-delay:-3s}
+.bg-fx .b3{width:28vw;height:28vw;min-width:180px;min-height:180px;left:40%;top:55%;background:#f43f5e66;animation-duration:16s;animation-delay:-6s}
+@keyframes blobFloat{
+  0%{transform:translate(0,0) scale(1)}
+  50%{transform:translate(4%,-5%) scale(1.08)}
+  100%{transform:translate(-3%,4%) scale(.95)}
+}
+[data-theme="light"] body::before,[data-theme="light"] body::after,[data-theme="light"] .bg-fx{display:none}
+
+/* Smarter server card */
+#server.card{
+  background:linear-gradient(165deg,rgba(28,12,18,.92),rgba(12,6,10,.95));
+  border:1px solid rgba(244,63,94,.35);
+  box-shadow:
+    0 0 0 1px rgba(244,63,94,.08),
+    0 20px 50px rgba(0,0,0,.55),
+    0 0 80px rgba(244,63,94,.08);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  position:relative;
+  overflow:hidden;
+}
+#server.card::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(135deg,rgba(244,63,94,.12),transparent 40%,transparent 60%,rgba(244,63,94,.06));
+  opacity:.9;
+}
+#server .server-brand{position:relative;z-index:1;padding-bottom:12px;border-bottom:1px solid rgba(244,63,94,.2);margin-bottom:14px}
+#server .qr-wrap{
+  position:relative;z-index:1;
+  display:flex;justify-content:center;
+  background:linear-gradient(180deg,#fff,#f8f0f2);
+  padding:16px;border-radius:16px;margin:12px 0;
+  box-shadow:0 0 0 1px rgba(244,63,94,.25),0 12px 28px rgba(0,0,0,.35),0 0 40px rgba(244,63,94,.12);
+}
+#server .code-big{
+  position:relative;z-index:1;
+  font:800 42px/1.1 ui-monospace,monospace;letter-spacing:.18em;
+  text-align:center;margin:10px 0 14px;color:#fb7185;
+  text-shadow:0 0 20px #f43f5e88,0 0 40px #f43f5e44;
+  animation:codeGlow 3s ease-in-out infinite;
+}
+@keyframes codeGlow{
+  0%,100%{text-shadow:0 0 16px #f43f5e66,0 0 32px #f43f5e33}
+  50%{text-shadow:0 0 28px #f43f5ecc,0 0 56px #f43f5e55}
+}
+#server .status{
+  position:relative;z-index:1;
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 14px;border-radius:999px;
+  background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.25);
+  margin:4px 0 10px;
+}
+#server .section{position:relative;z-index:1;color:#fda4af;letter-spacing:.08em;font-size:11px}
+#server .list,#server .row,#server .switch,#server .btn,#server .msg,#server .small,#server .server-brand{position:relative;z-index:1}
+#server .btn#arm{
+  background:linear-gradient(135deg,#9f1239,#f43f5e 55%,#fb7185);
+  box-shadow:0 6px 24px #f43f5e55,0 0 0 1px #f43f5e44;
+  font-size:16px;padding:16px;letter-spacing:.03em;
+}
+main.wide{max-width:min(520px,96vw)}
+@media(prefers-reduced-motion:reduce){
+  body::after,.bg-fx .blob,#server .code-big{animation:none!important}
+}
+
 /* Splash screen */
 #splash{
   position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;
@@ -240,6 +335,7 @@ body.alarm{animation:flash .55s steps(1) infinite}
 </style>
 </head>
 <body>
+<div class="bg-fx" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
 
 <div id="splash" aria-hidden="true">
   <div class="splash-bg">
@@ -303,9 +399,9 @@ body.alarm{animation:flash .55s steps(1) infinite}
         <div class="small" style="margin:2px 0 0">SafeLink monitoring</div>
       </div>
     </div>
-    <p class="small">Scan with any phone camera:</p>
-    <div id="qr" style="display:flex;justify-content:center;background:#fff;padding:14px;border-radius:14px;margin:10px 0"></div>
-    <p class="small" style="text-align:center">Or type this code:</p>
+    <p class="small" style="opacity:.85">Scan with any phone camera</p>
+    <div class="qr-wrap"><div id="qr"></div></div>
+    <p class="small" style="text-align:center;opacity:.75">Or type this code</p>
     <div class="code-big" id="lcode">------</div>
     <div class="status"><span class="dot" id="ldot"></span><span id="lstat">Connecting…</span></div>
     <p class="small" id="phoneCount"></p>
@@ -754,6 +850,7 @@ function makeCode(){return String(Math.floor(100000+Math.random()*900000))}
 async function startServer(ok){
   if(!ok){showPin();return}
   role="server";show("server");
+  try{document.querySelector("main").classList.add("wide")}catch(e){}
   code=store.get("sl_code_server")||store.get("sl_code_laptop")||makeCode();store.set("sl_code_server",code);
   $("lcode").textContent=code;drawQr();history=store.json("sl_history",[]);
   await connect();
