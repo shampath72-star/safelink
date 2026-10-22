@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>SafeLink</title>
-<link rel="manifest" href="data:application/manifest+json,{&quot;name&quot;:&quot;SafeLink&quot;,&quot;short_name&quot;:&quot;SafeLink&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#0c0814&quot;,&quot;theme_color&quot;:&quot;#7c3aed&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='42' fill='%237c3aed'/%3E%3Ctext x='96' y='120' font-size='88' text-anchor='middle' fill='white'%3E🆘%3C/text%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;192x192&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}">
+<link rel="manifest" href="data:application/manifest+json,{&quot;name&quot;:&quot;SafeLink&quot;,&quot;short_name&quot;:&quot;SafeLink&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#0a0608&quot;,&quot;theme_color&quot;:&quot;#f43f5e&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='42' fill='%237c3aed'/%3E%3Ctext x='96' y='120' font-size='88' text-anchor='middle' fill='white'%3E🆘%3C/text%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;192x192&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}">
 <style>
 :root {
   --bg:#0a0608;--card:#140a0e;--card2:#1a0e14;--ink:#fff0f3;--muted:#c4a0a8;
@@ -127,9 +127,34 @@ ol.steps li{margin-bottom:5px}
 #fake .pad button{height:48px;border:0;border-radius:10px;background:#222;color:#eee;font-size:18px;cursor:pointer}
 body.alarm{animation:flash .55s steps(1) infinite}
 @keyframes flash{50%{background:#1a050c}}
-@media(prefers-reduced-motion:reduce){body.alarm,.help.busy,.help::after,#alarmbox{animation:none}}
+@media(prefers-reduced-motion:reduce){body.alarm,.help.busy,.help::after,#alarmbox,.help-icon{animation:none!important}}
 .rec-btn{background:var(--card2);border:1px solid var(--border-red);border-radius:12px;padding:10px 14px;color:var(--ink);font-weight:600;cursor:pointer;font-size:13px}
 .rec-btn.rec{border-color:var(--pink);color:var(--pink);animation:pulse 1s infinite}
+
+@keyframes logoFloat{
+  0%{transform:translateY(8px);opacity:.85}
+  40%{transform:translateY(-18px);opacity:1}
+  70%{transform:translateY(-10px);opacity:1}
+  100%{transform:translateY(8px);opacity:.85}
+}
+.help-icon{animation:logoFloat 2.2s ease-in-out infinite;will-change:transform}
+.help.busy .help-icon,.help.counting .help-icon{animation:none;transform:none}
+.help.counting{animation:pulse 1s ease-in-out infinite}
+.countdown-overlay{
+  position:absolute;inset:0;border-radius:50%;background:rgba(10,6,8,.82);
+  display:flex;align-items:center;justify-content:center;
+  font:800 56px/1 system-ui;color:#fff;z-index:5;pointer-events:none;
+}
+.checklist{list-style:none;margin:8px 0 0}
+.checklist li{display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:4px;
+  background:var(--card2);border:1px solid var(--border-red);border-radius:10px;font-size:13px}
+.checklist .ok{color:var(--green)}.checklist .no{color:var(--pink)}
+.install-banner{display:none;margin:10px 0;padding:12px;border:1px solid var(--border-red);
+  border-radius:12px;background:var(--card2);font-size:13px}
+.install-banner.show{display:block}
+.ack-btn{margin-top:8px!important}
+.checkin-box{margin-top:12px;padding:12px;border:1px solid var(--border-red);border-radius:12px;background:var(--card2)}
+
 </style>
 </head>
 <body>
@@ -227,6 +252,20 @@ body.alarm{animation:flash .55s steps(1) infinite}
       <div class="status"><span class="dot" id="pdot"></span><span id="pstat">Connecting…</span></div>
       <p class="small" id="nameLabel"></p>
       <div id="warnBox"></div>
+
+      <div class="section">Setup checklist</div>
+      <ul class="checklist" id="permList">
+        <li id="permLoc"><span class="no">○</span> Location</li>
+        <li id="permMic"><span class="no">○</span> Microphone</li>
+        <li id="permNotif"><span class="no">○</span> Notifications</li>
+        <li id="permBat"><span class="no">○</span> Battery status</li>
+      </ul>
+      <button class="btn sm alt" id="btnPerms" style="margin-top:6px">Enable permissions</button>
+      <div class="install-banner" id="installBanner">
+        <b>Install SafeLink</b> on your home screen for faster access.
+        <button class="btn sm" id="btnInstall" style="margin-top:8px">Add to Home Screen</button>
+      </div>
+
       <div class="net-bar" id="netBar">
         <span>📶 Network: <strong id="netStatus">Checking…</strong></span>
         <span>🔋 Battery: <strong id="batStatus">Reading…</strong></span>
@@ -235,9 +274,12 @@ body.alarm{animation:flash .55s steps(1) infinite}
       <button class="help" id="helpBtn" aria-label="HELP — emergency">
         <img class="help-icon" src="data:image/png;base64,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" alt="Woman" width="100" height="100" draggable="false">
         <span class="help-label">HELP</span>
+        <div class="countdown-overlay" id="countOverlay" hidden></div>
       </button>
       <p class="msg" id="pmsg">Press HELP to alert the server.</p>
+      <button class="btn alt" id="cancelCountBtn" hidden>Cancel HELP</button>
       <button class="btn alt" id="safeBtn" hidden>I'm safe — stop my alarm</button>
+      <p class="msg good" id="comingMsg" hidden></p>
 
       <!-- Voice note — release = auto-send to server -->
       <div class="section">Voice note</div>
@@ -261,6 +303,24 @@ body.alarm{animation:flash .55s steps(1) infinite}
         <input id="cPhone" placeholder="Phone" inputmode="tel" style="flex:1">
       </div>
       <button class="btn sm alt" id="addContact">Add contact</button>
+
+
+      <div class="section">Check-in timer</div>
+      <div class="checkin-box">
+        <p class="small" style="margin-bottom:6px">If you don't check in before time ends, server gets an alert.</p>
+        <div class="row">
+          <select id="checkinMins" style="flex:1">
+            <option value="15">15 min</option>
+            <option value="30" selected>30 min</option>
+            <option value="60">60 min</option>
+            <option value="120">2 hours</option>
+          </select>
+          <button class="btn sm" id="startCheckin">Start</button>
+          <button class="btn sm alt" id="stopCheckin" hidden>I'm safe</button>
+        </div>
+        <p class="small" id="checkinStatus" style="margin-top:6px"></p>
+      </div>
+      <div class="switch"><input type="checkbox" id="autoCallOn"><label for="autoCallOn">After HELP, offer to call first contact</label></div>
 
       <div class="section">Options</div>
       <div class="switch"><input type="checkbox" id="shakeOn"><label for="shakeOn">Shake phone to trigger HELP</label></div>
@@ -417,13 +477,27 @@ function renderEmergencies(){
       card.innerHTML=`
         <div class="name">${num}${esc(e.name||"Someone")} needs help</div>
         <div class="meta">${ago(e.ts)}</div>
-        ${batNet}${msgHtml}${locHtml}${photoHtml}${voiceHtml}`;
+        ${batNet}${msgHtml}${locHtml}${photoHtml}${voiceHtml}
+        <button type="button" class="btn sm ack-btn" data-ack="${esc(key)}">✓ Help is on the way</button>`;
     }
   });
 
   // Remove cards for people who cancelled
   emList.querySelectorAll("[data-em]").forEach(el=>{
     if(!existing.has(el.dataset.em)) el.remove();
+  });
+
+  // Wire "Help is on the way" acknowledge buttons
+  emList.querySelectorAll(".ack-btn").forEach(btn=>{
+    if(btn.dataset.wired) return;
+    btn.dataset.wired="1";
+    btn.onclick=()=>{
+      const to=btn.getAttribute("data-ack");
+      pub("coming",{to:to,msg:"Help is on the way — stay safe. Someone is coming."});
+      btn.textContent="✓ Sent to phone";
+      btn.disabled=true;
+      note("Told them help is on the way.",false);
+    };
   });
 
   startSiren();
@@ -473,8 +547,8 @@ function connect(){
       myId="sl_"+role+"_"+Math.random().toString(16).slice(2,9);
       client=mqtt.connect("wss://broker.hivemq.com:8884/mqtt",{clientId:myId,clean:true,reconnectPeriod:3000,connectTimeout:8000});
       client.on("connect",()=>{
-        if(role==="server"){client.subscribe(topic("sos"));client.subscribe(topic("cancel"));client.subscribe(topic("phone"));client.subscribe(topic("voice"));setStatus("Waiting for phones…",false)}
-        else{client.subscribe(topic("ack"));client.subscribe(topic("stop"));client.subscribe(topic("server"));client.subscribe(topic("laptop"));setStatus("Looking for server…",false)}
+        if(role==="server"){client.subscribe(topic("sos"));client.subscribe(topic("cancel"));client.subscribe(topic("phone"));client.subscribe(topic("voice"));client.subscribe(topic("checkin"));setStatus("Waiting for phones…",false)}
+        else{client.subscribe(topic("ack"));client.subscribe(topic("stop"));client.subscribe(topic("coming"));client.subscribe(topic("server"));client.subscribe(topic("laptop"));setStatus("Looking for server…",false)}
         beat();setInterval(beat,3000);
         if(role==="server") setInterval(updatePhones,2500);
         resolve(true);
@@ -509,6 +583,7 @@ function onMsg(t,d){
       history.unshift({name:emergencies[key].name,ts:emergencies[key].ts,lat:d.lat,lng:d.lng});
       if(history.length>40) history.pop();
       store.setJson("sl_history",history);
+      notifyBrowser((emergencies[key].name||"Someone")+" needs HELP!");
     }
     pub("ack",{id:d.id||"",to:key});
   }
@@ -538,7 +613,32 @@ function onMsg(t,d){
   else if(t.endsWith("/ack")&&role==="phone"){
     if(d.id===sosId||d.to===myId){acked=true;note("Server is sounding the alarm.",false);$("helpBtn").classList.remove("busy")}
   }
-  else if(t.endsWith("/stop")&&role==="phone"){note("Server stopped the alarms.");endSos()}
+  else if(t.endsWith("/coming")&&role==="phone"){
+    if(d.to===myId||d.to===sosId||!d.to){
+      const el=$("comingMsg");
+      if(el){el.hidden=false;el.textContent=d.msg||"Help is on the way — stay safe."}
+      note(d.msg||"Help is on the way!",false);
+      try{navigator.vibrate&&navigator.vibrate([100,50,100,50,100])}catch(e){}
+    }
+  }
+  else if(t.endsWith("/checkin")&&role==="server"){
+    // missed check-in treated as emergency
+    const key=d.from||("ci"+Date.now());
+    emergencies[key]={
+      name:(d.name||"Someone")+" (missed check-in)",
+      lat:typeof d.lat==="number"?d.lat:null,
+      lng:typeof d.lng==="number"?d.lng:null,
+      ts:d.ts||Date.now(),
+      photo:null,voice:null,msg:d.msg||"Check-in timer expired — no response",
+      battery:typeof d.battery==="number"?d.battery:null,
+      network:d.network||null,
+      from:key
+    };
+    renderEmergencies();
+    notifyBrowser((d.name||"Someone")+" missed check-in");
+    note((d.name||"Someone")+" missed check-in!",true);
+  }
+  else if(t.endsWith("/stop")&&role==="phone"){note("Server stopped the alarms.");endSos();const el=$("comingMsg");if(el)el.hidden=true}
   else if(t.endsWith("/phone")&&role==="server"){if(d.id){phones[d.id]={name:d.name||"Phone",last:Date.now()};updatePhones()}}
   else if((t.endsWith("/laptop")||t.endsWith("/server"))&&role==="phone") setStatus("Server linked ✓",true);
 }
@@ -555,7 +655,7 @@ async function startServer(ok){
   $("lcode").textContent=code;drawQr();history=store.json("sl_history",[]);
   await connect();
 }
-$("arm").onclick=async()=>{try{ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();await ctx.resume()}catch(e){}try{if(navigator.wakeLock)await navigator.wakeLock.request("screen")}catch(e){}$("arm").textContent="Armed ✓";note("Alarm armed. Keep this tab open.",false)};
+$("arm").onclick=async()=>{try{ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();await ctx.resume()}catch(e){}try{if(navigator.wakeLock)await navigator.wakeLock.request("screen")}catch(e){}try{if(typeof Notification!=="undefined"&&Notification.permission==="default")await Notification.requestPermission()}catch(e){}$("arm").textContent="Armed ✓";note("Alarm armed. Keep this tab open.",false)};
 $("test").onclick=()=>{emergencies["test"]={name:"Test",lat:null,lng:null,ts:Date.now()};renderEmergencies();setTimeout(()=>{delete emergencies["test"];renderEmergencies()},3000)};
 $("btnHistory").onclick=()=>{$("historyBox").hidden=!$("historyBox").hidden;$("historyList").innerHTML=history.length?history.map(h=>{const loc=h.lat?` · <a href="https://www.google.com/maps?q=${h.lat},${h.lng}" target="_blank">map</a>`:"";return`<li>${esc(h.name)} · ${new Date(h.ts).toLocaleString()}${loc}</li>`}).join(""):"<li class='small'>No history yet</li>"};
 $("btnPin").onclick=()=>{$("pinBox").hidden=!$("pinBox").hidden};
@@ -606,11 +706,11 @@ $("stopAll").onclick=()=>{
 async function startPhone(){
   role="phone";show("phone");
   const sc=store.get("sl_code_phone"),sn=store.get("sl_name_phone");
-  if(sc&&sn){code=sc;myName=sn;$("stepCode").hidden=true;$("stepName").hidden=true;$("stepReady").hidden=false;$("nameLabel").textContent="You are: "+myName;await connect();warnings();loadContacts();readBattery();startNetBatWatch()}
+  if(sc&&sn){code=sc;myName=sn;$("stepCode").hidden=true;$("stepName").hidden=true;$("stepReady").hidden=false;$("nameLabel").textContent="You are: "+myName;await connect();warnings();loadContacts();readBattery();startNetBatWatch();refreshPerms();try{if(typeof Notification!=="undefined"&&Notification.permission==="default"){/* soft */} }catch(e){}}
   else if(sc){code=sc;$("stepCode").hidden=true;$("stepName").hidden=false}
 }
 $("btnCode").onclick=()=>{const c=$("pcode").value.replace(/\D/g,"");if(c.length!==6){$("pcode").focus();return}code=c;store.set("sl_code_phone",c);$("stepCode").hidden=true;$("stepName").hidden=false;$("pname").focus()};
-$("btnName").onclick=async()=>{const n=$("pname").value.trim();if(n.length<2){$("pname").focus();return}myName=n.slice(0,24);store.set("sl_name_phone",myName);$("stepName").hidden=true;$("stepReady").hidden=false;$("nameLabel").textContent="You are: "+myName;await connect();warnings();loadContacts();readBattery();startNetBatWatch()};
+$("btnName").onclick=async()=>{const n=$("pname").value.trim();if(n.length<2){$("pname").focus();return}myName=n.slice(0,24);store.set("sl_name_phone",myName);$("stepName").hidden=true;$("stepReady").hidden=false;$("nameLabel").textContent="You are: "+myName;await connect();warnings();loadContacts();readBattery();startNetBatWatch();refreshPerms();try{if(typeof Notification!=="undefined"&&Notification.permission==="default"){/* soft */} }catch(e){}};
 function warnings(){
   const box=$("warnBox");box.innerHTML="";
   if(navigator.getBattery) navigator.getBattery().then(b=>{if(b.level<0.2) box.innerHTML+=`<div class="warn">⚠️ Battery low (${Math.round(b.level*100)}%) — live location still sent</div>`});
@@ -867,12 +967,25 @@ function endSos(){
   $("safeBtn").hidden=true;$("helpBtn").classList.remove("busy");
 }
 
-$("helpBtn").onclick=async()=>{
+let countT=null, counting=false;
+function cancelCountdown(){
+  if(countT){clearInterval(countT);countT=null}
+  counting=false;
+  const ov=$("countOverlay");
+  if(ov){ov.hidden=true;ov.textContent=""}
+  $("helpBtn").classList.remove("counting","busy");
+  if($("cancelCountBtn")) $("cancelCountBtn").hidden=true;
+  note("HELP cancelled.",false);
+}
+async function fireHelp(){
   if(sosActive) return;
   if(!client||!client.connected){note("Not linked yet. Call 112 if in danger.",true);return}
   sosActive=true;sosId=Date.now().toString(36);acked=false;tries=0;
   try{navigator.vibrate&&navigator.vibrate([180,80,180,80,180])}catch(e){}
   note("Sending alert…");$("safeBtn").hidden=false;$("helpBtn").classList.add("busy");
+  $("helpBtn").classList.remove("counting");
+  if($("cancelCountBtn")) $("cancelCountBtn").hidden=true;
+  const ov=$("countOverlay");if(ov)ov.hidden=true;
   updateNetBatUI();
 
   const smsMsg=($("smsText")&&$("smsText").value||"").trim().slice(0,280);
@@ -889,9 +1002,7 @@ $("helpBtn").onclick=async()=>{
           pos={lat:p.coords.latitude,lng:p.coords.longitude};
           pub("sos",{
             id:sosId,from:myId,name:myName,lat:pos.lat,lng:pos.lng,ts:Date.now(),
-            msg:smsMsg||null,
-            battery:getBatteryPct(),
-            network:getNetworkLabel()
+            msg:smsMsg||null,battery:getBatteryPct(),network:getNetworkLabel()
           });
         },
         ()=>{},
@@ -905,15 +1016,50 @@ $("helpBtn").onclick=async()=>{
       pos=p;
       pub("sos",{
         id:sosId,from:myId,name:myName,lat:p.lat,lng:p.lng,ts:Date.now(),
-        msg:smsMsg||null,
-        battery:getBatteryPct(),
-        network:getNetworkLabel()
+        msg:smsMsg||null,battery:getBatteryPct(),network:getNetworkLabel()
       });
     }
   },4000);
 
   setTimeout(()=>{if(!acked&&sendT) note("No reply yet. Still trying. Call 112 if needed.",true)},8000);
+
+  // Auto-call first contact offer
+  if($("autoCallOn")&&$("autoCallOn").checked){
+    const list=store.json("sl_contacts",[]);
+    if(list.length&&list[0].phone){
+      setTimeout(()=>{
+        if(confirm("Call "+list[0].name+" ("+list[0].phone+") now?")){
+          location.href="tel:"+list[0].phone;
+        }
+      },600);
+    }
+  }
+}
+$("helpBtn").onclick=()=>{
+  if(sosActive||counting) return;
+  if(!client||!client.connected){note("Not linked yet. Call 112 if in danger.",true);return}
+  counting=true;
+  let n=3;
+  const ov=$("countOverlay");
+  if(ov){ov.hidden=false;ov.textContent=String(n)}
+  $("helpBtn").classList.add("counting");
+  if($("cancelCountBtn")) $("cancelCountBtn").hidden=false;
+  note("Sending in "+n+"… tap Cancel to stop.",true);
+  try{navigator.vibrate&&navigator.vibrate(80)}catch(e){}
+  countT=setInterval(()=>{
+    n--;
+    if(n<=0){
+      clearInterval(countT);countT=null;counting=false;
+      fireHelp();
+    }else{
+      if(ov)ov.textContent=String(n);
+      note("Sending in "+n+"… tap Cancel to stop.",true);
+      try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}
+    }
+  },1000);
 };
+if($("cancelCountBtn")) $("cancelCountBtn").onclick=cancelCountdown;
+
 
 $("safeBtn").onclick=()=>{pub("cancel",{id:sosId,from:myId,name:myName});endSos();note("Alarm cancelled. Glad you're safe.",false)};
 
@@ -932,6 +1078,125 @@ $("hideBtn").onclick=()=>{$("fake").style.display="flex"};
 let taps=0,tapTimer=null;
 $("fake").onclick=()=>{taps++;clearTimeout(tapTimer);tapTimer=setTimeout(()=>taps=0,500);if(taps>=3){$("fake").style.display="none";taps=0}};
 (function(){const keys=["7","8","9","C","4","5","6","+","1","2","3","-","0",".","=","×"];const pad=$("fakePad");let val="0";keys.forEach(k=>{const b=document.createElement("button");b.textContent=k;b.onclick=e=>{e.stopPropagation();if(k==="C")val="0";else if(k==="="){try{val=String(eval(val.replace(/×/g,"*")))}catch(e){val="Err"}}else val=(val==="0"?"":val)+k;$("fakeDisp").textContent=val.slice(0,12)};pad.appendChild(b)})})();
+
+/* Browser notifications */
+function notifyBrowser(title,body){
+  try{
+    if(typeof Notification==="undefined") return;
+    if(Notification.permission==="granted"){
+      new Notification(title||"SafeLink",{body:body||"",icon:undefined,tag:"safelink"});
+    }
+  }catch(e){}
+}
+
+/* Permissions checklist + install (PWA) */
+async function refreshPerms(){
+  const set=(id,ok)=>{
+    const li=$(id);if(!li) return;
+    const span=li.querySelector("span");
+    if(span){span.className=ok?"ok":"no";span.textContent=ok?"✓":"○"}
+  };
+  // Location
+  try{
+    if(navigator.permissions){
+      const p=await navigator.permissions.query({name:"geolocation"});
+      set("permLoc",p.state==="granted");
+      p.onchange=()=>set("permLoc",p.state==="granted");
+    }else set("permLoc",!!navigator.geolocation);
+  }catch(e){set("permLoc",!!navigator.geolocation)}
+  // Mic
+  try{
+    if(navigator.permissions){
+      const p=await navigator.permissions.query({name:"microphone"});
+      set("permMic",p.state==="granted");
+      p.onchange=()=>set("permMic",p.state==="granted");
+    }
+  }catch(e){}
+  // Notifications
+  try{
+    if(typeof Notification!=="undefined") set("permNotif",Notification.permission==="granted");
+  }catch(e){}
+  // Battery
+  set("permBat",!!navigator.getBattery);
+  updateNetBatUI();
+}
+if($("btnPerms")) $("btnPerms").onclick=async()=>{
+  try{await new Promise(r=>navigator.geolocation.getCurrentPosition(()=>r(),()=>r(),{timeout:5000}))}catch(e){}
+  try{const s=await navigator.mediaDevices.getUserMedia({audio:true});s.getTracks().forEach(t=>t.stop())}catch(e){}
+  try{if(typeof Notification!=="undefined") await Notification.requestPermission()}catch(e){}
+  try{if(navigator.getBattery) await navigator.getBattery()}catch(e){}
+  await refreshPerms();
+  note("Permissions updated.",false);
+};
+
+let deferredPrompt=null;
+window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  const b=$("installBanner");if(b) b.classList.add("show");
+});
+window.addEventListener("appinstalled",()=>{
+  deferredPrompt=null;
+  const b=$("installBanner");if(b) b.classList.remove("show");
+});
+if($("btnInstall")) $("btnInstall").onclick=async()=>{
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    try{await deferredPrompt.userChoice}catch(e){}
+    deferredPrompt=null;
+    const b=$("installBanner");if(b) b.classList.remove("show");
+  }else{
+    const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+    alert(isIOS
+      ?"On iPhone: tap Share → Add to Home Screen"
+      :"Use your browser menu → Install app / Add to Home Screen");
+  }
+};
+
+/* Check-in timer */
+let checkinT=null, checkinEnd=0, checkinTick=null;
+function stopCheckinTimer(silent){
+  if(checkinT){clearTimeout(checkinT);checkinT=null}
+  if(checkinTick){clearInterval(checkinTick);checkinTick=null}
+  checkinEnd=0;
+  if($("stopCheckin")) $("stopCheckin").hidden=true;
+  if($("startCheckin")) $("startCheckin").hidden=false;
+  if($("checkinStatus")&&!silent) $("checkinStatus").textContent="";
+}
+if($("startCheckin")) $("startCheckin").onclick=()=>{
+  if(!client||!client.connected){note("Link to server first.",true);return}
+  const mins=parseInt(($("checkinMins")&&$("checkinMins").value)||"30",10)||30;
+  const ms=mins*60*1000;
+  stopCheckinTimer(true);
+  checkinEnd=Date.now()+ms;
+  if($("startCheckin")) $("startCheckin").hidden=true;
+  if($("stopCheckin")) $("stopCheckin").hidden=false;
+  const update=()=>{
+    const left=Math.max(0,checkinEnd-Date.now());
+    const m=Math.floor(left/60000), s=Math.floor((left%60000)/1000);
+    if($("checkinStatus")) $("checkinStatus").textContent="Check in within "+m+"m "+String(s).padStart(2,"0")+"s — or tap I'm safe";
+  };
+  update();
+  checkinTick=setInterval(update,1000);
+  checkinT=setTimeout(async()=>{
+    stopCheckinTimer(true);
+    if($("checkinStatus")) $("checkinStatus").textContent="Timer expired — alert sent to server";
+    note("Check-in missed — alerting server!",true);
+    const loc=await getLocOnce();
+    pub("checkin",{
+      from:myId,name:myName,ts:Date.now(),
+      lat:loc?loc.lat:null,lng:loc?loc.lng:null,
+      battery:getBatteryPct(),network:getNetworkLabel(),
+      msg:"Check-in timer expired — no response from "+(myName||"phone")
+    });
+    try{navigator.vibrate&&navigator.vibrate([200,100,200,100,200])}catch(e){}
+  },ms);
+  note("Check-in started ("+mins+" min).",false);
+};
+if($("stopCheckin")) $("stopCheckin").onclick=()=>{
+  stopCheckinTimer();
+  note("Checked in — you're marked safe.",false);
+};
 
 /* Start */
 $("pickServer").onclick=()=>{store.set("sl_role","server");showPin()};
