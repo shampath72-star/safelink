@@ -409,9 +409,10 @@ main.wide{max-width:min(520px,96vw)}
         <div class="small" style="margin:2px 0 0">SafeLink monitoring</div>
       </div>
     </div>
-    <p class="small" style="opacity:.85">Scan with any phone camera</p>
+    <p class="small" style="opacity:.85">Permanent QR — scan once, works forever</p>
     <div class="qr-wrap"><div id="qr"></div></div>
-    <p class="small" style="text-align:center;opacity:.75">Or type this code</p>
+    <p class="small" style="text-align:center;opacity:.75;word-break:break-all;font-size:11px" id="pairLinkText"></p>
+    <p class="small" style="text-align:center;opacity:.75">Or type this permanent code</p>
     <div class="code-big" id="lcode">------</div>
     <div class="status"><span class="dot" id="ldot"></span><span id="lstat">Connecting…</span></div>
     <p class="small" id="phoneCount"></p>
@@ -854,15 +855,26 @@ function onMsg(t,d){
 
 /* Server */
 function baseUrl(){const u=new URL(location.href);u.hash="";u.search="";return u.toString().replace(/\/$/,"")||location.origin+location.pathname}
-function drawQr(){const q=$("qr");q.innerHTML="";try{new QRCode(q,{text:baseUrl()+"?c="+code,width:180,height:180,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M})}catch(e){q.innerHTML="<p class='small'>QR unavailable</p>"}}
-function makeCode(){return String(Math.floor(100000+Math.random()*900000))}
+/* Permanent pair code — never changes (one QR / one link forever) */
+const PAIR_CODE="956597";
+function pairLink(){return baseUrl()+"?c="+PAIR_CODE}
+function drawQr(){
+  const q=$("qr");if(!q)return;q.innerHTML="";
+  const link=pairLink();
+  try{new QRCode(q,{text:link,width:180,height:180,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M})}catch(e){q.innerHTML="<p class='small'>QR unavailable</p>"}
+  const pl=$("pairLinkText");if(pl)pl.textContent=link;
+}
+function makeCode(){return PAIR_CODE}
 
 async function startServer(ok){
   if(!ok){showPin();return}
   role="server";show("server");
   try{document.querySelector("main").classList.add("wide")}catch(e){}
-  code=store.get("sl_code_server")||store.get("sl_code_laptop")||makeCode();store.set("sl_code_server",code);
-  $("lcode").textContent=code;drawQr();history=store.json("sl_history",[]);
+  code=PAIR_CODE;
+  store.set("sl_code_server",PAIR_CODE);
+  $("lcode").textContent=PAIR_CODE;
+  drawQr();
+  history=store.json("sl_history",[]);
   await connect();
 }
 $("arm").onclick=async()=>{try{ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();await ctx.resume()}catch(e){}try{if(navigator.wakeLock)await navigator.wakeLock.request("screen")}catch(e){}try{if(typeof Notification!=="undefined"&&Notification.permission==="default")await Notification.requestPermission()}catch(e){}$("arm").textContent="Armed ✓";note("Alarm armed. Keep this tab open.",false)};
