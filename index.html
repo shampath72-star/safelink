@@ -361,13 +361,67 @@ main.wide{max-width:min(520px,96vw)}
   0%{opacity:0;transform:translateY(-28px)}
   100%{opacity:1;transform:translateY(12px)}
 }
+
+#splash .splash-bar-wrap{
+  position:absolute;left:50%;bottom:12%;transform:translateX(-50%);
+  width:min(220px,56vw);height:4px;border-radius:999px;
+  background:rgba(244,63,94,.2);overflow:hidden;z-index:3;
+  opacity:0;animation:fadeIn .4s ease .2s forwards;
+}
+#splash .splash-bar{
+  height:100%;width:0%;border-radius:999px;
+  background:linear-gradient(90deg,#fb7185,#f43f5e,#be123c);
+  box-shadow:0 0 12px #f43f5eaa;
+  animation:loadBar 4s cubic-bezier(.4,0,.2,1) forwards;
+}
+@keyframes loadBar{
+  0%{width:0%}
+  15%{width:18%}
+  40%{width:45%}
+  70%{width:72%}
+  90%{width:90%}
+  100%{width:100%}
+}
+#splash .splash-load-text{
+  position:absolute;left:50%;bottom:calc(12% - 22px);transform:translateX(-50%);
+  font-size:11px;color:#c4a0a8;letter-spacing:.12em;text-transform:uppercase;
+  opacity:0;animation:fadeIn .5s ease .3s forwards;z-index:3;
+}
+
 #splash .splash-sub{
   font-size:13px;color:#c4a0a8;opacity:0;margin-top:4px;
   animation:fadeIn .6s ease 1.9s forwards;
 }
 @keyframes fadeIn{to{opacity:1}}
 @media(prefers-reduced-motion:reduce){
-  #splash .orb,#splash .rings,#splash .splash-logo,#splash .splash-title,#splash .splash-sub{animation:none!important;opacity:1;transform:none}
+  #splash .orb,#splash .rings,#splash .splash-logo,#splash .splash-title,
+#splash .splash-bar-wrap{
+  position:absolute;left:50%;bottom:12%;transform:translateX(-50%);
+  width:min(220px,56vw);height:4px;border-radius:999px;
+  background:rgba(244,63,94,.2);overflow:hidden;z-index:3;
+  opacity:0;animation:fadeIn .4s ease .2s forwards;
+}
+#splash .splash-bar{
+  height:100%;width:0%;border-radius:999px;
+  background:linear-gradient(90deg,#fb7185,#f43f5e,#be123c);
+  box-shadow:0 0 12px #f43f5eaa;
+  animation:loadBar 4s cubic-bezier(.4,0,.2,1) forwards;
+}
+@keyframes loadBar{
+  0%{width:0%}
+  15%{width:18%}
+  40%{width:45%}
+  70%{width:72%}
+  90%{width:90%}
+  100%{width:100%}
+}
+#splash .splash-load-text{
+  position:absolute;left:50%;bottom:calc(12% - 22px);transform:translateX(-50%);
+  font-size:11px;color:#c4a0a8;letter-spacing:.12em;text-transform:uppercase;
+  opacity:0;animation:fadeIn .5s ease .3s forwards;z-index:3;
+}
+
+#splash .splash-sub{animation:none!important;opacity:1;transform:none}
 }
 
 </style>
@@ -395,6 +449,8 @@ main.wide{max-width:min(520px,96vw)}
     <div class="splash-title">SafeLink</div>
     <div class="splash-sub">Stay safe · Stay connected</div>
   </div>
+  <div class="splash-bar-wrap"><div class="splash-bar"></div></div>
+  <div class="splash-load-text">Loading</div>
 </div>
 
 <script>
@@ -406,8 +462,8 @@ main.wide{max-width:min(520px,96vw)}
     sp.classList.add("hide");
     setTimeout(function(){ try{ sp.remove(); }catch(e){} }, 400);
   }
-  setTimeout(killSplash, 1800);
   setTimeout(killSplash, 4000);
+  setTimeout(killSplash, 5500);
   window.__killSplash = killSplash;
 })();
 </script>
@@ -1406,38 +1462,53 @@ function buildHelpSmsBody(loc, extraMsg){
   if(myName) body += " - " + myName;
   if(extraMsg) body += "\n" + extraMsg;
   if(loc && typeof loc.lat === "number" && typeof loc.lng === "number"){
-    body += "\nMap: https://maps.google.com/?q=" + loc.lat.toFixed(5) + "," + loc.lng.toFixed(5);
+    body += "\nLive location: https://maps.google.com/?q=" + loc.lat.toFixed(5) + "," + loc.lng.toFixed(5);
   } else {
-    body += "\n(Location unavailable)";
+    body += "\n(Location unavailable — call me)";
   }
-  const bat = getBatteryPct();
-  if(bat !== null) body += "\nBattery: " + bat + "%";
-  body += "\nvia SafeLink";
-  return body.slice(0, 320);
+  try{
+    const bat = getBatteryPct();
+    if(bat !== null) body += "\nBattery: " + bat + "%";
+  }catch(e){}
+  body += "\nSent via SafeLink";
+  return body.slice(0, 400);
 }
 function openOfflineSms(loc, extraMsg){
-  const list = store.json("sl_contacts", []);
+  const list = store.json("sl_contacts", []) || [];
   if(!list.length){
-    note("Add emergency contacts below for offline SMS. Call 112 now if in danger!", true);
+    note("Add emergency contacts on this phone first (below). Then HELP can open SMS.", true);
     return false;
   }
-  const body = encodeURIComponent(buildHelpSmsBody(loc, extraMsg));
-  const phones = list.map(c => String(c.phone || "").replace(/\s+/g, "")).filter(Boolean);
+  const phones = list.map(c => String(c.phone || "").replace(/[^\d+]/g, "")).filter(p => p.length >= 8);
   if(!phones.length){
-    note("Contact has no phone number. Call 112!", true);
+    note("Contacts need valid phone numbers for SMS.", true);
     return false;
   }
+  const text = buildHelpSmsBody(loc, extraMsg);
+  const body = encodeURIComponent(text);
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent || "");
-  // iOS: one number + &body= ; Android: can try multiple with ?
-  const to = isIOS ? phones[0] : phones.slice(0, 3).join(",");
+  // Prefer first contact on iOS; Android can take several
+  const to = isIOS ? phones[0] : phones.slice(0, 5).join(",");
   const href = isIOS ? ("sms:" + to + "&body=" + body) : ("sms:" + to + "?body=" + body);
   try{
+    // Open SMS app with message + numbers filled in
     window.location.href = href;
-    note("SMS app opened — tap Send to alert contacts.", false);
+    note("SMS opened to your contacts — tap Send.", false);
     return true;
   }catch(e){
-    note("Could not open SMS. Call 112!", true);
-    return false;
+    try{
+      const a = document.createElement("a");
+      a.href = href;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      note("SMS opened — tap Send.", false);
+      return true;
+    }catch(e2){
+      note("Could not open SMS. Call your contact or 112!", true);
+      return false;
+    }
   }
 }
 async function fireHelp(){
@@ -1472,12 +1543,11 @@ async function fireHelp(){
   }catch(e){}
   pos = loc;
 
-  // Offline / not linked → SMS fallback
+  // Offline / not linked → auto open SMS to saved contacts with location
   if(!linked || !online){
-    note(!online ? "No internet — opening SMS alert…" : "Not linked to server — opening SMS alert…", true);
-    if(wantSms) openOfflineSms(loc, smsMsg || null);
-    else note("Turn on Offline SMS backup or call 112!", true);
-    // Keep UI in SOS state so user can still mark safe; no MQTT retries
+    note(!online ? "Offline — opening SMS to your contacts…" : "Not linked — opening SMS to your contacts…", true);
+    // Always try SMS when offline (critical path)
+    openOfflineSms(loc, smsMsg || null);
     return;
   }
 
@@ -1812,7 +1882,7 @@ const _bootPromise=new Promise(r=>{_bootReady=r});
     const sp=document.getElementById("splash");
     let reduce=false;
     try{reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches}catch(e){}
-    const ms=reduce?300:2200;
+    const ms=reduce?400:4000;
     let done=false;
     function finish(){
       if(done) return; done=true;
@@ -1827,7 +1897,7 @@ const _bootPromise=new Promise(r=>{_bootReady=r});
     }
     setTimeout(finish, ms);
     // Hard fallback if something blocks timers
-    setTimeout(finish, 5000);
+    setTimeout(finish, 6000);
   }catch(e){
     if(_bootReady){try{_bootReady()}catch(x){} _bootReady=null}
   }
