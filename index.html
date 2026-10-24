@@ -471,14 +471,8 @@ main.wide{max-width:min(520px,96vw)}
     <div class="switch"><input type="checkbox" id="silentMode"><label for="silentMode">Silent mode (visual only)</label></div>
     <div class="row">
       <button class="btn sm alt" id="btnHistory">History</button>
-      <button class="btn sm alt" id="btnPin">Change email / QR</button>
     </div>
     <div id="historyBox" hidden><ul class="list" id="historyList"></ul></div>
-    <div id="pinBox" hidden>
-      <p class="small" style="margin-top:8px">New email = new private QR (phones must scan again)</p>
-      <input id="newPin" type="email" placeholder="new@email.com" style="margin-top:8px;letter-spacing:0;text-align:left">
-      <button class="btn sm" id="savePin">Save email &amp; refresh QR</button>
-    </div>
     <button class="btn" id="arm">Arm alarm</button>
     <button class="btn alt" id="test">Test (3 sec)</button>
     <p class="msg" id="lmsg">Press Arm so browser allows sound. Keep tab open.</p>
@@ -1090,21 +1084,6 @@ async function startServer(ok){
 $("arm").onclick=async()=>{try{ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();await ctx.resume()}catch(e){}try{if(navigator.wakeLock)await navigator.wakeLock.request("screen")}catch(e){}try{if(typeof Notification!=="undefined"&&Notification.permission==="default")await Notification.requestPermission()}catch(e){}$("arm").textContent="Armed ✓";note("Alarm armed. Keep this tab open.",false)};
 $("test").onclick=()=>{emergencies["test"]={name:"Test",lat:null,lng:null,ts:Date.now()};renderEmergencies();setTimeout(()=>{delete emergencies["test"];renderEmergencies()},3000)};
 $("btnHistory").onclick=()=>{$("historyBox").hidden=!$("historyBox").hidden;$("historyList").innerHTML=history.length?history.map(h=>{const loc=h.lat?` · <a href="https://www.google.com/maps?q=${h.lat},${h.lng}" target="_blank">map</a>`:"";return`<li>${esc(h.name)} · ${new Date(h.ts).toLocaleString()}${loc}</li>`}).join(""):"<li class='small'>No history yet</li>"};
-$("btnPin").onclick=()=>{$("pinBox").hidden=!$("pinBox").hidden};
-$("savePin").onclick=()=>{
-  const em=($("newPin").value||"").trim().toLowerCase();
-  if(!isEmail(em)){alert("Enter a valid email");return}
-  store.set("sl_account_email",em);
-  code=codeFromEmail(em);
-  store.set("sl_code_server",code);
-  $("lcode").textContent=code;
-  drawQr();
-  $("pinBox").hidden=true;$("newPin").value="";
-  note("Email updated. New QR is ready — phones must scan again.",false);
-  // reconnect on new channel
-  try{if(client){client.end(true);client=null}}catch(e){}
-  connect();
-};
 
 function startSiren(){
   if(sirenOn) return;
