@@ -122,8 +122,8 @@ ol.steps li{margin-bottom:5px}
 .section{font-weight:700;font-size:13px;margin:14px 0 6px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .warn{background:#7c3aed18;border:1px solid #8b5cf640;border-radius:10px;padding:8px 10px;margin:6px 0;font-size:12.5px;color:var(--purple)}
 .row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-#pinLock{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background-image:radial-gradient(ellipse 80% 50% at 50% 0%,#7f1d1d80,transparent)}
-#pinLock input{max-width:200px;text-align:center;font-size:26px;letter-spacing:.35em}
+#accountLock{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background-image:radial-gradient(ellipse 80% 50% at 50% 0%,#7f1d1d80,transparent)}
+#accountLock input{max-width:280px;text-align:center;font-size:16px;letter-spacing:0}max-width:200px;text-align:center;font-size:26px;letter-spacing:.35em}
 #fake{position:fixed;inset:0;z-index:200;background:#0d0d0d;color:#eee;display:none;flex-direction:column;align-items:center;justify-content:center;font-family:ui-monospace,monospace}
 #fake .disp{font-size:42px;margin:16px 0;min-height:50px}
 #fake .pad{display:grid;grid-template-columns:repeat(4,58px);gap:7px}
@@ -362,23 +362,15 @@ main.wide{max-width:min(520px,96vw)}
 </div>
 
 
-<div id="pinLock" hidden>
-  <div style="font-size:32px;margin-bottom:8px">🔐</div>
-  <h2 style="font-size:20px;margin-bottom:4px">Admin PIN</h2>
-  <p class="small" style="margin-bottom:16px;text-align:center">Enter PIN to open server station</p>
-  <input id="pinIn" type="password" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off">
-  <button class="btn" id="pinGo" style="max-width:200px;margin-top:12px">Unlock</button>
-  <p class="msg" id="pinMsg"></p>
-  
+<div id="accountLock" hidden>
+  <div style="font-size:32px;margin-bottom:8px">📧</div>
+  <h2 style="font-size:20px;margin-bottom:4px">Server account</h2>
+  <p class="small" style="margin-bottom:16px;text-align:center;max-width:320px">Enter your email. Each email gets its <b>own permanent QR</b> — only phones that scan that QR can connect to you.</p>
+  <input id="accountEmail" type="email" placeholder="you@email.com" autocomplete="email" style="max-width:280px;text-align:center;letter-spacing:0">
+  <button class="btn" id="accountGo" style="max-width:200px;margin-top:12px">Open server</button>
+  <p class="msg" id="accountMsg"></p>
+  <p class="small" style="margin-top:16px;text-align:center;opacity:.7;max-width:300px">No password needed. Your email only creates a private link — it is stored on this device only.</p>
 </div>
-
-<div id="fake">
-  <div style="font-size:13px;opacity:.5;margin-bottom:4px">Calculator</div>
-  <div class="disp" id="fakeDisp">0</div>
-  <div class="pad" id="fakePad"></div>
-  <p class="small" style="margin-top:20px;opacity:.35">Triple-tap anywhere to exit</p>
-</div>
-
 <main>
   <div class="topbar">
     <button class="icon-btn" id="themeBtn" title="Theme">🌓</button>
@@ -409,7 +401,7 @@ main.wide{max-width:min(520px,96vw)}
         <div class="small" style="margin:2px 0 0">SafeLink monitoring</div>
       </div>
     </div>
-    <p class="small" style="opacity:.85">Permanent QR — scan once, works forever</p>
+    <p class="small" style="opacity:.85">Your private QR for <b id="accountEmailLabel">…</b></p><p class="small" style="opacity:.7;margin-top:2px">Permanent for this email — only phones that scan this QR join you</p>
     <div class="qr-wrap"><div id="qr"></div></div>
     <p class="small" style="text-align:center;opacity:.75;word-break:break-all;font-size:11px" id="pairLinkText"></p>
     <p class="small" style="text-align:center;opacity:.75">Or type this permanent code</p>
@@ -424,12 +416,13 @@ main.wide{max-width:min(520px,96vw)}
     <div class="switch"><input type="checkbox" id="silentMode"><label for="silentMode">Silent mode (visual only)</label></div>
     <div class="row">
       <button class="btn sm alt" id="btnHistory">History</button>
-      <button class="btn sm alt" id="btnPin">Change PIN</button>
+      <button class="btn sm alt" id="btnPin">Change email / QR</button>
     </div>
     <div id="historyBox" hidden><ul class="list" id="historyList"></ul></div>
     <div id="pinBox" hidden>
-      <input id="newPin" type="password" inputmode="numeric" maxlength="6" placeholder="New 4–6 digit PIN" style="margin-top:8px">
-      <button class="btn sm" id="savePin">Save PIN</button>
+      <p class="small" style="margin-top:8px">New email = new private QR (phones must scan again)</p>
+      <input id="newPin" type="email" placeholder="new@email.com" style="margin-top:8px;letter-spacing:0;text-align:left">
+      <button class="btn sm" id="savePin">Save email &amp; refresh QR</button>
     </div>
     <button class="btn" id="arm">Arm alarm</button>
     <button class="btn alt" id="test">Test (3 sec)</button>
@@ -448,7 +441,7 @@ main.wide{max-width:min(520px,96vw)}
 
     <div id="stepCode">
       <p class="small">Enter the 6-digit code from the server:</p>
-      <input id="pcode" class="code-in" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="off">
+      <input id="pcode" style="letter-spacing:.08em;text-transform:lowercase" class="code-in" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="off">
       <button class="btn" id="btnCode">Next</button>
     </div>
 
@@ -569,10 +562,30 @@ $("themeBtn").onclick=()=>{const t=document.documentElement.getAttribute("data-t
 $("langBtn").onclick=()=>{lang=lang==="en"?"hi":"en";store.set("sl_lang",lang);$("langBtn").textContent=lang==="en"?"EN":"हिं";$("subText").textContent=lang==="en"?"Press HELP → server sounds alarm so someone can help.":"HELP दबाएँ → सर्वर पर अलार्म बजेगा।"};
 
 /* PIN */
-function getPin(){return store.get("sl_pin")||"956597"}
-function showPin(){$("pinLock").hidden=false;$("pinIn").value="";setTimeout(()=>$("pinIn").focus(),100)}
-$("pinGo").onclick=()=>{if($("pinIn").value===getPin()){$("pinLock").hidden=true;startServer(true)}else{$("pinMsg").textContent="Wrong PIN";$("pinMsg").className="msg bad"}};
-$("pinIn").onkeydown=e=>{if(e.key==="Enter")$("pinGo").click()};
+function isEmail(s){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s||"").trim())}
+function codeFromEmail(email){
+  email=String(email||"").trim().toLowerCase();
+  let h=2166136261;
+  for(let i=0;i<email.length;i++){h^=email.charCodeAt(i);h=Math.imul(h,16777619)}
+  // 8-char base36-ish code, unique per email
+  const n=Math.abs(h>>>0).toString(36)+Math.abs(Math.imul(h,2654435761)>>>0).toString(36);
+  return n.slice(0,8);
+}
+function showAccount(){
+  $("accountLock").hidden=false;
+  const prev=store.get("sl_account_email")||"";
+  $("accountEmail").value=prev;
+  setTimeout(()=>$("accountEmail").focus(),100);
+}
+$("accountGo").onclick=()=>{
+  const em=($("accountEmail").value||"").trim().toLowerCase();
+  if(!isEmail(em)){$("accountMsg").textContent="Enter a valid email";$("accountMsg").className="msg bad";return}
+  store.set("sl_account_email",em);
+  store.set("sl_code_server",codeFromEmail(em));
+  $("accountLock").hidden=true;
+  startServer(true);
+};
+$("accountEmail").onkeydown=e=>{if(e.key==="Enter")$("accountGo").click()};
 
 /* Helpers */
 function show(id){["pick","server","phone"].forEach(x=>$(x).hidden=x!==id)}
@@ -855,24 +868,26 @@ function onMsg(t,d){
 
 /* Server */
 function baseUrl(){const u=new URL(location.href);u.hash="";u.search="";return u.toString().replace(/\/$/,"")||location.origin+location.pathname}
-/* Permanent pair code — never changes (one QR / one link forever) */
-const PAIR_CODE="956597";
-function pairLink(){return baseUrl()+"?c="+PAIR_CODE}
+/* Pair code is unique per account email (permanent for that email) */
+function pairLink(){return baseUrl()+"?c="+code}
 function drawQr(){
   const q=$("qr");if(!q)return;q.innerHTML="";
   const link=pairLink();
   try{new QRCode(q,{text:link,width:180,height:180,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M})}catch(e){q.innerHTML="<p class='small'>QR unavailable</p>"}
   const pl=$("pairLinkText");if(pl)pl.textContent=link;
+  const ae=$("accountEmailLabel");if(ae)ae.textContent=store.get("sl_account_email")||"";
 }
-function makeCode(){return PAIR_CODE}
+function makeCode(){return codeFromEmail(store.get("sl_account_email")||"guest@safelink.local")}
 
 async function startServer(ok){
-  if(!ok){showPin();return}
+  if(!ok){showAccount();return}
+  const em=store.get("sl_account_email");
+  if(!em||!isEmail(em)){showAccount();return}
   role="server";show("server");
   try{document.querySelector("main").classList.add("wide")}catch(e){}
-  code=PAIR_CODE;
-  store.set("sl_code_server",PAIR_CODE);
-  $("lcode").textContent=PAIR_CODE;
+  code=codeFromEmail(em);
+  store.set("sl_code_server",code);
+  $("lcode").textContent=code;
   drawQr();
   history=store.json("sl_history",[]);
   await connect();
@@ -881,7 +896,20 @@ $("arm").onclick=async()=>{try{ctx=ctx||new(window.AudioContext||window.webkitAu
 $("test").onclick=()=>{emergencies["test"]={name:"Test",lat:null,lng:null,ts:Date.now()};renderEmergencies();setTimeout(()=>{delete emergencies["test"];renderEmergencies()},3000)};
 $("btnHistory").onclick=()=>{$("historyBox").hidden=!$("historyBox").hidden;$("historyList").innerHTML=history.length?history.map(h=>{const loc=h.lat?` · <a href="https://www.google.com/maps?q=${h.lat},${h.lng}" target="_blank">map</a>`:"";return`<li>${esc(h.name)} · ${new Date(h.ts).toLocaleString()}${loc}</li>`}).join(""):"<li class='small'>No history yet</li>"};
 $("btnPin").onclick=()=>{$("pinBox").hidden=!$("pinBox").hidden};
-$("savePin").onclick=()=>{const p=$("newPin").value.replace(/\D/g,"");if(p.length<4||p.length>6){alert("PIN must be 4–6 digits");return}store.set("sl_pin",p);$("pinBox").hidden=true;$("newPin").value="";note("PIN saved.",false)};
+$("savePin").onclick=()=>{
+  const em=($("newPin").value||"").trim().toLowerCase();
+  if(!isEmail(em)){alert("Enter a valid email");return}
+  store.set("sl_account_email",em);
+  code=codeFromEmail(em);
+  store.set("sl_code_server",code);
+  $("lcode").textContent=code;
+  drawQr();
+  $("pinBox").hidden=true;$("newPin").value="";
+  note("Email updated. New QR is ready — phones must scan again.",false);
+  // reconnect on new channel
+  try{if(client){client.end(true);client=null}}catch(e){}
+  connect();
+};
 
 function startSiren(){
   if(sirenOn) return;
@@ -931,7 +959,7 @@ async function startPhone(){
   if(sc&&sn){code=sc;myName=sn;$("stepCode").hidden=true;$("stepName").hidden=true;$("stepReady").hidden=false;$("nameLabel").textContent="You are: "+myName;await connect();warnings();loadContacts();readBattery();startNetBatWatch();refreshPerms();try{if(typeof Notification!=="undefined"&&Notification.permission==="default"){/* soft */} }catch(e){}}
   else if(sc){code=sc;$("stepCode").hidden=true;$("stepName").hidden=false}
 }
-$("btnCode").onclick=()=>{const c=$("pcode").value.replace(/\D/g,"");if(c.length!==6){$("pcode").focus();return}code=c;store.set("sl_code_phone",c);$("stepCode").hidden=true;$("stepName").hidden=false;$("pname").focus()};
+$("btnCode").onclick=()=>{const c=$("pcode").value.trim().toLowerCase().replace(/[^a-z0-9]/g,"");if(c.length<6||c.length>12){$("pcode").focus();note("Enter the code from the server QR",true);return}code=c;store.set("sl_code_phone",c);$("stepCode").hidden=true;$("stepName").hidden=false;$("pname").focus()};
 $("btnName").onclick=async()=>{const n=$("pname").value.trim();if(n.length<2){$("pname").focus();return}myName=n.slice(0,24);store.set("sl_name_phone",myName);$("stepName").hidden=true;$("stepReady").hidden=false;$("nameLabel").textContent="You are: "+myName;await connect();warnings();loadContacts();readBattery();startNetBatWatch();refreshPerms();try{if(typeof Notification!=="undefined"&&Notification.permission==="default"){/* soft */} }catch(e){}};
 function warnings(){
   const box=$("warnBox");box.innerHTML="";
@@ -1604,7 +1632,7 @@ const _bootPromise=new Promise(r=>{_bootReady=r});
 })();
 
 /* Start */
-$("pickServer").onclick=()=>{store.set("sl_role","server");showPin()};
+$("pickServer").onclick=()=>{store.set("sl_role","server");showAccount()};
 $("pickPhone").onclick=()=>{store.set("sl_role","phone");startPhone()};
 if(store.get("sl_theme")==="light") document.documentElement.setAttribute("data-theme","light");
 lang=store.get("sl_lang")||"en";$("langBtn").textContent=lang==="en"?"EN":"हिं";
@@ -1612,10 +1640,10 @@ lang=store.get("sl_lang")||"en";$("langBtn").textContent=lang==="en"?"EN":"ह�
 const params=new URLSearchParams(location.search);
 const q=params.get("c")||params.get("code");
 _bootPromise.then(()=>{
-  if(q&&/^\d{6}$/.test(q)){store.set("sl_role","phone");store.set("sl_code_phone",q);startPhone()}
+  if(q&&/^[a-z0-9]{6,12}$/i.test(q)){store.set("sl_role","phone");store.set("sl_code_phone",q.toLowerCase());startPhone()}
   else{
     const r=store.get("sl_role");
-    if(r==="server"||r==="laptop") showPin();
+    if(r==="server"||r==="laptop") showAccount();
     else if(r==="phone") startPhone();
   }
 });
