@@ -123,7 +123,7 @@ ol.steps li{margin-bottom:5px}
 .warn{background:#7c3aed18;border:1px solid #8b5cf640;border-radius:10px;padding:8px 10px;margin:6px 0;font-size:12.5px;color:var(--purple)}
 .row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 #accountLock{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background-image:radial-gradient(ellipse 80% 50% at 50% 0%,#7f1d1d80,transparent)}
-#accountLock input{max-width:280px;text-align:center;font-size:16px;letter-spacing:0}max-width:200px;text-align:center;font-size:26px;letter-spacing:.35em}
+#accountLock input{max-width:280px;text-align:center;font-size:16px;letter-spacing:0}
 #fake{position:fixed;inset:0;z-index:200;background:#0d0d0d;color:#eee;display:none;flex-direction:column;align-items:center;justify-content:center;font-family:ui-monospace,monospace}
 #fake .disp{font-size:42px;margin:16px 0;min-height:50px}
 #fake .pad{display:grid;grid-template-columns:repeat(4,58px);gap:7px}
@@ -269,6 +269,34 @@ main.wide{max-width:min(520px,96vw)}
 }
 [data-theme="light"] #bgParticles{display:none}
 
+
+.account-chip{
+  position:fixed;top:calc(10px + var(--safe-top));right:12px;z-index:50;
+  display:none;align-items:center;gap:8px;padding:6px 10px 6px 6px;
+  background:rgba(20,10,14,.92);border:1px solid rgba(244,63,94,.4);
+  border-radius:999px;cursor:pointer;box-shadow:0 8px 24px #0008;
+  backdrop-filter:blur(10px);max-width:min(220px,70vw);
+}
+.account-chip.show{display:flex}
+.account-chip .av{
+  width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#be123c,#f43f5e);
+  color:#fff;font:800 13px/32px system-ui;text-align:center;flex-shrink:0;
+}
+.account-chip .em{
+  font-size:11px;color:#fecdd3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.account-menu{
+  display:none;position:absolute;top:calc(100% + 8px);right:0;min-width:180px;
+  background:#1a0e14;border:1px solid rgba(244,63,94,.4);border-radius:12px;
+  padding:6px;box-shadow:0 12px 32px #000a;z-index:51;
+}
+.account-chip.open .account-menu{display:block}
+.account-menu button{
+  display:block;width:100%;text-align:left;border:0;background:transparent;
+  color:#fff0f3;padding:10px 12px;border-radius:8px;font:600 13px system-ui;cursor:pointer;
+}
+.account-menu button:hover{background:rgba(244,63,94,.2)}
+
 /* Splash screen */
 #splash{
   position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;
@@ -346,6 +374,14 @@ main.wide{max-width:min(520px,96vw)}
 </head>
 <body>
 <div class="bg-fx" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><canvas id="bgParticles"></canvas></div>
+<div class="account-chip" id="accountChip" title="Account">
+  <div class="av" id="accountAv">?</div>
+  <span class="em" id="accountChipEm"></span>
+  <div class="account-menu" id="accountMenu">
+    <button type="button" id="btnLogout">Log out</button>
+  </div>
+</div>
+
 
 <div id="splash" aria-hidden="true">
   <div class="splash-bg">
@@ -361,15 +397,34 @@ main.wide{max-width:min(520px,96vw)}
   </div>
 </div>
 
+<script>
+/* Must run even if CDN scripts fail — unblocks page */
+(function(){
+  function killSplash(){
+    var sp=document.getElementById("splash");
+    if(!sp) return;
+    sp.classList.add("hide");
+    setTimeout(function(){ try{ sp.remove(); }catch(e){} }, 400);
+  }
+  setTimeout(killSplash, 1800);
+  setTimeout(killSplash, 4000);
+  window.__killSplash = killSplash;
+})();
+</script>
+
 
 <div id="accountLock" hidden>
-  <div style="font-size:32px;margin-bottom:8px">📧</div>
-  <h2 style="font-size:20px;margin-bottom:4px">Server account</h2>
-  <p class="small" style="margin-bottom:16px;text-align:center;max-width:320px">Enter your email. Each email gets its <b>own permanent QR</b> — only phones that scan that QR can connect to you.</p>
-  <input id="accountEmail" type="email" placeholder="you@email.com" autocomplete="email" style="max-width:280px;text-align:center;letter-spacing:0">
-  <button class="btn" id="accountGo" style="max-width:200px;margin-top:12px">Open server</button>
+  <div style="font-size:32px;margin-bottom:8px">🔐</div>
+  <h2 style="font-size:20px;margin-bottom:4px" id="authTitle">Admin login</h2>
+  <p class="small" style="margin-bottom:14px;text-align:center;max-width:320px" id="authSub">Sign in to open the server station. Each email has its own private QR.</p>
+  <input id="accountEmail" type="email" placeholder="Email" autocomplete="username" style="max-width:280px;text-align:left;letter-spacing:0;margin-bottom:8px">
+  <input id="accountPass" type="password" placeholder="Password" autocomplete="current-password" style="max-width:280px;text-align:left;letter-spacing:0">
+  <input id="accountPass2" type="password" placeholder="Confirm password" autocomplete="new-password" style="max-width:280px;text-align:left;letter-spacing:0;display:none;margin-top:8px">
+  <button class="btn" id="btnLogin" style="max-width:280px;margin-top:14px">Login</button>
+  <button class="btn alt" id="btnCreateAccount" style="max-width:280px;margin-top:8px">Create account</button>
+  <button class="btn alt" id="btnAuthSwitch" style="max-width:280px;margin-top:8px;display:none">Back to login</button>
   <p class="msg" id="accountMsg"></p>
-  <p class="small" style="margin-top:16px;text-align:center;opacity:.7;max-width:300px">No password needed. Your email only creates a private link — it is stored on this device only.</p>
+  <p class="small" style="margin-top:14px;text-align:center;opacity:.7;max-width:300px">Accounts stay on this device only. Phones never need email login — only the QR.</p>
 </div>
 <main>
   <div class="topbar">
@@ -384,7 +439,7 @@ main.wide{max-width:min(520px,96vw)}
     <button class="btn" id="pickServer">Server — alarm station</button>
     <button class="btn alt" id="pickPhone">Phone — HELP button</button>
     <ol class="steps">
-      <li>Open on <b>server</b> → unlock with PIN → QR appears</li>
+      <li>Open on <b>server</b> → enter email → your private QR appears</li>
       <li>Scan same QR on <b>any number of phones</b> → each enters their name</li>
       <li>All phones stay linked to this one server</li>
       <li>Arm alarm on server, keep tab open</li>
@@ -524,6 +579,8 @@ main.wide{max-width:min(520px,96vw)}
         <p class="small" id="checkinStatus" style="margin-top:6px"></p>
       </div>
       <div class="switch"><input type="checkbox" id="autoCallOn"><label for="autoCallOn">After HELP, offer to call first contact</label></div>
+      <div class="switch"><input type="checkbox" id="offlineSmsOn" checked><label for="offlineSmsOn">Offline SMS backup (if no internet / server)</label></div>
+      <button class="btn sm alt" id="btnSmsNow" style="margin-top:6px">Send SMS alert now</button>
 
       <div class="section">Options</div>
       <div class="switch"><input type="checkbox" id="shakeOn"><label for="shakeOn">Shake phone to trigger HELP</label></div>
@@ -538,8 +595,32 @@ main.wide{max-width:min(520px,96vw)}
   </section>
 </main>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script>
+/* Load libraries with timeout so page never hangs if CDN is blocked */
+window.__libsReady = new Promise(function(resolve){
+  var left = 2, done = false;
+  function one(){ left--; if(left<=0 && !done){ done=true; resolve(); } }
+  function load(src, fallback){
+    var s=document.createElement("script");
+    s.src=src;
+    s.async=true;
+    var t=setTimeout(function(){
+      if(fallback){ load(fallback, null); }
+      else one();
+    }, 6000);
+    s.onload=function(){ clearTimeout(t); one(); };
+    s.onerror=function(){
+      clearTimeout(t);
+      if(fallback) load(fallback, null);
+      else one();
+    };
+    document.head.appendChild(s);
+  }
+  load("https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js", null);
+  load("https://unpkg.com/mqtt/dist/mqtt.min.js", "https://cdn.jsdelivr.net/npm/mqtt@5/dist/mqtt.min.js");
+  setTimeout(function(){ if(!done){ done=true; resolve(); } }, 8000);
+});
+</script>
 <script>
 const $ = id => document.getElementById(id);
 const store = {
@@ -558,34 +639,140 @@ let lang="en", batteryLevel=null, batteryCharging=false, voiceBlob=null, voiceUr
 let mediaRec=null, recChunks=[];
 
 /* Theme & lang */
-$("themeBtn").onclick=()=>{const t=document.documentElement.getAttribute("data-theme")==="light"?"":"light";document.documentElement.setAttribute("data-theme",t);store.set("sl_theme",t)};
+if($("themeBtn")) $("themeBtn").onclick=()=>{const t=document.documentElement.getAttribute("data-theme")==="light"?"":"light";document.documentElement.setAttribute("data-theme",t);store.set("sl_theme",t)};
 $("langBtn").onclick=()=>{lang=lang==="en"?"hi":"en";store.set("sl_lang",lang);$("langBtn").textContent=lang==="en"?"EN":"हिं";$("subText").textContent=lang==="en"?"Press HELP → server sounds alarm so someone can help.":"HELP दबाएँ → सर्वर पर अलार्म बजेगा।"};
 
 /* PIN */
+
 function isEmail(s){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s||"").trim())}
 function codeFromEmail(email){
   email=String(email||"").trim().toLowerCase();
   let h=2166136261;
   for(let i=0;i<email.length;i++){h^=email.charCodeAt(i);h=Math.imul(h,16777619)}
-  // 8-char base36-ish code, unique per email
   const n=Math.abs(h>>>0).toString(36)+Math.abs(Math.imul(h,2654435761)>>>0).toString(36);
   return n.slice(0,8);
 }
-function showAccount(){
-  $("accountLock").hidden=false;
-  const prev=store.get("sl_account_email")||"";
-  $("accountEmail").value=prev;
-  setTimeout(()=>$("accountEmail").focus(),100);
+function getAccounts(){return store.json("sl_accounts",{})||{}}
+function saveAccounts(a){store.setJson("sl_accounts",a)}
+async function hashPass(email, pass){
+  const raw=String(email||"").trim().toLowerCase()+"|"+String(pass||"");
+  try{
+    if(window.crypto&&crypto.subtle){
+      const data=new TextEncoder().encode(raw);
+      const buf=await crypto.subtle.digest("SHA-256",data);
+      return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+    }
+  }catch(e){}
+  // fallback
+  let h=2166136261;
+  for(let i=0;i<raw.length;i++){h^=raw.charCodeAt(i);h=Math.imul(h,16777619)}
+  return ("00000000"+Math.abs(h>>>0).toString(16)).slice(-8)+("00000000"+Math.abs(Math.imul(h,2654435761)>>>0).toString(16)).slice(-8);
 }
-$("accountGo").onclick=()=>{
-  const em=($("accountEmail").value||"").trim().toLowerCase();
-  if(!isEmail(em)){$("accountMsg").textContent="Enter a valid email";$("accountMsg").className="msg bad";return}
+function authMsg(t,bad){
+  const el=$("accountMsg"); if(!el) return;
+  el.textContent=t||"";
+  el.className="msg"+(bad?" bad":bad===false?" good":"");
+}
+function setAuthMode(mode){
+  // mode: login | create
+  window.__authMode=mode;
+  const pass2=$("accountPass2"), sw=$("btnAuthSwitch"), login=$("btnLogin"), create=$("btnCreateAccount");
+  const title=$("authTitle"), sub=$("authSub");
+  if(mode==="create"){
+    if(title) title.textContent="Create account";
+    if(sub) sub.textContent="Choose your email and password. This email gets its own private QR.";
+    if(pass2) pass2.style.display="block";
+    if(login) login.style.display="none";
+    if(create){create.style.display="block"; create.textContent="Create account"}
+    if(sw){sw.style.display="block"; sw.textContent="Back to login"}
+  }else{
+    if(title) title.textContent="Admin login";
+    if(sub) sub.textContent="Sign in to open the server station. Each email has its own private QR.";
+    if(pass2) pass2.style.display="none";
+    if(login) login.style.display="block";
+    if(create){create.style.display="block"; create.textContent="Create account"}
+    if(sw) sw.style.display="none";
+  }
+  authMsg("",null);
+}
+function showAccountChip(em){
+  const chip=$("accountChip"); if(!chip) return;
+  if(!em){chip.classList.remove("show","open");return}
+  chip.classList.add("show");
+  const av=$("accountAv"), lab=$("accountChipEm");
+  if(av) av.textContent=(em[0]||"?").toUpperCase();
+  if(lab) lab.textContent=em;
+}
+function hideAccountChip(){const chip=$("accountChip");if(chip)chip.classList.remove("show","open")}
+function showAccount(){
+  const lock=$("accountLock"); if(lock) lock.hidden=false;
+  const em=$("accountEmail"), pw=$("accountPass"), pw2=$("accountPass2");
+  if(em) em.value="";
+  if(pw) pw.value="";
+  if(pw2) pw2.value="";
+  setAuthMode("login");
+  setTimeout(()=>{try{if(em)em.focus()}catch(e){}},80);
+}
+function adminLogout(){
+  try{if(client){client.end(true);client=null}}catch(e){}
+  store.set("sl_account_email","");
+  store.set("sl_role","");
+  hideAccountChip();
+  role=null; code=null;
+  const lock=$("accountLock"); if(lock) lock.hidden=true;
+  show("pick");
+  try{document.querySelector("main").classList.remove("wide")}catch(e){}
+}
+async function doLogin(){
+  const em=(($("accountEmail")&&$("accountEmail").value)||"").trim().toLowerCase();
+  const pass=($("accountPass")&&$("accountPass").value)||"";
+  if(!isEmail(em)){authMsg("Enter a valid email",true);return}
+  if(!pass||pass.length<4){authMsg("Enter your password (min 4 characters)",true);return}
+  const accounts=getAccounts();
+  if(!accounts[em]){authMsg("No account with this email. Create an account first.",true);return}
+  const hash=await hashPass(em, pass);
+  if(accounts[em].hash!==hash){authMsg("Wrong password for this email",true);return}
   store.set("sl_account_email",em);
   store.set("sl_code_server",codeFromEmail(em));
-  $("accountLock").hidden=true;
+  const lock=$("accountLock"); if(lock) lock.hidden=true;
+  authMsg("",null);
   startServer(true);
+}
+async function doCreateAccount(){
+  const em=(($("accountEmail")&&$("accountEmail").value)||"").trim().toLowerCase();
+  const pass=($("accountPass")&&$("accountPass").value)||"";
+  const pass2=($("accountPass2")&&$("accountPass2").value)||"";
+  if(!isEmail(em)){authMsg("Enter a valid email",true);return}
+  if(!pass||pass.length<4){authMsg("Password must be at least 4 characters",true);return}
+  if(pass!==pass2){authMsg("Passwords do not match",true);return}
+  const accounts=getAccounts();
+  if(accounts[em]){authMsg("This email already has an account. Login instead.",true);return}
+  const hash=await hashPass(em, pass);
+  accounts[em]={hash:hash, created:Date.now()};
+  saveAccounts(accounts);
+  store.set("sl_account_email",em);
+  store.set("sl_code_server",codeFromEmail(em));
+  const lock=$("accountLock"); if(lock) lock.hidden=true;
+  authMsg("Account created",false);
+  startServer(true);
+}
+if($("btnLogin")) $("btnLogin").onclick=()=>{doLogin()};
+if($("btnCreateAccount")) $("btnCreateAccount").onclick=()=>{
+  if(window.__authMode==="create") doCreateAccount();
+  else setAuthMode("create");
 };
-$("accountEmail").onkeydown=e=>{if(e.key==="Enter")$("accountGo").click()};
+if($("btnAuthSwitch")) $("btnAuthSwitch").onclick=()=>setAuthMode("login");
+["accountEmail","accountPass","accountPass2"].forEach(id=>{
+  const el=$(id); if(!el) return;
+  el.onkeydown=e=>{ if(e.key!=="Enter") return; if(window.__authMode==="create") doCreateAccount(); else doLogin(); };
+});
+if($("accountChip")) $("accountChip").onclick=e=>{
+  e.stopPropagation();
+  $("accountChip").classList.toggle("open");
+};
+if($("btnLogout")) $("btnLogout").onclick=e=>{e.stopPropagation();adminLogout()};
+document.addEventListener("click",()=>{const c=$("accountChip");if(c)c.classList.remove("open")});
+
 
 /* Helpers */
 function show(id){["pick","server","phone"].forEach(x=>$(x).hidden=x!==id)}
@@ -765,8 +952,14 @@ if($("clearAllVoice")) $("clearAllVoice").onclick=()=>{
 /* MQTT */
 function topic(b){return"safelink/"+code+"/"+b}
 function connect(){
-  return new Promise(resolve=>{
+  return new Promise(async resolve=>{
     try{
+      if(window.__libsReady) await window.__libsReady;
+      if(typeof mqtt==="undefined"){
+        setStatus("MQTT library blocked — try another network",false);
+        note("Connection library failed to load. Check internet / adblock.",true);
+        resolve(false); return;
+      }
       myId="sl_"+role+"_"+Math.random().toString(16).slice(2,9);
       client=mqtt.connect("wss://broker.hivemq.com:8884/mqtt",{clientId:myId,clean:true,reconnectPeriod:3000,connectTimeout:8000});
       client.on("connect",()=>{
@@ -873,7 +1066,7 @@ function pairLink(){return baseUrl()+"?c="+code}
 function drawQr(){
   const q=$("qr");if(!q)return;q.innerHTML="";
   const link=pairLink();
-  try{new QRCode(q,{text:link,width:180,height:180,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M})}catch(e){q.innerHTML="<p class='small'>QR unavailable</p>"}
+  try{if(typeof QRCode==="undefined"){q.innerHTML="<p class='small'>QR loading… open link below</p>"}else new QRCode(q,{text:link,width:180,height:180,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M})}catch(e){q.innerHTML="<p class='small'>QR unavailable — use code/link</p>"}
   const pl=$("pairLinkText");if(pl)pl.textContent=link;
   const ae=$("accountEmailLabel");if(ae)ae.textContent=store.get("sl_account_email")||"";
 }
@@ -887,10 +1080,12 @@ async function startServer(ok){
   try{document.querySelector("main").classList.add("wide")}catch(e){}
   code=codeFromEmail(em);
   store.set("sl_code_server",code);
-  $("lcode").textContent=code;
+  if($("lcode")) $("lcode").textContent=code;
   drawQr();
+  showAccountChip(em);
   history=store.json("sl_history",[]);
   await connect();
+  if(window.__libsReady) window.__libsReady.then(function(){ try{ drawQr(); }catch(e){} });
 }
 $("arm").onclick=async()=>{try{ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();await ctx.resume()}catch(e){}try{if(navigator.wakeLock)await navigator.wakeLock.request("screen")}catch(e){}try{if(typeof Notification!=="undefined"&&Notification.permission==="default")await Notification.requestPermission()}catch(e){}$("arm").textContent="Armed ✓";note("Alarm armed. Keep this tab open.",false)};
 $("test").onclick=()=>{emergencies["test"]={name:"Test",lat:null,lng:null,ts:Date.now()};renderEmergencies();setTimeout(()=>{delete emergencies["test"];renderEmergencies()},3000)};
@@ -1410,10 +1605,27 @@ window.addEventListener("devicemotion",e=>{
 },{passive:true});
 
 /* Fake calculator */
-$("hideBtn").onclick=()=>{$("fake").style.display="flex"};
+if($("hideBtn")) $("hideBtn").onclick=()=>{const f=$("fake");if(f){f.style.display="flex"}};
 let taps=0,tapTimer=null;
-$("fake").onclick=()=>{taps++;clearTimeout(tapTimer);tapTimer=setTimeout(()=>taps=0,500);if(taps>=3){$("fake").style.display="none";taps=0}};
-(function(){const keys=["7","8","9","C","4","5","6","+","1","2","3","-","0",".","=","×"];const pad=$("fakePad");let val="0";keys.forEach(k=>{const b=document.createElement("button");b.textContent=k;b.onclick=e=>{e.stopPropagation();if(k==="C")val="0";else if(k==="="){try{val=String(eval(val.replace(/×/g,"*")))}catch(e){val="Err"}}else val=(val==="0"?"":val)+k;$("fakeDisp").textContent=val.slice(0,12)};pad.appendChild(b)})})();
+if($("fake")) $("fake").onclick=()=>{taps++;clearTimeout(tapTimer);tapTimer=setTimeout(()=>taps=0,500);if(taps>=3){$("fake").style.display="none";taps=0}};
+(function(){
+  const pad=$("fakePad"); if(!pad) return;
+  const keys=["7","8","9","C","4","5","6","+","1","2","3","-","0",".","=","×"];
+  let val="0";
+  keys.forEach(k=>{
+    const b=document.createElement("button");
+    b.textContent=k;
+    b.style.cssText="padding:12px;border-radius:8px;border:1px solid #333;background:#1a1a1a;color:#eee;font-size:18px;cursor:pointer";
+    b.onclick=e=>{
+      e.stopPropagation();
+      if(k==="C") val="0";
+      else if(k==="="){try{val=String((0,eval)(val.replace(/×/g,"*")))}catch(err){val="Err"}}
+      else val=(val==="0"?"":val)+k;
+      const d=$("fakeDisp"); if(d) d.textContent=val.slice(0,12);
+    };
+    pad.appendChild(b);
+  });
+})();
 
 /* Browser notifications */
 function notifyBrowser(title,body){
@@ -1613,40 +1825,80 @@ if($("stopCheckin")) $("stopCheckin").onclick=()=>{
   frame();
 })();
 
-/* Splash — every refresh (phone + server/laptop) */
+/* Splash — every refresh (phone + server) */
 let _bootReady=null;
 const _bootPromise=new Promise(r=>{_bootReady=r});
 (function(){
-  const sp=document.getElementById("splash");
-  const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches;
-  const ms=reduce?500:2800;
-  function finish(){
-    if(sp){
-      sp.classList.add("hide");
-      setTimeout(()=>{try{sp.remove()}catch(e){}},550);
+  try{
+    const sp=document.getElementById("splash");
+    let reduce=false;
+    try{reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches}catch(e){}
+    const ms=reduce?300:2200;
+    let done=false;
+    function finish(){
+      if(done) return; done=true;
+      try{
+        if(sp){
+          sp.classList.add("hide");
+          setTimeout(()=>{try{sp.remove()}catch(e){}},500);
+        }
+      }catch(e){}
+      if(_bootReady){try{_bootReady()}catch(e){} _bootReady=null}
+      try{ if(window.__killSplash) window.__killSplash(); }catch(e){}
     }
-    if(_bootReady){_bootReady();_bootReady=null}
+    setTimeout(finish, ms);
+    // Hard fallback if something blocks timers
+    setTimeout(finish, 5000);
+  }catch(e){
+    if(_bootReady){try{_bootReady()}catch(x){} _bootReady=null}
   }
-  if(!sp){finish();return}
-  setTimeout(finish,ms);
 })();
 
 /* Start */
-$("pickServer").onclick=()=>{store.set("sl_role","server");showAccount()};
-$("pickPhone").onclick=()=>{store.set("sl_role","phone");startPhone()};
+
+// Ensure UI is clickable after boot
+_bootPromise.then(function(){
+  try{
+    var sp=document.getElementById("splash");
+    if(sp){sp.classList.add("hide");sp.style.pointerEvents="none";setTimeout(function(){try{sp.remove()}catch(e){}},300)}
+    if(window.__killSplash) window.__killSplash();
+  }catch(e){}
+});
+
+function goServer(){try{store.set("sl_role","server");showAccount()}catch(e){console.error(e);alert("Error opening server: "+e.message)}}
+function goPhone(){try{store.set("sl_role","phone");hideAccountChip();const lock=$("accountLock");if(lock)lock.hidden=true;startPhone()}catch(e){console.error(e);alert("Error opening phone: "+e.message)}}
+if($("pickServer")){$("pickServer").onclick=goServer;$("pickServer").ontouchend=function(e){e.preventDefault();goServer()}}
+if($("pickPhone")){$("pickPhone").onclick=goPhone;$("pickPhone").ontouchend=function(e){e.preventDefault();goPhone()}}
 if(store.get("sl_theme")==="light") document.documentElement.setAttribute("data-theme","light");
 lang=store.get("sl_lang")||"en";$("langBtn").textContent=lang==="en"?"EN":"हिं";
 
 const params=new URLSearchParams(location.search);
 const q=params.get("c")||params.get("code");
 _bootPromise.then(()=>{
-  if(q&&/^[a-z0-9]{6,12}$/i.test(q)){store.set("sl_role","phone");store.set("sl_code_phone",q.toLowerCase());startPhone()}
-  else{
+  try{
+    if(q&&/^[a-z0-9]{6,12}$/i.test(q)){
+      store.set("sl_role","phone");
+      store.set("sl_code_phone",q.toLowerCase());
+      startPhone();
+      return;
+    }
     const r=store.get("sl_role");
-    if(r==="server"||r==="laptop") showAccount();
-    else if(r==="phone") startPhone();
-  }
+    if(r==="server"||r==="laptop"){
+      // Admin only: always show login (password required)
+      showAccount();
+    }else if(r==="phone"){
+      startPhone(); // phones: no email login
+    }
+    // else stay on pick (Phone / Server)
+  }catch(e){console&&console.error(e)}
 });
 </script>
+
+<div id="fake" style="display:none;position:fixed;inset:0;z-index:200;background:#0d0d0d;color:#eee;flex-direction:column;align-items:center;justify-content:center;font-family:ui-monospace,monospace">
+  <div id="fakeDisp" class="disp" style="font-size:42px;margin:16px 0;min-height:50px">0</div>
+  <div id="fakePad" style="display:grid;grid-template-columns:repeat(4,64px);gap:8px"></div>
+  <p style="margin-top:16px;opacity:.5;font-size:12px">Tap screen 3× quickly to exit</p>
+</div>
+
 </body>
 </html>
