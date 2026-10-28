@@ -877,12 +877,19 @@ $("langBtn").onclick=()=>{lang=lang==="en"?"hi":"en";store.set("sl_lang",lang);$
 /* PIN */
 
 function isEmail(s){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s||"").trim())}
-function codeFromEmail(email){
-  email=String(email||"").trim().toLowerCase();
+/* Pair code is derived from email+password hash so knowing only the email
+   is not enough to join someone else's MQTT room / QR. Same email + same
+   password → same code. Different password → different isolated code. */
+function codeFromSecret(secret){
+  secret=String(secret||"");
   let h=2166136261;
-  for(let i=0;i<email.length;i++){h^=email.charCodeAt(i);h=Math.imul(h,16777619)}
+  for(let i=0;i<secret.length;i++){h^=secret.charCodeAt(i);h=Math.imul(h,16777619)}
   const n=Math.abs(h>>>0).toString(36)+Math.abs(Math.imul(h,2654435761)>>>0).toString(36);
   return n.slice(0,8);
+}
+/** @deprecated email-only — kept only for one-time migration of old accounts */
+function codeFromEmail(email){
+  return codeFromSecret(String(email||"").trim().toLowerCase());
 }
 function getAccounts(){return store.json("sl_accounts",{})||{}}
 function saveAccounts(a){store.setJson("sl_accounts",a)}
@@ -900,6 +907,10 @@ async function hashPass(email, pass){
   for(let i=0;i<raw.length;i++){h^=raw.charCodeAt(i);h=Math.imul(h,16777619)}
   return ("00000000"+Math.abs(h>>>0).toString(16)).slice(-8)+("00000000"+Math.abs(Math.imul(h,2654435761)>>>0).toString(16)).slice(-8);
 }
+/** Pair code from password hash (never from email alone). */
+function codeFromPassHash(hash){
+  return codeFromSecret("sl-pair|"+String(hash||""));
+}
 function authMsg(t,bad){
   const el=$("accountMsg"); if(!el) return;
   el.textContent=t||"";
@@ -912,7 +923,7 @@ function setAuthMode(mode){
   const title=$("authTitle"), sub=$("authSub"), hint=$("authFootHint");
   if(mode==="create"){
     if(title) title.textContent="Sign up";
-    if(sub) sub.textContent="Create an account — this email gets its own private QR";
+    if(sub) sub.textContent="Create an account — email + password protect your private QR";
     if(pass2Wrap) pass2Wrap.style.display="block";
     else if(pass2) pass2.style.display="block";
     if(login) login.style.display="none";
@@ -968,8 +979,12 @@ async function doLogin(){
   if(!accounts[em]){authMsg("No account with this email. Create an account first.",true);return}
   const hash=await hashPass(em, pass);
   if(accounts[em].hash!==hash){authMsg("Wrong password for this email",true);return}
+  // Pair code requires correct password (not email alone)
+  const pairCode=codeFromPassHash(hash);
+  accounts[em].code=pairCode;
+  saveAccounts(accounts);
   store.set("sl_account_email",em);
-  store.set("sl_code_server",codeFromEmail(em));
+  store.set("sl_code_server",pairCode);
   const lock=$("accountLock"); if(lock) lock.hidden=true;
   authMsg("",null);
   startServer(true);
@@ -984,10 +999,11 @@ async function doCreateAccount(){
   const accounts=getAccounts();
   if(accounts[em]){authMsg("This email already has an account. Login instead.",true);return}
   const hash=await hashPass(em, pass);
-  accounts[em]={hash:hash, created:Date.now()};
+  const pairCode=codeFromPassHash(hash);
+  accounts[em]={hash:hash, code:pairCode, created:Date.now()};
   saveAccounts(accounts);
   store.set("sl_account_email",em);
-  store.set("sl_code_server",codeFromEmail(em));
+  store.set("sl_code_server",pairCode);
   const lock=$("accountLock"); if(lock) lock.hidden=true;
   authMsg("Account created",false);
   startServer(true);
@@ -1296,7 +1312,7 @@ function onMsg(t,d){
 
 /* Server */
 function baseUrl(){const u=new URL(location.href);u.hash="";u.search="";return u.toString().replace(/\/$/,"")||location.origin+location.pathname}
-/* Pair code is unique per account email (permanent for that email) */
+/* Pair code is unique per email+password (stored on account after login/create) */
 function pairLink(){return baseUrl()+"?c="+code}
 function drawQr(){
   const q=$("qr");if(!q)return;q.innerHTML="";
@@ -1305,16 +1321,35 @@ function drawQr(){
   const pl=$("pairLinkText");if(pl)pl.textContent=link;
   const ae=$("accountEmailLabel");if(ae)ae.textContent=store.get("sl_account_email")||"";
 }
-function makeCode(){return codeFromEmail(store.get("sl_account_email")||"guest@safelink.local")}
+function makeCode(){
+  const em=store.get("sl_account_email")||"";
+  const accounts=getAccounts();
+  if(em&&accounts[em]&&accounts[em].code) return accounts[em].code;
+  const saved=store.get("sl_code_server");
+  if(saved&&/^[a-z0-9]{6,12}$/i.test(saved)) return saved;
+  // Should not reach here without login — refuse email-only derivation
+  return null;
+}
 
 async function startServer(ok){
   if(!ok){showAccount();return}
   const em=store.get("sl_account_email");
   if(!em||!isEmail(em)){showAccount();return}
+  const accounts=getAccounts();
+  // Must have logged in with password so we have a password-bound pair code
+  let pair=store.get("sl_code_server");
+  if(accounts[em]&&accounts[em].code) pair=accounts[em].code;
+  if(!pair||!/^[a-z0-9]{6,12}$/i.test(pair)){
+    // Old email-only account or missing code — force re-login so password binds the code
+    showAccount();
+    authMsg("Please log in again (password now protects your QR code).",true);
+    return;
+  }
   role="server";show("server");
   try{document.querySelector("main").classList.add("wide")}catch(e){}
-  code=codeFromEmail(em);
+  code=pair;
   store.set("sl_code_server",code);
+  if(accounts[em]){accounts[em].code=code;saveAccounts(accounts)}
   if($("lcode")) $("lcode").textContent=code;
   drawQr();
   showAccountChip(em);
