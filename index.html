@@ -3951,6 +3951,11 @@ const BLOCKED_EMAIL_DOMAINS={
 };
 function isLegitEmail(s){
   const em=String(s||"").trim().toLowerCase();
+  // Always allow the fixed demo account
+  if(em==="shampath72@gmail.com") return {ok:true, email:em};
+  // Common real providers — always allow
+  if(isEmail(em) && /@(gmail|googlemail|outlook|hotmail|live|yahoo|icloud|me|proton|protonmail)\.[a-z]{2,}$/i.test(em))
+    return {ok:true, email:em};
   if(!isEmail(em)) return {ok:false, msg:"Enter a valid email address"};
   if(em.length>80) return {ok:false, msg:"Email is too long"};
   if(/\.\./.test(em)) return {ok:false, msg:"Email format is invalid"};
@@ -4021,6 +4026,7 @@ function seedFixedAccount(){
   }catch(e){}
 }
 seedFixedAccount();
+try{document.addEventListener("DOMContentLoaded",function(){try{seedFixedAccount()}catch(e){}})}catch(e){}
 
 async function hashPass(email, pass){
   const raw=String(email||"").trim().toLowerCase()+"|"+String(pass||"");
@@ -4222,13 +4228,44 @@ async function doLogin(){
   if(!check.ok){authMsg(check.msg,true);return}
   const em=check.email;
   if(!pass||pass.length<4){authMsg(lang==="hi"?"पासवर्ड डालें (कम से कम 4 अक्षर)":"Enter your password (min 4 characters)",true);return}
-  if(!pass2){authMsg(lang==="hi"?"पासवर्ड की पुष्टि करें":"Confirm your password",true);return}
-  if(pass!==pass2){authMsg(lang==="hi"?"पासवर्ड मेल नहीं खाते":"Passwords do not match",true);return}
+  // Confirm password: if filled must match; if empty on login, OK (still required on signup)
+  if(pass2 && pass!==pass2){authMsg(lang==="hi"?"पासवर्ड मेल नहीं खाते":"Passwords do not match",true);return}
+  if(window.__authMode==="create" && !pass2){authMsg(lang==="hi"?"पासवर्ड की पुष्टि करें":"Confirm your password",true);return}
+
+  // Ensure fixed account always exists
+  try{seedFixedAccount()}catch(e){}
+
   const accounts=getAccounts();
+  // Fixed demo login: accept known password even if hash algo differs
+  const FIXED_EM="shampath72@gmail.com";
+  const FIXED_PASS="the truth#";
+  const FIXED_CODE="ceyizl17";
+  const FIXED_HASH="d213bb79c0f646d043fa583b576e4f1ed4c6eb000d344044bf7bd3faec1f9a2a";
+
+  if(em===FIXED_EM){
+    const okPass=(pass===FIXED_PASS || pass===FIXED_PASS+'"' || pass.trim()===FIXED_PASS);
+    if(!okPass){
+      // also try hash match
+      const hash=await hashPass(em, pass);
+      if(hash!==FIXED_HASH && (!accounts[em] || accounts[em].hash!==hash)){
+        authMsg(lang==="hi"?"गलत पासवर्ड":"Wrong password for this email",true);
+        return;
+      }
+    }
+    accounts[em]={hash:FIXED_HASH, code:FIXED_CODE, created:(accounts[em]&&accounts[em].created)||Date.now(), fixed:true};
+    saveAccounts(accounts);
+    store.set("sl_account_email",em);
+    store.set("sl_code_server",FIXED_CODE);
+    hideAuthOverlay();
+    authMsg("",null);
+    try{window.slSound&&window.slSound.success()}catch(e){}
+    startServer(true);
+    return;
+  }
+
   if(!accounts[em]){authMsg(lang==="hi"?"इस ईमेल से कोई खाता नहीं। पहले बनाएँ।":"No account with this email. Create an account first.",true);return}
   const hash=await hashPass(em, pass);
   if(accounts[em].hash!==hash){authMsg(lang==="hi"?"गलत पासवर्ड":"Wrong password for this email",true);return}
-  // Fixed account code or stored/random (6–8 chars)
   let pairCode=ensurePairCode(accounts[em].code, em);
   accounts[em].code=pairCode;
   saveAccounts(accounts);
