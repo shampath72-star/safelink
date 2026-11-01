@@ -3070,6 +3070,30 @@ body.has-session #settingsBtn{
   image-rendering:pixelated;
 }
 
+
+/* FORCE scannable QR — pure black modules on pure white */
+#qr, #qr.qr-cool, .qr-wrap, .qr-wrap #qr{
+  background:#ffffff!important;
+  background-image:none!important;
+  filter:none!important;
+  -webkit-filter:none!important;
+  padding:18px!important;
+  border-radius:12px!important;
+  box-shadow:0 4px 24px rgba(0,0,0,.4)!important;
+  border:0!important;
+}
+#qr canvas, #qr img, #qr table, #qr.qr-cool canvas, #qr.qr-cool img{
+  filter:none!important;
+  -webkit-filter:none!important;
+  opacity:1!important;
+  mix-blend-mode:normal!important;
+  background:#ffffff!important;
+  image-rendering:pixelated!important;
+}
+.qr-wrap::before, .qr-wrap::after, #qr::before, #qr::after,
+.qr-stage::after{display:none!important;content:none!important;animation:none!important}
+.qr-stage:not(.qr-celebrate) .qr-wrap{animation:none!important}
+
 </style>
 </head>
 <body>
@@ -4662,7 +4686,19 @@ function onMsg(t,d){
 }
 
 /* Server */
-function baseUrl(){const u=new URL(location.href);u.hash="";u.search="";return u.toString().replace(/\/$/,"")||location.origin+location.pathname}
+function baseUrl(){
+  try{
+    const u=new URL(location.href);
+    u.hash="";
+    u.search="";
+    // Keep path; ensure trailing slash before query for GitHub Pages folders
+    let s=u.toString();
+    if(!s.endsWith("/") && !s.endsWith(".html")) s+="/";
+    return s;
+  }catch(e){
+    return (location.origin+location.pathname).replace(/\/?$/,"/");
+  }
+}
 /* Pair code is unique per email+password (stored on account after login/create) */
 function pairLink(){return baseUrl()+"?c="+normalizePairCode(code)}
 function drawQr(){
@@ -4673,32 +4709,50 @@ function drawQr(){
     q.innerHTML="<p class='small'>Code not ready</p>";
     return;
   }
-  // Scannable URL — phone camera opens SafeLink with this code
-  const link=(typeof pairLink==="function"?pairLink():(location.href.split("?")[0]+"?c="+pairCode));
+  // Absolute URL so any phone camera opens SafeLink + pair code
+  let link="";
+  try{
+    const u=new URL(baseUrl());
+    u.searchParams.set("c", pairCode);
+    link=u.toString();
+  }catch(e){
+    link=baseUrl()+"?c="+encodeURIComponent(pairCode);
+  }
   try{
     if(typeof QRCode==="undefined"){
-      q.innerHTML="<p class='small'>QR loading… use code below</p>";
+      q.innerHTML="<p class='small'>QR loading… type code: <b>"+pairCode+"</b></p>";
     }else{
       q.classList.add("qr-cool");
-      // High-contrast black on white = best scan reliability
+      q.style.background="#ffffff";
       new QRCode(q,{
-        text:link,
-        width:220,
-        height:220,
+        text:String(link),
+        width:240,
+        height:240,
         colorDark:"#000000",
         colorLight:"#ffffff",
         correctLevel:QRCode.CorrectLevel.M
       });
+      // Force canvases/imgs pure B/W (no pink tint)
+      setTimeout(function(){
+        try{
+          q.querySelectorAll("canvas,img").forEach(function(el){
+            el.style.background="#fff";
+            el.style.filter="none";
+            el.style.imageRendering="pixelated";
+          });
+        }catch(e){}
+      },30);
     }
   }catch(e){
-    q.innerHTML="<p class='small'>QR unavailable — type the code below</p>";
+    q.innerHTML="<p class='small'>QR error — type code <b>"+pairCode+"</b></p>";
   }
   const pl=$("pairLinkText");
-  if(pl) pl.textContent=link;
+  if(pl){ pl.textContent=link; pl.style.wordBreak="break-all"; }
   const ae=$("accountEmailLabel");
   if(ae) ae.textContent=store.get("sl_account_email")||"";
   if($("lcode")) $("lcode").textContent=pairCode;
 }
+
 
 function makeCode(){
   const em=store.get("sl_account_email")||"";
@@ -4802,11 +4856,43 @@ $("stopAll").onclick=()=>{
 
 /* Phone */
 async function startPhone(){
-  role="phone";show("phone");
-  const sc=store.get("sl_code_phone"),sn=store.get("sl_name_phone");
-  if(sc&&sn){code=sc;myName=sn;$("stepCode").hidden=true;$("stepName").hidden=true;$("stepReady").hidden=false;$("nameLabel").textContent="You are: "+myName;await connect();warnings();loadContacts();readBattery();startNetBatWatch();refreshPerms();try{if(typeof Notification!=="undefined"&&Notification.permission==="default"){/* soft */} }catch(e){}}
-  else if(sc){code=sc;$("stepCode").hidden=true;$("stepName").hidden=false}
+  role="phone";
+  try{document.body.classList.add("page-phone");document.body.classList.remove("page-server","page-pick","page-auth")}catch(e){}
+  show("phone");
+  hideAuthOverlay();
+  try{refreshSettingsBtn()}catch(e){}
+  const sc=normalizePairCode(store.get("sl_code_phone")||"");
+  const sn=(store.get("sl_name_phone")||"").trim();
+  // Reset steps
+  if($("stepCode")) $("stepCode").hidden=true;
+  if($("stepName")) $("stepName").hidden=true;
+  if($("stepReady")) $("stepReady").hidden=true;
+  if(sc&&sc.length>=6 && sn){
+    code=sc; myName=sn;
+    if($("stepReady")) $("stepReady").hidden=false;
+    if($("nameLabel")) $("nameLabel").textContent="You are: "+myName;
+    setStatus("Connecting…",false);
+    await connect();
+    try{warnings()}catch(e){}
+    try{loadContacts()}catch(e){}
+    try{readBattery()}catch(e){}
+    try{startNetBatWatch()}catch(e){}
+    try{refreshPerms()}catch(e){}
+    return;
+  }
+  if(sc&&sc.length>=6){
+    // Came from QR scan — skip code entry, ask name, then connect
+    code=sc;
+    if($("pcode")) $("pcode").value=sc;
+    if($("stepName")) $("stepName").hidden=false;
+    if($("pname")) setTimeout(function(){try{$("pname").focus()}catch(e){}},200);
+    note("Code linked from QR — enter your name to connect",false);
+    return;
+  }
+  // Manual: show code entry
+  if($("stepCode")) $("stepCode").hidden=false;
 }
+
 $("btnCode").onclick=()=>{
   const c=normalizePairCode($("pcode").value);
   if(c.length<6){$("pcode").focus();note(lang==="hi"?"सर्वर वाला कोड डालें":"Enter the code from the server",true);return}
@@ -4815,7 +4901,26 @@ $("btnCode").onclick=()=>{
   $("stepCode").hidden=true;$("stepName").hidden=false;$("pname").focus();
   try{note(lang==="hi"?"कोड सेव हो गया":"Code saved — enter your name",false)}catch(e){}
 };
-$("btnName").onclick=async()=>{const n=$("pname").value.trim();if(n.length<2){$("pname").focus();return}myName=n.slice(0,24);store.set("sl_name_phone",myName);$("stepName").hidden=true;$("stepReady").hidden=false;$("nameLabel").textContent="You are: "+myName;await connect();warnings();loadContacts();readBattery();startNetBatWatch();refreshPerms();try{if(typeof Notification!=="undefined"&&Notification.permission==="default"){/* soft */} }catch(e){}};
+$("btnName").onclick=async()=>{
+  const n=$("pname").value.trim();
+  if(n.length<2){$("pname").focus();note("Enter your name",true);return}
+  // Ensure pair code from QR / manual entry is active before MQTT connect
+  code=normalizePairCode(store.get("sl_code_phone")||code||($("pcode")&&$("pcode").value)||"");
+  if(!code||code.length<6){
+    note("Missing pair code — scan QR or enter code again",true);
+    if($("stepName")) $("stepName").hidden=true;
+    if($("stepCode")) $("stepCode").hidden=false;
+    return;
+  }
+  store.set("sl_code_phone",code);
+  myName=n.slice(0,24);
+  store.set("sl_name_phone",myName);
+  $("stepName").hidden=true;
+  $("stepReady").hidden=false;
+  $("nameLabel").textContent="You are: "+myName;
+  setStatus("Connecting to server…",false);
+  await connect();
+warnings();loadContacts();readBattery();startNetBatWatch();refreshPerms();try{if(typeof Notification!=="undefined"&&Notification.permission==="default"){/* soft */} }catch(e){}};
 function warnings(){
   const box=$("warnBox");box.innerHTML="";
   if(navigator.getBattery) navigator.getBattery().then(b=>{if(b.level<0.2) box.innerHTML+=`<div class="warn">⚠️ Battery low (${Math.round(b.level*100)}%) — live location still sent</div>`});
@@ -5558,8 +5663,10 @@ const q=params.get("c")||params.get("code");
 _bootPromise.then(()=>{
   try{
     if(q&&/^[a-zA-Z0-9]{6,8}$/.test(q)){
+      const cq=String(q).replace(/[^a-zA-Z0-9]/g,"");
       store.set("sl_role","phone");
-      store.set("sl_code_phone",q);
+      store.set("sl_code_phone",cq);
+      hideAuthOverlay();
       startPhone();
       return;
     }
