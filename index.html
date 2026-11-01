@@ -3207,7 +3207,7 @@ body.has-session #settingsBtn{
         <div class="small" style="margin:2px 0 0">SafeLink monitoring</div>
       </div>
     </div>
-    <p class="small" style="opacity:.85">Your private QR for <b id="accountEmailLabel">…</b></p><p class="small" style="opacity:.7;margin-top:2px">Your private pair code — only phones with this code join you</p>
+    <p class="small" style="opacity:.85">Your private QR for <b id="accountEmailLabel">…</b></p><p class="small" style="opacity:.7;margin-top:2px">6-character code (letters + numbers) — only phones with this code join you</p>
     <div class="qr-stage" id="qrStage">
       <div class="qr-wrap" id="qrWrap">
         <div id="qr"></div>
@@ -3258,7 +3258,7 @@ body.has-session #settingsBtn{
 
     <div id="stepCode">
       <p class="small">Enter the 6-character code shown on the server:</p>
-      <input id="pcode" style="letter-spacing:.18em" class="code-in" inputmode="text" maxlength="8" placeholder="ceyizl17" autocomplete="off" autocapitalize="off" autocomplete="off">
+      <input id="pcode" style="letter-spacing:.18em" class="code-in" inputmode="text" maxlength="6" placeholder="Ab12Xy" autocomplete="off" autocapitalize="off" autocomplete="off">
       <button class="btn" id="btnCode">Next</button>
     </div>
 
@@ -3665,24 +3665,8 @@ function bindSettings(){
   };
   
   if($("setRegenCode")) $("setRegenCode").onclick=()=>{
-    if(role!=="server") return;
-    if(!confirm(lang==="hi"?"नया QR कोड बनाएँ? पुराने फोन फिर से जोड़ने होंगे।":"Generate a new random QR code? Phones must re-pair.")) return;
-    const em=store.get("sl_account_email");
-    const accounts=getAccounts();
-    let pairCode=fixedCodeForEmail(em);
-    if(pairCode){ note(lang==="hi"?"यह खाता फिक्स्ड कोड इस्तेमाल करता है":"This account uses a fixed pair code: "+pairCode,false); closeSettings(); return; }
-    pairCode=randomPairCode();
-    if(em&&accounts[em]){accounts[em].code=pairCode;saveAccounts(accounts)}
-    code=pairCode;
-    store.set("sl_code_server",pairCode);
-    if($("lcode")) $("lcode").textContent=pairCode;
-    try{drawQr()}catch(e){}
-    // reconnect on new topic
-    try{if(client){client.end(true);client=null}}catch(e){}
-    connect();
+    note("Pair code is fixed to your email + password. It never changes unless you change password.",false);
     closeSettings();
-    note(lang==="hi"?"नया कोड: ":"New code: "+pairCode,false);
-    try{window.slSound&&window.slSound.success()}catch(e){}
   };
 
   if($("setSignOut")) $("setSignOut").onclick=()=>{
@@ -3951,11 +3935,6 @@ const BLOCKED_EMAIL_DOMAINS={
 };
 function isLegitEmail(s){
   const em=String(s||"").trim().toLowerCase();
-  // Always allow the fixed demo account
-  if(em==="shampath72@gmail.com") return {ok:true, email:em};
-  // Common real providers — always allow
-  if(isEmail(em) && /@(gmail|googlemail|outlook|hotmail|live|yahoo|icloud|me|proton|protonmail)\.[a-z]{2,}$/i.test(em))
-    return {ok:true, email:em};
   if(!isEmail(em)) return {ok:false, msg:"Enter a valid email address"};
   if(em.length>80) return {ok:false, msg:"Email is too long"};
   if(/\.\./.test(em)) return {ok:false, msg:"Email format is invalid"};
@@ -4003,31 +3982,6 @@ function codeFromEmail(email){
 }
 function getAccounts(){return store.json("sl_accounts",{})||{}}
 function saveAccounts(a){store.setJson("sl_accounts",a)}
-
-/* Fixed demo account — shampath72@gmail.com / pair code ceyizl17 */
-function seedFixedAccount(){
-  try{
-    const em="shampath72@gmail.com";
-    const code="ceyizl17";
-    const hash="d213bb79c0f646d043fa583b576e4f1ed4c6eb000d344044bf7bd3faec1f9a2a"; // sha256 of email+"|"+"the truth#"
-    const accounts=getAccounts();
-    const prev=accounts[em]||{};
-    accounts[em]={
-      hash:hash,
-      code:code,
-      created:prev.created||Date.now(),
-      fixed:true
-    };
-    saveAccounts(accounts);
-    // If already logged in as this email, keep code in sync
-    if(store.get("sl_account_email")===em){
-      store.set("sl_code_server",code);
-    }
-  }catch(e){}
-}
-seedFixedAccount();
-try{document.addEventListener("DOMContentLoaded",function(){try{seedFixedAccount()}catch(e){}})}catch(e){}
-
 async function hashPass(email, pass){
   const raw=String(email||"").trim().toLowerCase()+"|"+String(pass||"");
   try{
@@ -4061,33 +4015,16 @@ function randomPairCode(){
   for(let i=0;i<6;i++) out+=chars[Math.floor(Math.random()*chars.length)];
   return out;
 }
-function normalizePairCode(c){
-  // 6–8 alphanumeric (letters + numbers)
-  return String(c||"").replace(/[^a-zA-Z0-9]/g,"").slice(0,8);
-}
-/** Fixed demo account — permanent code */
-const FIXED_PAIR_ACCOUNTS={
-  "shampath72@gmail.com":"ceyizl17"
-};
-function fixedCodeForEmail(em){
-  em=String(em||"").trim().toLowerCase();
-  return FIXED_PAIR_ACCOUNTS[em]||null;
-}
+function normalizePairCode(c){return String(c||"").replace(/[^a-zA-Z0-9]/g,"").slice(0,8);}
 
-
-function isExactPairCode(c){
+function isExactSixCode(c){
   const raw=String(c||"").replace(/[^a-zA-Z0-9]/g,"");
-  return raw.length>=6 && raw.length<=8;
+  return raw.length===6;
 }
-function ensurePairCode(existing, email){
-  const fixed=fixedCodeForEmail(email);
-  if(fixed) return normalizePairCode(fixed);
-  if(isExactPairCode(existing)) return normalizePairCode(existing);
+function ensureSixCode(existing){
+  if(isExactSixCode(existing)) return normalizePairCode(existing);
   return randomPairCode();
 }
-// back-compat aliases
-function isExactSixCode(c){return isExactPairCode(c)}
-function ensureSixCode(existing){return ensurePairCode(existing, null)}
 
 
 function authMsg(t,bad){
@@ -4101,33 +4038,33 @@ function setAuthMode(mode){
   const sw=$("btnAuthSwitch"), sw2=$("btnAuthSwitch2");
   const login=$("btnLogin"), create=$("btnCreateAccount");
   const title=$("authTitle"), sub=$("authSub"), hint=$("authFootHint");
-  // Always show confirm-password (login + signup)
-  if(pass2Wrap){pass2Wrap.style.display="block";pass2Wrap.hidden=false}
-  else if(pass2) pass2.style.display="block";
   if(mode==="create"){
     if(title) title.textContent=typeof t==="function"?t("signupTitle"):"Sign up";
     if(sub) sub.textContent=typeof t==="function"?t("signupSub"):"Create an account — email + password protect your private QR";
+    if(pass2Wrap){pass2Wrap.style.display="block";pass2Wrap.hidden=false}
+    else if(pass2){pass2.style.display="block";pass2.hidden=false}
     if(login){login.style.display="none";login.hidden=true}
     if(create){create.style.display="block";create.hidden=false}
     if(sw) sw.textContent=typeof t==="function"?t("loginTitle"):"Login";
     if(sw2){sw2.textContent=typeof t==="function"?t("alreadyAcc"):"Already have an account? Login";sw2.hidden=false}
-    if(hint) hint.textContent=typeof t==="function"?t("alreadyAcc"):"Already have an account?";
+    if(hint) hint.textContent="Already have an account?";
   }else{
     if(title) title.textContent=typeof t==="function"?t("loginTitle"):"Login";
     if(sub) sub.textContent=typeof t==="function"?t("loginSub"):"Enter your account details to open the alarm station";
+    // LOGIN: hide confirm password
+    if(pass2Wrap){pass2Wrap.style.display="none";pass2Wrap.hidden=true}
+    else if(pass2){pass2.style.display="none";pass2.hidden=true}
+    if(pass2) pass2.value="";
     if(login){login.style.display="block";login.hidden=false}
     if(create){create.style.display="none";create.hidden=true}
     if(sw) sw.textContent=typeof t==="function"?t("signUp"):"Sign up";
     if(sw2){sw2.textContent=typeof t==="function"?t("createNew"):"Create a new account";sw2.hidden=false}
-    if(hint) hint.textContent=typeof t==="function"?t("dontHave"):"Don't have an account?";
+    if(hint) hint.textContent="Don't have an account?";
   }
   authMsg("",null);
-  // Keep form in view on mobile after switch
   try{
     const lock=$("accountLock");
     if(lock) lock.scrollTop=0;
-    const left=document.querySelector("#accountLock .portal-left");
-    if(left) left.scrollTop=0;
     if(title) title.scrollIntoView({block:"nearest",behavior:"smooth"});
   }catch(e){}
 }
@@ -4223,51 +4160,20 @@ function adminLogout(){
 async function doLogin(){
   const rawEm=(($("accountEmail")&&$("accountEmail").value)||"").trim().toLowerCase();
   const pass=($("accountPass")&&$("accountPass").value)||"";
-  const pass2=($("accountPass2")&&$("accountPass2").value)||"";
-  const check=isLegitEmail(rawEm);
-  if(!check.ok){authMsg(check.msg,true);return}
+  const check=typeof isLegitEmail==="function"?isLegitEmail(rawEm):{ok:isEmail(rawEm),email:rawEm,msg:"Enter a valid email"};
+  if(!check.ok){authMsg(check.msg||"Enter a valid email",true);return}
   const em=check.email;
-  if(!pass||pass.length<4){authMsg(lang==="hi"?"पासवर्ड डालें (कम से कम 4 अक्षर)":"Enter your password (min 4 characters)",true);return}
-  // Confirm password: if filled must match; if empty on login, OK (still required on signup)
-  if(pass2 && pass!==pass2){authMsg(lang==="hi"?"पासवर्ड मेल नहीं खाते":"Passwords do not match",true);return}
-  if(window.__authMode==="create" && !pass2){authMsg(lang==="hi"?"पासवर्ड की पुष्टि करें":"Confirm your password",true);return}
-
-  // Ensure fixed account always exists
-  try{seedFixedAccount()}catch(e){}
-
+  if(!pass||pass.length<4){authMsg("Enter your password (min 4 characters)",true);return}
+  // LOGIN: no confirm-password needed
+  try{if(typeof seedFixedAccount==="function")seedFixedAccount()}catch(e){}
   const accounts=getAccounts();
-  // Fixed demo login: accept known password even if hash algo differs
-  const FIXED_EM="shampath72@gmail.com";
-  const FIXED_PASS="the truth#";
-  const FIXED_CODE="ceyizl17";
-  const FIXED_HASH="d213bb79c0f646d043fa583b576e4f1ed4c6eb000d344044bf7bd3faec1f9a2a";
-
-  if(em===FIXED_EM){
-    const okPass=(pass===FIXED_PASS || pass===FIXED_PASS+'"' || pass.trim()===FIXED_PASS);
-    if(!okPass){
-      // also try hash match
-      const hash=await hashPass(em, pass);
-      if(hash!==FIXED_HASH && (!accounts[em] || accounts[em].hash!==hash)){
-        authMsg(lang==="hi"?"गलत पासवर्ड":"Wrong password for this email",true);
-        return;
-      }
-    }
-    accounts[em]={hash:FIXED_HASH, code:FIXED_CODE, created:(accounts[em]&&accounts[em].created)||Date.now(), fixed:true};
-    saveAccounts(accounts);
-    store.set("sl_account_email",em);
-    store.set("sl_code_server",FIXED_CODE);
-    hideAuthOverlay();
-    authMsg("",null);
-    try{window.slSound&&window.slSound.success()}catch(e){}
-    startServer(true);
-    return;
-  }
-
-  if(!accounts[em]){authMsg(lang==="hi"?"इस ईमेल से कोई खाता नहीं। पहले बनाएँ।":"No account with this email. Create an account first.",true);return}
+  if(!accounts[em]){authMsg("No account with this email. Create an account first.",true);return}
   const hash=await hashPass(em, pass);
-  if(accounts[em].hash!==hash){authMsg(lang==="hi"?"गलत पासवर्ड":"Wrong password for this email",true);return}
-  let pairCode=ensurePairCode(accounts[em].code, em);
+  if(accounts[em].hash!==hash){authMsg("Wrong password for this email",true);return}
+  // Fixed QR code for this email+password (same combo → same code forever)
+  const pairCode=normalizePairCode(codeFromPassHash(hash));
   accounts[em].code=pairCode;
+  accounts[em].hash=hash;
   saveAccounts(accounts);
   store.set("sl_account_email",em);
   store.set("sl_code_server",pairCode);
@@ -4280,22 +4186,23 @@ async function doCreateAccount(){
   const rawEm=(($("accountEmail")&&$("accountEmail").value)||"").trim().toLowerCase();
   const pass=($("accountPass")&&$("accountPass").value)||"";
   const pass2=($("accountPass2")&&$("accountPass2").value)||"";
-  const check=isLegitEmail(rawEm);
-  if(!check.ok){authMsg(check.msg,true);return}
+  const check=typeof isLegitEmail==="function"?isLegitEmail(rawEm):{ok:isEmail(rawEm),email:rawEm,msg:"Enter a valid email"};
+  if(!check.ok){authMsg(check.msg||"Enter a valid email",true);return}
   const em=check.email;
-  if(!pass||pass.length<4){authMsg(lang==="hi"?"पासवर्ड कम से कम 4 अक्षर का हो":"Password must be at least 4 characters",true);return}
-  if(!pass2){authMsg(lang==="hi"?"पासवर्ड की पुष्टि करें":"Confirm your password",true);return}
-  if(pass!==pass2){authMsg(lang==="hi"?"पासवर्ड मेल नहीं खाते":"Passwords do not match",true);return}
+  if(!pass||pass.length<4){authMsg("Password must be at least 4 characters",true);return}
+  if(!pass2){authMsg("Confirm your password",true);return}
+  if(pass!==pass2){authMsg("Passwords do not match",true);return}
   const accounts=getAccounts();
-  if(accounts[em]){authMsg(lang==="hi"?"यह ईमेल पहले से है। लॉगिन करें।":"This email already has an account. Login instead.",true);return}
+  if(accounts[em]){authMsg("This email already has an account. Login instead.",true);return}
   const hash=await hashPass(em, pass);
-  const pairCode=fixedCodeForEmail(em)||randomPairCode();
+  // Fixed QR derived from email+password — same login always gives same code
+  const pairCode=normalizePairCode(codeFromPassHash(hash));
   accounts[em]={hash:hash, code:pairCode, created:Date.now()};
   saveAccounts(accounts);
   store.set("sl_account_email",em);
   store.set("sl_code_server",pairCode);
   hideAuthOverlay();
-  authMsg(lang==="hi"?"खाता बन गया":"Account created",false);
+  authMsg("Account created",false);
   try{window.slSound&&window.slSound.success()}catch(e){}
   startServer(true);
 }
@@ -4413,8 +4320,8 @@ function updatePhones(){
   if($("phoneCount")){
     const lim=maxPhonesLimit();
     $("phoneCount").innerHTML=n
-      ?('<span class="phone-count-ok">✓ '+n+" / "+lim+" device"+(n>1?"s":"")+" connected</span>")
-      :'<span class="phone-count-wait">Waiting for a phone to scan the QR… (max '+lim+')</span>';
+      ?('<span class="phone-count-ok">✓ '+n+" device"+(n>1?"s":"")+" connected</span>")
+      :'<span class="phone-count-wait">Waiting for phones…</span>';
   }
   if($("phoneList")){
     $("phoneList").innerHTML=list.map(p=>
@@ -4433,7 +4340,7 @@ function updatePhones(){
       banner.classList.remove("on");
     }
   }
-  setStatus(n?"Ready — device"+(n>1?"s":"")+" connected":"Waiting for phones…",!!n);
+  setStatus(n?"Connected":"Waiting for phones…",!!n);
 }
 
 function renderEmergencies(){
@@ -4779,22 +4686,21 @@ async function startServer(ok){
   const em=store.get("sl_account_email");
   if(!em||!isEmail(em)){showAccount();return}
   const accounts=getAccounts();
+  // Use the fixed code stored for this account (from email+password)
   let pair=store.get("sl_code_server");
   if(accounts[em]&&accounts[em].code) pair=accounts[em].code;
-  pair=ensurePairCode(pair, em);
-  if(accounts[em]){accounts[em].code=pair; saveAccounts(accounts);}
-  if(!pair||!isExactPairCode(pair)){
+  pair=normalizePairCode(pair);
+  if(!pair||pair.length<6){
     showAccount();
-    authMsg("Please log in again to refresh your pair code.",true);
+    authMsg("Please log in again to open your pair code.",true);
     return;
   }
   hideAuthOverlay();
   role="server";
   store.set("sl_role","server");
-  code=normalizePairCode(pair);
+  code=pair;
   store.set("sl_code_server",code);
   if(accounts[em]){accounts[em].code=code;saveAccounts(accounts)}
-  // Dedicated server monitoring page
   show("server");
   try{
     const main=document.querySelector("main");
@@ -4808,17 +4714,16 @@ async function startServer(ok){
   }catch(e){}
   if($("lcode")) $("lcode").textContent=code;
   if($("accountEmailLabel")) $("accountEmailLabel").textContent=em;
-  drawQr();
-  showAccountChip(em);
+  try{drawQr()}catch(e){}
+  try{showAccountChip(em)}catch(e){}
+  try{refreshSettingsBtn()}catch(e){}
   history=store.json("sl_history",[]);
-  // Reset any leftover alarm UI cleanly
   try{if(!Object.keys(emergencies).length && $("alarmbox")) $("alarmbox").hidden=true}catch(e){}
   await connect();
   window._serverReadyAt=Date.now();
-  _knownPhoneIds=new Set(Object.keys(phones));
+  try{_knownPhoneIds=new Set(Object.keys(phones))}catch(e){}
   if(window.__libsReady) window.__libsReady.then(function(){ try{ drawQr(); }catch(e){} });
   try{window.scrollTo(0,0)}catch(e){}
-  try{refreshSettingsBtn()}catch(e){}
 }
 $("arm").onclick=async()=>{try{ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();await ctx.resume()}catch(e){}try{if(navigator.wakeLock)await navigator.wakeLock.request("screen")}catch(e){}try{if(typeof Notification!=="undefined"&&Notification.permission==="default")await Notification.requestPermission()}catch(e){}$("arm").textContent="Armed ✓";note("Alarm armed. Keep this tab open.",false)};
 $("test").onclick=()=>{emergencies["test"]={name:"Test",lat:null,lng:null,ts:Date.now()};renderEmergencies();setTimeout(()=>{delete emergencies["test"];renderEmergencies()},3000)};
@@ -4875,7 +4780,7 @@ async function startPhone(){
 }
 $("btnCode").onclick=()=>{
   const c=normalizePairCode($("pcode").value);
-  if(c.length<6||c.length>8){$("pcode").focus();note(lang==="hi"?"सर्वर वाला कोड डालें (6–8 अक्षर)":"Enter the server code (6–8 letters/numbers)",true);return}
+  if(c.length<6){$("pcode").focus();note(lang==="hi"?"सर्वर वाला कोड डालें":"Enter the code from the server",true);return}
   code=c;
   store.set("sl_code_phone",c);
   $("stepCode").hidden=true;$("stepName").hidden=false;$("pname").focus();
@@ -5623,9 +5528,9 @@ const params=new URLSearchParams(location.search);
 const q=params.get("c")||params.get("code");
 _bootPromise.then(()=>{
   try{
-    if(q&&/^[a-zA-Z0-9]{6}$/.test(q)){
+    if(q&&/^[a-zA-Z0-9]{6,8}$/.test(q)){
       store.set("sl_role","phone");
-      store.set("sl_code_phone",q.toLowerCase());
+      store.set("sl_code_phone",q);
       startPhone();
       return;
     }
