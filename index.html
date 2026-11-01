@@ -3055,6 +3055,21 @@ body.has-session #settingsBtn{
   text-overflow:ellipsis;
 }
 
+
+/* Scannable QR — high contrast, quiet zone */
+#qr.qr-cool, .qr-wrap #qr, .qr-wrap{
+  background:#ffffff!important;
+  padding:16px!important;
+  border-radius:16px!important;
+  box-shadow:0 8px 28px rgba(0,0,0,.35)!important;
+}
+#qr canvas, #qr img, #qr table{
+  display:block!important;
+  margin:0 auto!important;
+  background:#fff!important;
+  image-rendering:pixelated;
+}
+
 </style>
 </head>
 <body>
@@ -4649,28 +4664,42 @@ function onMsg(t,d){
 /* Server */
 function baseUrl(){const u=new URL(location.href);u.hash="";u.search="";return u.toString().replace(/\/$/,"")||location.origin+location.pathname}
 /* Pair code is unique per email+password (stored on account after login/create) */
-function pairLink(){return baseUrl()+"?c="+code}
+function pairLink(){return baseUrl()+"?c="+normalizePairCode(code)}
 function drawQr(){
-  const q=$("qr");if(!q)return;q.innerHTML="";
-  // QR encodes ONLY the 6-char pair code (letters + numbers)
+  const q=$("qr"); if(!q) return;
+  q.innerHTML="";
   const pairCode=normalizePairCode(code);
   if(!pairCode||pairCode.length<6){
     q.innerHTML="<p class='small'>Code not ready</p>";
     return;
   }
+  // Scannable URL — phone camera opens SafeLink with this code
+  const link=(typeof pairLink==="function"?pairLink():(location.href.split("?")[0]+"?c="+pairCode));
   try{
     if(typeof QRCode==="undefined"){
       q.innerHTML="<p class='small'>QR loading… use code below</p>";
     }else{
       q.classList.add("qr-cool");
-      new QRCode(q,{text:pairCode,width:200,height:200,colorDark:"#9f1239",colorLight:"#fff5f7",correctLevel:QRCode.CorrectLevel.H});
+      // High-contrast black on white = best scan reliability
+      new QRCode(q,{
+        text:link,
+        width:220,
+        height:220,
+        colorDark:"#000000",
+        colorLight:"#ffffff",
+        correctLevel:QRCode.CorrectLevel.M
+      });
     }
-  }catch(e){q.innerHTML="<p class='small'>QR unavailable — use code below</p>"}
+  }catch(e){
+    q.innerHTML="<p class='small'>QR unavailable — type the code below</p>";
+  }
   const pl=$("pairLinkText");
-  if(pl) pl.textContent=(lang==="hi"?"कोड: ":"Code: ")+pairCode;
-  const ae=$("accountEmailLabel");if(ae)ae.textContent=store.get("sl_account_email")||"";
+  if(pl) pl.textContent=link;
+  const ae=$("accountEmailLabel");
+  if(ae) ae.textContent=store.get("sl_account_email")||"";
   if($("lcode")) $("lcode").textContent=pairCode;
 }
+
 function makeCode(){
   const em=store.get("sl_account_email")||"";
   const accounts=getAccounts();
