@@ -3094,6 +3094,29 @@ body.has-session #settingsBtn{
 .qr-stage::after{display:none!important;content:none!important;animation:none!important}
 .qr-stage:not(.qr-celebrate) .qr-wrap{animation:none!important}
 
+
+#qr{
+  background:#fff!important;
+  padding:12px!important;
+  display:inline-block!important;
+  border-radius:8px!important;
+  line-height:0!important;
+}
+#qr canvas,#qr img{
+  background:#fff!important;
+  filter:none!important;
+  display:block!important;
+  margin:0 auto!important;
+}
+.qr-wrap{
+  background:#fff!important;
+  padding:12px!important;
+  border-radius:12px!important;
+  display:inline-block!important;
+  box-shadow:0 4px 20px rgba(0,0,0,.35)!important;
+}
+.qr-wrap::before,.qr-wrap::after,.qr-stage::after{display:none!important}
+
 </style>
 </head>
 <body>
@@ -4686,72 +4709,58 @@ function onMsg(t,d){
 }
 
 /* Server */
+
+/* Pair code is unique per email+password (stored on account after login/create) */
+
 function baseUrl(){
+  // Always produce a page URL phones can open from a QR scan
   try{
-    const u=new URL(location.href);
-    u.hash="";
-    u.search="";
-    // Keep path; ensure trailing slash before query for GitHub Pages folders
-    let s=u.toString();
-    if(!s.endsWith("/") && !s.endsWith(".html")) s+="/";
-    return s;
+    var path=location.pathname||"/";
+    // folder deploy: /safelink/ or /safelink/index.html → /safelink/
+    if(path.endsWith("index.html")) path=path.slice(0,-10);
+    if(!path.endsWith("/")) path+="/";
+    return location.origin+path;
   }catch(e){
-    return (location.origin+location.pathname).replace(/\/?$/,"/");
+    return "https://shampath72-star.github.io/safelink/";
   }
 }
-/* Pair code is unique per email+password (stored on account after login/create) */
-function pairLink(){return baseUrl()+"?c="+normalizePairCode(code)}
+function pairLink(){
+  var c=normalizePairCode(code||store.get("sl_code_server")||"");
+  return baseUrl()+"?c="+encodeURIComponent(c);
+}
+
 function drawQr(){
-  const q=$("qr"); if(!q) return;
+  var q=$("qr"); if(!q) return;
   q.innerHTML="";
-  const pairCode=normalizePairCode(code);
+  var pairCode=normalizePairCode(code||store.get("sl_code_server")||"");
   if(!pairCode||pairCode.length<6){
-    q.innerHTML="<p class='small'>Code not ready</p>";
+    q.innerHTML="<p class='small'>Code not ready — log in again</p>";
     return;
   }
-  // Absolute URL so any phone camera opens SafeLink + pair code
-  let link="";
-  try{
-    const u=new URL(baseUrl());
-    u.searchParams.set("c", pairCode);
-    link=u.toString();
-  }catch(e){
-    link=baseUrl()+"?c="+encodeURIComponent(pairCode);
-  }
+  // THIS is what the phone camera opens: the SafeLink page + pairing code
+  var link=pairLink();
   try{
     if(typeof QRCode==="undefined"){
-      q.innerHTML="<p class='small'>QR loading… type code: <b>"+pairCode+"</b></p>";
+      q.innerHTML="<p class='small'>Loading QR…<br><b>"+pairCode+"</b></p>";
     }else{
-      q.classList.add("qr-cool");
-      q.style.background="#ffffff";
+      // Plain black QR on white — cameras read this best
       new QRCode(q,{
-        text:String(link),
-        width:240,
-        height:240,
+        text:link,
+        width:256,
+        height:256,
         colorDark:"#000000",
         colorLight:"#ffffff",
         correctLevel:QRCode.CorrectLevel.M
       });
-      // Force canvases/imgs pure B/W (no pink tint)
-      setTimeout(function(){
-        try{
-          q.querySelectorAll("canvas,img").forEach(function(el){
-            el.style.background="#fff";
-            el.style.filter="none";
-            el.style.imageRendering="pixelated";
-          });
-        }catch(e){}
-      },30);
     }
-  }catch(e){
-    q.innerHTML="<p class='small'>QR error — type code <b>"+pairCode+"</b></p>";
+  }catch(err){
+    q.innerHTML="<p class='small'>QR failed. Type code: <b>"+pairCode+"</b></p>";
   }
-  const pl=$("pairLinkText");
-  if(pl){ pl.textContent=link; pl.style.wordBreak="break-all"; }
-  const ae=$("accountEmailLabel");
-  if(ae) ae.textContent=store.get("sl_account_email")||"";
+  if($("pairLinkText")) $("pairLinkText").textContent=link;
   if($("lcode")) $("lcode").textContent=pairCode;
+  if($("accountEmailLabel")) $("accountEmailLabel").textContent=store.get("sl_account_email")||"";
 }
+
 
 
 function makeCode(){
@@ -5662,13 +5671,15 @@ const params=new URLSearchParams(location.search);
 const q=params.get("c")||params.get("code");
 _bootPromise.then(()=>{
   try{
-    if(q&&/^[a-zA-Z0-9]{6,8}$/.test(q)){
-      const cq=String(q).replace(/[^a-zA-Z0-9]/g,"");
-      store.set("sl_role","phone");
-      store.set("sl_code_phone",cq);
-      hideAuthOverlay();
-      startPhone();
-      return;
+    if(q){
+      var cq=String(q).replace(/[^a-zA-Z0-9]/g,"");
+      if(cq.length>=6 && cq.length<=12){
+        store.set("sl_role","phone");
+        store.set("sl_code_phone",cq);
+        try{hideAuthOverlay()}catch(e){}
+        startPhone();
+        return;
+      }
     }
     const r=store.get("sl_role");
     if(r==="server"||r==="laptop"){
