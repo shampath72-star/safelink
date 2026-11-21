@@ -58,7 +58,7 @@ ul.l{list-style:none}ul.l li{padding:10px 12px;margin-top:6px;background:var(--c
   <div><h1>SafeLink</h1><p class="sub">Press HELP → server sounds the alarm with name &amp; live location.</p></div>
   <button class="gear" id="gear" hidden aria-label="Settings">⚙</button>
 </div>
-<p class="banner" id="dbw" hidden><b>Firebase not configured.</b> Edit this file and paste your Firebase keys into <code>firebaseConfig</code> (search for PASTE_API_KEY).</p>
+<p class="banner" id="dbw" hidden><b>Could not connect to Firebase.</b> Check internet, or that Email/Password + Anonymous auth and Firestore are enabled.</p>
 
 <section class="card" id="pick">
   <h3>Which device is this?</h3>
@@ -177,12 +177,13 @@ ul.l{list-style:none}ul.l li{padding:10px 12px;margin-top:6px;background:var(--c
 <script type="module">
 /* ===== PASTE YOUR FIREBASE KEYS HERE ===== */
 const firebaseConfig = {
-  apiKey: "PASTE_API_KEY",
-  authDomain: "PASTE_PROJECT_ID.firebaseapp.com",
-  projectId: "PASTE_PROJECT_ID",
-  storageBucket: "PASTE_PROJECT_ID.firebasestorage.app",
-  messagingSenderId: "PASTE_SENDER_ID",
-  appId: "PASTE_APP_ID"
+  apiKey: "AIzaSyB-23pv3zK0nwOhkHuEUUBYk6WnSsUsBHA",
+  authDomain: "safelink-de966.firebaseapp.com",
+  projectId: "safelink-de966",
+  storageBucket: "safelink-de966.firebasestorage.app",
+  messagingSenderId: "989199088013",
+  appId: "1:989199088013:web:968100978b789c99465c4",
+  measurementId: "G-K18ELL86W"
 };
 
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
