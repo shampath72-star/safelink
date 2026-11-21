@@ -655,7 +655,18 @@ img,.back-btn,button{-webkit-user-drag:none}
 [data-theme="light"] .sheet{background:linear-gradient(165deg,#fff,#f1ecff);color:#1a1225;border-color:#c4b5fd}
 [data-theme="light"] .sheet .sub2,[data-theme="light"] .sheet .hint{color:#5b5578}
 @media(prefers-reduced-motion:reduce){.pfp-ring::before,.em-av::after,.gate .gate-ico,.pop,.sheet,.sheet-back,.srv-chip.in,#setBtn:not([hidden]){animation:none!important}}
+
+/* ===== alerts / push ===== */
+.alert-card{padding:14px;border-radius:14px;background:linear-gradient(135deg,rgba(124,58,237,.14),rgba(34,211,238,.08));border:1px solid rgba(139,92,246,.35);margin-bottom:10px}
+.ntfy-topic{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}
+.ntfy-topic code{font:600 12px ui-monospace,monospace;color:#67e8f9;background:rgba(0,0,0,.3);padding:6px 10px;border-radius:8px;word-break:break-all;-webkit-user-select:text;user-select:text}
+.alert-card .btn.sm{display:inline-block;width:auto;margin-top:8px}
+.alert-card .row{display:flex;gap:8px;flex-wrap:wrap}
+.alert-card .row .btn{margin-top:0}
+.alert-card .copy-btn{color:#c4b5fd;background:#1a1442;border-color:#8b5cf666}
+.alert-card .copy-btn.copied{color:#34d399;border-color:#10b98188;background:#06281d}
 </style>
+
 
 </head>
 <body>
@@ -788,6 +799,19 @@ img,.back-btn,button{-webkit-user-drag:none}
     <div class="section">Incoming voice notes</div>
     <ul class="list" id="voiceList"><li class="small">No voice notes yet</li></ul>
     <button class="btn sm alt" id="clearAllVoice" style="margin-top:6px;display:none">Delete all voice notes</button>
+    <div class="section">🔔 Alerts</div>
+    <div class="alert-card" id="alertCard">
+      <div class="status"><span class="dot" id="nDot"></span><span id="nStat">Notifications off</span></div>
+      <button type="button" class="btn sm" id="nEnable">Enable notifications</button>
+      <p class="small" style="margin-top:12px"><b>Alerts even when SafeLink is closed.</b> Install the free <b>ntfy</b> app and subscribe to this private topic — it rings loudly the moment someone presses HELP.</p>
+      <div class="ntfy-topic"><code id="ntfyTopic">…</code><button type="button" class="copy-btn" id="ntfyCopy">⧉ Copy</button></div>
+      <div class="row" style="margin-top:8px">
+        <a class="btn sm alt" id="ntfyApp" href="#">📲 Open in ntfy app</a>
+        <a class="btn sm alt" id="ntfyWeb" href="#" target="_blank" rel="noopener">🌐 Open in browser</a>
+      </div>
+      <button type="button" class="btn sm alt" id="nTest">🔊 Send test alert</button>
+      <p class="small" style="opacity:.7">Alerts contain only the person's name — never their location.</p>
+    </div>
     <div class="section">Settings</div>
     <div class="switch"><input type="checkbox" id="silentMode"><label for="silentMode">Silent mode (visual only)</label></div>
     <div class="row">
@@ -1188,13 +1212,13 @@ function renderEmergencies(){
   const main=document.querySelector("main");
   const emList=$("emList");
   if(!list.length){
-    $("alarmbox").hidden=true;stopSiren();
+    $("alarmbox").hidden=true;stopSiren();syncAlertRepeat();
     emList.classList.remove("multi");
     emList.innerHTML="";
     if(main) main.classList.remove("wide");
     return;
   }
-  $("alarmbox").hidden=false;
+  $("alarmbox").hidden=false;syncAlertRepeat();
   $("alarmCount").textContent=list.length===1?"1 person needs help":list.length+" people need help";
   if(list.length>1){
     emList.classList.add("multi");
@@ -1375,7 +1399,7 @@ function connect(){
       };
       BROKERS.forEach(url=>{
         let c;
-        try{c=mqtt.connect(url,{clientId:myId,clean:true,reconnectPeriod:500,connectTimeout:4000,keepalive:20})}catch(e){return}
+        try{c=mqtt.connect(url,{clientId:myId,clean:true,reconnectPeriod:500,connectTimeout:4000,keepalive:40})}catch(e){return}
         pool.push(c);
         c.on("connect",()=>{
           const first=pool.filter(x=>x.connected).length===1;
@@ -1429,7 +1453,7 @@ function onMsg(t,d){
       history.unshift({name:emergencies[key].name,ts:emergencies[key].ts,lat:d.lat,lng:d.lng});
       if(history.length>40) history.pop();
       store.setJson("sl_history",history);
-      notifyBrowser((emergencies[key].name||"Someone")+" needs HELP!");
+      notifyBrowser("🆘 "+(emergencies[key].name||"Someone")+" needs HELP!","Open SafeLink to see live location and respond.");
     }
     pub("ack",{id:d.id||"",to:key});
   }
@@ -1482,7 +1506,7 @@ function onMsg(t,d){
       from:key
     };
     renderEmergencies();
-    notifyBrowser((d.name||"Someone")+" missed check-in");
+    notifyBrowser("⚠️ "+(d.name||"Someone")+" missed check-in","Open SafeLink to see their last location.");
     note((d.name||"Someone")+" missed check-in!",true);
   }
   else if(t.endsWith("/stop")&&role==="phone"){note("Server stopped the alarms.");endSos();const el=$("comingMsg");if(el)el.hidden=true}
@@ -1516,10 +1540,11 @@ async function startServer(ok){
   showAccountChip(em);
   if(window.__freshLogin||!getSName()){window.__freshLogin=false;openNameGate()}
   history=store.json("sl_history",[]);
+  initAlertsUI();
   await connect();
   if(window.__qrReady) window.__qrReady.then(function(){ try{ drawQr(); }catch(e){} });
 }
-$("arm").onclick=async()=>{try{ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();await ctx.resume()}catch(e){}try{if(navigator.wakeLock)await navigator.wakeLock.request("screen")}catch(e){}try{if(typeof Notification!=="undefined"&&Notification.permission==="default")await Notification.requestPermission()}catch(e){}$("arm").textContent="Armed ✓";note("Alarm armed. Keep this tab open.",false)};
+
 $("test").onclick=()=>{emergencies["test"]={name:"Test",lat:null,lng:null,ts:Date.now()};renderEmergencies();setTimeout(()=>{delete emergencies["test"];renderEmergencies()},3000)};
 $("btnHistory").onclick=()=>{$("historyBox").hidden=!$("historyBox").hidden;$("historyList").innerHTML=history.length?history.map(h=>{const loc=h.lat?` · <a href="https://www.google.com/maps?q=${h.lat},${h.lng}" target="_blank">map</a>`:"";return`<li>${esc(h.name)} · ${new Date(h.ts).toLocaleString()}${loc}</li>`}).join(""):"<li class='small'>No history yet</li>"};
 
@@ -1821,6 +1846,7 @@ function sendOnce(extra){
     network:getNetworkLabel()
   };
   pub("sos",payload);
+  if(tries===1||tries%20===0)ntfyPost(code,{title:"🆘 "+(myName||"Someone")+" needs help!",message:"Open SafeLink to see live location and respond.",priority:5,tags:["rotating_light","sos"],click:appUrl()});
   if(acked||tries>40){clearInterval(sendT);sendT=null}
 }
 function endSos(){
@@ -2011,7 +2037,7 @@ $("helpBtn").onclick=()=>{
 if($("cancelCountBtn")) $("cancelCountBtn").onclick=cancelCountdown;
 
 
-$("safeBtn").onclick=()=>{pub("cancel",{id:sosId,from:myId,name:myName});endSos();note("Alarm cancelled. Glad you're safe.",false)};
+$("safeBtn").onclick=()=>{pub("cancel",{id:sosId,from:myId,name:myName});ntfyPost(code,{title:"✅ "+(myName||"Someone")+" is safe",message:"The alarm was cancelled.",priority:3,tags:["white_check_mark"]});endSos();note("Alarm cancelled. Glad you're safe.",false)};
 
 
 /* Offline SMS settings */
@@ -2060,14 +2086,6 @@ if($("fake")) $("fake").onclick=()=>{taps++;clearTimeout(tapTimer);tapTimer=setT
 })();
 
 /* Browser notifications */
-function notifyBrowser(title,body){
-  try{
-    if(typeof Notification==="undefined") return;
-    if(Notification.permission==="granted"){
-      new Notification(title||"SafeLink",{body:body||"",icon:undefined,tag:"safelink"});
-    }
-  }catch(e){}
-}
 
 /* Permissions checklist + install (PWA) */
 async function refreshPerms(){
@@ -2489,6 +2507,113 @@ function syncGear(){
 }
 try{new MutationObserver(syncGear).observe(document.body,{subtree:true,attributes:true,attributeFilter:["hidden"]})}catch(e){}
 syncGear();
+
+/* ===== push alerts: notifications + ntfy + keep-alive ===== */
+const NTFY="https://ntfy.sh";
+async function sha256hex(t){
+  try{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+  catch(e){let h=2166136261;for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(16).padStart(8,"0").repeat(8)}
+}
+async function ntfyTopic(c){return "safelink-"+(await sha256hex("safelink-alert-v1:"+c)).slice(0,20)}
+async function ntfyPost(c,obj){
+  if(!c)return;
+  try{
+    const topic=await ntfyTopic(c);
+    await fetch(NTFY,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(Object.assign({topic},obj)),keepalive:true});
+  }catch(e){}
+}
+const appUrl=()=>location.origin+location.pathname;
+
+let swReg=null;
+async function registerSW(){
+  if(swReg)return swReg;
+  if(!("serviceWorker" in navigator))return null;
+  try{await navigator.serviceWorker.register("sw.js");swReg=await navigator.serviceWorker.ready}catch(e){swReg=null}
+  return swReg;
+}
+function appIcon(){const i=document.querySelector(".server-logo");return i&&i.src&&i.src.length<200000?i.src:undefined}
+async function showAlert(title,body,tag){
+  const opts={body,tag:tag||"safelink-sos",renotify:true,requireInteraction:true,vibrate:[500,200,500,200,900],icon:appIcon(),badge:appIcon(),data:{url:appUrl()}};
+  try{const r=await registerSW();if(r&&r.showNotification){await r.showNotification(title,opts);return true}}catch(e){}
+  try{if(typeof Notification!=="undefined"&&Notification.permission==="granted"){new Notification(title,opts);return true}}catch(e){}
+  return false;
+}
+function notifyBrowser(title,body){showAlert(title||"SafeLink",body||"")}
+
+function updateNotifUI(perm){
+  if(!$("nStat"))return;
+  perm=perm||(typeof Notification!=="undefined"?Notification.permission:"unsupported");
+  const on=perm==="granted";
+  $("nDot").classList.toggle("on",on);
+  $("nStat").textContent=on?"Notifications on — pop-ups + vibration":perm==="denied"?"Blocked — allow notifications in your browser settings":perm==="unsupported"?"Notifications not supported here":"Notifications off";
+  $("nEnable").style.display=on||perm==="unsupported"?"none":"inline-block";
+}
+async function enableNotifications(){
+  let perm="unsupported";
+  try{if(typeof Notification!=="undefined"){perm=Notification.permission;if(perm==="default")perm=await Notification.requestPermission()}}catch(e){}
+  await registerSW();
+  updateNotifUI(perm);
+  return perm==="granted";
+}
+
+/* keep the tab awake & the connection alive while armed */
+let keepOsc=null,wakeSentinel=null,armed=false;
+function startKeepAlive(){
+  if(keepOsc||!ctx)return;
+  try{const o=ctx.createOscillator(),g=ctx.createGain();g.gain.value=.0008;o.frequency.value=30;o.connect(g);g.connect(ctx.destination);o.start();keepOsc=o}catch(e){}
+}
+async function getWake(){try{if(navigator.wakeLock&&!document.hidden)wakeSentinel=await navigator.wakeLock.request("screen")}catch(e){}}
+document.addEventListener("visibilitychange",()=>{
+  if(!armed)return;
+  if(!document.hidden)getWake();
+  try{ctx&&ctx.state==="suspended"&&ctx.resume()}catch(e){}
+});
+async function armAlarm(){
+  try{ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();await ctx.resume()}catch(e){}
+  await getWake();
+  const ok=await enableNotifications();
+  startKeepAlive();
+  armed=true;store.set("sl_armed","1");
+  $("arm").textContent="Armed ✓";
+  note(ok?"Armed — you'll get a loud alert, pop-up and vibration whenever someone needs help.":"Alarm armed. Allow notifications to also get pop-ups. Keep this tab open.",false);
+}
+$("arm").onclick=armAlarm;
+/* after a refresh the browser needs one tap before it allows sound again */
+document.addEventListener("pointerdown",()=>{if(role==="server"&&!armed&&store.get("sl_armed")==="1")armAlarm()});
+
+/* keep re-alerting while an emergency is unanswered */
+let alertRepeatT=null;
+function syncAlertRepeat(){
+  const list=Object.values(emergencies);
+  if(!list.length){clearInterval(alertRepeatT);alertRepeatT=null;return}
+  if(alertRepeatT)return;
+  alertRepeatT=setInterval(()=>{
+    const l=Object.values(emergencies);if(!l.length)return;
+    if(document.hidden||!document.hasFocus())showAlert("🆘 "+(l.length===1?(l[0].name||"Someone")+" needs help!":l.length+" people need help!"),"Open SafeLink to see live location and respond.","safelink-sos");
+  },12000);
+}
+
+/* ntfy topic card on the server */
+async function initAlertsUI(){
+  if(!$("ntfyTopic")||!code)return;
+  const topic=await ntfyTopic(code);
+  $("ntfyTopic").textContent=topic;
+  $("ntfyWeb").href=NTFY+"/"+topic;
+  $("ntfyApp").href="ntfy://ntfy.sh/"+topic;
+  updateNotifUI();
+}
+$("nEnable").onclick=enableNotifications;
+$("ntfyCopy").onclick=()=>{
+  const b=$("ntfyCopy"),txt=$("ntfyTopic").textContent.trim();
+  const done=ok=>{b.textContent=ok?"✓ Copied":"Copy failed";b.classList.toggle("copied",ok);clearTimeout(b._t);b._t=setTimeout(()=>{b.textContent="⧉ Copy";b.classList.remove("copied")},1500)};
+  copyText(txt).then(()=>done(true),()=>done(false));
+};
+$("nTest").onclick=async()=>{
+  await enableNotifications();
+  const shown=await showAlert("🔔 SafeLink test alert","Alerts are working on this device.","safelink-test");
+  ntfyPost(code,{title:"🔔 SafeLink test alert",message:"Background alerts are working.",priority:5,tags:["bell"],click:appUrl()});
+  note(shown?"Test alert sent — check your notifications (and the ntfy app).":"Test sent to the ntfy app. Enable notifications for in-browser pop-ups.",false);
+};
 </script>
 
 <div id="fake" style="display:none;position:fixed;inset:0;z-index:200;background:#0d0d0d;color:#eee;flex-direction:column;align-items:center;justify-content:center;font-family:ui-monospace,monospace">
