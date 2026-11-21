@@ -2,315 +2,557 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
-<meta name="theme-color" content="#0c0709">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0a0612">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="description" content="SafeLink family SOS">
 <title>SafeLink</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='44' fill='%23e11d48'/%3E%3Cpath d='M96 36c-22 14-40 16-40 40v28c0 28 18 48 40 58 22-10 40-30 40-58V76c0-24-18-26-40-40z' fill='%23fff'/%3E%3Ccircle cx='96' cy='90' r='16' fill='%239f1239'/%3E%3C/svg%3E">
 <style>
-:root{color-scheme:dark light;--bg:#0c0709;--card:#1a1014;--c2:#24181e;--ink:#fff8fa;--mut:#e8c4cc;--ln:rgba(251,113,133,.45);--ac:#f43f5e;--ac2:#be123c;--ok:#4ade80}
-@media(prefers-color-scheme:light){:root{--bg:#f7f4ff;--card:#fff;--c2:#f0ebfa;--ink:#160f22;--mut:#4a3f63;--ln:#c4b5e0;--ac:#e11d48;--ac2:#9f1239;--ok:#059669}}
+:root{
+  --bg:#0a0612;--card:rgba(22,14,36,.82);--card2:rgba(36,24,56,.9);
+  --ink:#f8f4ff;--mut:#b5a4d4;--line:rgba(167,139,250,.28);
+  --p:#a78bfa;--p2:#7c3aed;--sos:#f43f5e;--ok:#34d399;
+  --glass:blur(18px);
+}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{min-height:100%}
-body{background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
-body.alarm{animation:fl .55s infinite alternate}@keyframes fl{to{background:#3f0a12}}
-main{max-width:440px;margin:0 auto;padding:14px 16px 40px}
-h1{font:800 28px/1.1 system-ui;letter-spacing:-.03em;background:linear-gradient(120deg,var(--ink),var(--ac));-webkit-background-clip:text;background-clip:text;color:transparent}
-.sub,.sm{color:var(--mut);font-size:13px}
-.card{position:relative;background:var(--card);border:1.5px solid var(--ln);border-radius:16px;padding:18px 16px;margin:12px 0}
+html,body{height:100%;cursor:none}
+body{
+  background:var(--bg);color:var(--ink);
+  font:15px/1.5 system-ui,-apple-system,sans-serif;
+  min-height:100dvh;overflow-x:hidden;
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+}
+/* animated bg */
+.bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 10%,#5b21b655,transparent 55%),
+    radial-gradient(ellipse 60% 40% at 90% 80%,#be123c33,transparent 50%),
+    radial-gradient(ellipse 50% 50% at 50% 50%,#1e0b3a,var(--bg));
+}
+.bg::before{
+  content:"";position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity:.5;
+}
+.orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.45;animation:float 12s ease-in-out infinite}
+.orb.a{width:280px;height:280px;background:#7c3aed;top:-40px;left:-60px}
+.orb.b{width:220px;height:220px;background:#e11d48;bottom:10%;right:-40px;animation-delay:-4s}
+.orb.c{width:160px;height:160px;background:#6366f1;top:40%;left:40%;animation-delay:-7s}
+@keyframes float{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,-20px) scale(1.08)}}
+
+/* custom cursor */
+#cur{
+  position:fixed;width:18px;height:18px;border-radius:50%;
+  border:2px solid var(--p);pointer-events:none;z-index:9999;
+  transform:translate(-50%,-50%);transition:width .15s,height .15s,background .15s,border-color .15s;
+  mix-blend-mode:difference;
+}
+#cur.hot{width:42px;height:42px;background:rgba(244,63,94,.25);border-color:var(--sos)}
+#cur.dot{width:8px;height:8px;background:var(--p);border:0}
+@media(pointer:coarse){html,body{cursor:auto}#cur{display:none!important}}
+
+main{position:relative;z-index:1;max-width:440px;margin:0 auto;padding:18px 16px 56px}
+h1{
+  font:800 34px/1.05 system-ui;letter-spacing:-.03em;
+  background:linear-gradient(120deg,#fff,#e9d5ff 40%,#f9a8d4);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:4px;
+}
+.sub{color:var(--mut);font-size:13.5px;margin-bottom:18px}
+.card{
+  background:var(--card);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);
+  border:1px solid var(--line);border-radius:20px;padding:20px 18px;margin-bottom:14px;
+  box-shadow:0 12px 40px #0006;
+}
 .card[hidden],[hidden]{display:none!important}
-.card h3{margin-bottom:8px;font-size:16px}
-.btn{display:block;width:100%;border:0;border-radius:14px;padding:14px;margin-top:10px;font:700 15px system-ui;color:#fff;background:linear-gradient(180deg,var(--ac),var(--ac2));box-shadow:0 4px 0 #7f1d1d;cursor:pointer}
-.btn:active{transform:translateY(2px)}.btn:disabled{opacity:.55;cursor:wait}
-.btn.alt{background:transparent;color:var(--ink);border:2px solid var(--ln);box-shadow:none}
-.btn.s{display:inline-block;width:auto;padding:8px 12px;font-size:13px;margin:6px 6px 0 0}
+.card h3{font-size:16px;margin-bottom:8px}
+.btn{
+  display:block;width:100%;border:0;border-radius:14px;padding:14px 16px;margin-top:10px;
+  font:700 15px system-ui;color:#fff;cursor:none;
+  background:linear-gradient(135deg,var(--p2),#9333ea);
+  box-shadow:0 6px 24px #7c3aed55;
+  transition:transform .12s,box-shadow .12s;
+}
+.btn:hover{transform:translateY(-1px);box-shadow:0 10px 28px #7c3aed66}
+.btn:active{transform:scale(.98)}
+.btn.alt{background:transparent;color:var(--ink);border:1.5px solid var(--line);box-shadow:none}
+.btn.sos{background:linear-gradient(135deg,#e11d48,#f43f5e);box-shadow:0 6px 24px #f43f5e44}
+.btn.sm{display:inline-block;width:auto;padding:8px 14px;font-size:13px;margin:4px 4px 0 0}
 a.btn{text-align:center;text-decoration:none}
-input,textarea{width:100%;padding:13px;margin-top:8px;border:1.5px solid var(--ln);border-radius:12px;background:var(--c2);color:var(--ink);font:inherit}
-.back{position:absolute;top:10px;left:10px;border:1.5px solid var(--ln);background:var(--c2);color:var(--ink);border-radius:12px;padding:6px 12px;font:700 13px system-ui;cursor:pointer;z-index:2}
-.card.hb{padding-top:52px}
-.msg{font-size:13px;margin-top:8px;color:var(--mut)}.msg.bad{color:#fb7185;font-weight:700}.msg.ok{color:var(--ok);font-weight:700}
-.code{font:900 clamp(28px,9vw,42px) ui-monospace,monospace;letter-spacing:.18em;text-align:center;margin:8px 0;color:var(--ac)}
+input{
+  width:100%;padding:13px 14px;margin-top:8px;border:1.5px solid var(--line);
+  border-radius:12px;background:var(--card2);color:var(--ink);font:inherit;outline:none;
+}
+input:focus{border-color:var(--p);box-shadow:0 0 0 3px #a78bfa33}
+input.code{font:700 26px/1 ui-monospace,monospace;letter-spacing:.28em;text-align:center}
+.msg{font-size:13px;margin-top:8px;color:var(--mut)}.msg.bad{color:var(--sos);font-weight:700}.msg.ok{color:var(--ok);font-weight:700}
+.sm{font-size:12.5px;color:var(--mut)}
+.code-big{font:800 46px/1 ui-monospace,monospace;letter-spacing:.16em;text-align:center;margin:10px 0;color:var(--p);text-shadow:0 0 30px #a78bfa66}
 #qr{display:flex;justify-content:center;background:#fff;padding:14px;border-radius:16px;margin:10px auto;width:max-content}
-ul.l{list-style:none}ul.l li{padding:10px 12px;margin-top:6px;background:var(--c2);border:1px solid var(--ln);border-radius:12px;font-size:14px}
-.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#888;margin-right:6px;vertical-align:middle}.dot.on{background:var(--ok);box-shadow:0 0 0 3px #4ade8033}
-.top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-.gear{border:1.5px solid var(--ln);background:var(--card);color:var(--ink);border-radius:12px;width:40px;height:40px;font-size:18px;cursor:pointer;flex-shrink:0}
-.help{display:flex;flex-direction:column;align-items:center;justify-content:center;width:min(62vw,220px);height:min(62vw,220px);margin:22px auto;border:0;border-radius:50%;color:#fff;font:900 18px system-ui;letter-spacing:.1em;background:radial-gradient(circle at 35% 28%,#fb7185,#e11d48 45%,#9f1239);box-shadow:0 0 0 6px rgba(244,63,94,.25),0 12px 0 #7f1d1d,0 20px 30px rgba(0,0,0,.35);cursor:pointer;position:relative;-webkit-user-select:none;user-select:none}
-.help span{font-size:56px;line-height:1}.help:active{transform:translateY(6px)}
-.help.go{animation:pu 1s infinite}@keyframes pu{50%{filter:brightness(1.25)}}
-#cnt{position:absolute;inset:0;border-radius:50%;background:rgba(10,6,8,.85);display:flex;align-items:center;justify-content:center;font-size:64px}
-.em{border-color:var(--ac);background:#2a0c14;color:#fff}.em a{color:#fda4af}
-#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#14532d;color:#fff;padding:12px 18px;border-radius:14px;font-weight:800;z-index:50;max-width:90%}
-#sheet{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:40}
-#sheet>div{background:var(--card);width:100%;max-width:440px;max-height:88vh;overflow:auto;border-radius:20px 20px 0 0;padding:16px}
-#sheet h4{margin:14px 0 4px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
-.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--ln)}
-.lnk{background:none;border:0;color:var(--mut);text-decoration:underline;font:13px system-ui;margin-top:10px;cursor:pointer;display:block}
-.banner{background:#7f1d1d33;border:1px solid var(--ac);border-radius:12px;padding:10px 12px;margin:8px 0;font-size:13px;color:#fda4af}
-@media(min-width:900px) and (orientation:landscape){main{max-width:1100px}body[data-v=server] #server{display:grid!important;grid-template-columns:380px 1fr;gap:16px;align-items:start}body[data-v=server] #server .l1{grid-column:1}body[data-v=server] #server .l2{grid-column:2}}
-@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+.status{display:flex;align-items:center;gap:8px;color:var(--mut);font-size:13px;margin:10px 0}
+.dot{width:9px;height:9px;border-radius:50%;background:#555}.dot.on{background:var(--ok);box-shadow:0 0 0 3px #34d39933,0 0 10px #34d39988}
+.list{list-style:none}.list li{padding:10px 12px;margin-top:6px;background:var(--card2);border-radius:12px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.help{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:min(64vw,230px);height:min(64vw,230px);margin:24px auto;border:0;border-radius:50%;
+  color:#fff;font:800 22px system-ui;letter-spacing:.08em;cursor:none;
+  background:radial-gradient(circle at 35% 28%,#fb7185,#e11d48 50%,#9f1239);
+  box-shadow:0 0 0 10px #f43f5e28,0 14px 0 #7f1d1d,0 22px 40px #0007;
+  position:relative;transition:transform .1s;
+}
+.help::after{content:"";position:absolute;inset:-16px;border-radius:50%;border:2px solid var(--sos);opacity:.35;animation:ring 2s ease-out infinite}
+@keyframes ring{0%{transform:scale(.9);opacity:.5}100%{transform:scale(1.25);opacity:0}}
+.help:active{transform:scale(.95) translateY(4px)}
+.help.busy{animation:pulse 1s ease-in-out infinite;pointer-events:none}
+@keyframes pulse{50%{box-shadow:0 0 0 22px #f43f5e22,0 14px 0 #7f1d1d,0 22px 50px #f43f5e44}}
+#alarmbox{
+  background:linear-gradient(165deg,#2a0a14,#14050c);border:1.5px solid var(--sos);
+  border-radius:20px;text-align:center;animation:glow 1.4s ease-in-out infinite;
+}
+@keyframes glow{50%{box-shadow:0 0 50px #f43f5e55}}
+#alarmbox h2{font:800 22px system-ui;color:#fff;text-shadow:0 0 16px #f43f5e;margin-bottom:6px}
+.badge{display:inline-block;background:var(--sos);color:#fff;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;margin-bottom:12px}
+.em-item{background:#1a0a10;border:1px solid #f43f5e40;border-radius:12px;padding:12px 14px;margin-bottom:8px;text-align:left}
+.em-item .name{font:800 15px system-ui;color:#fff}
+.em-item .meta{font-size:11px;color:#fb7185}
+.em-item a{color:#c4b5fd;font-weight:700;font-size:13px;text-decoration:none}
+body.alarm{animation:flash .55s steps(1) infinite}
+@keyframes flash{50%{background:#1a050c}}
+.topbar{display:flex;justify-content:flex-end;gap:8px;margin-bottom:6px}
+.icon{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:16px;cursor:none}
+.section{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:14px 0 6px;font-weight:700}
+.switch{display:flex;align-items:center;gap:8px;font-size:13.5px;margin:8px 0}
+.switch input{width:auto;accent-color:var(--p)}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+#pinLock{
+  position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(8,4,16,.92);backdrop-filter:blur(12px);padding:24px;
+}
+#pinLock input{max-width:200px;text-align:center;font-size:26px;letter-spacing:.35em}
+#fake{position:fixed;inset:0;z-index:80;background:#0d0d0d;color:#eee;display:none;flex-direction:column;align-items:center;justify-content:center;font-family:ui-monospace,monospace}
+#fake .disp{font-size:42px;margin:16px 0}
+#fake .pad{display:grid;grid-template-columns:repeat(4,58px);gap:7px}
+#fake .pad button{height:48px;border:0;border-radius:10px;background:#222;color:#eee;font-size:18px;cursor:pointer}
+
+/* demo people on home */
+.demos{display:flex;justify-content:center;gap:18px;margin:20px 0 8px;min-height:110px}
+.demo{
+  width:72px;text-align:center;transition:transform .15s;
+  will-change:transform;
+}
+.demo .face{
+  width:64px;height:64px;border-radius:50%;margin:0 auto 6px;
+  background:linear-gradient(145deg,#2a1a45,#1a1028);
+  border:2px solid var(--line);display:grid;place-items:center;font-size:28px;
+  box-shadow:0 8px 24px #0005;position:relative;overflow:hidden;
+}
+.demo .face::after{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(circle at var(--mx,50%) var(--my,30%),rgba(167,139,250,.35),transparent 55%);
+}
+.demo .label{font-size:11px;color:var(--mut);font-weight:600}
+.demo.look .face{border-color:var(--p);box-shadow:0 0 20px #a78bfa44}
+
+@media(prefers-reduced-motion:reduce){
+  .orb,.help::after,#alarmbox,body.alarm,.help.busy{animation:none!important}
+}
 </style>
 </head>
-<body data-v="pick">
-<main>
-<div class="top">
-  <div><h1>SafeLink</h1><p class="sub">Press HELP → server sounds the alarm with name &amp; live location.</p></div>
-  <button class="gear" id="gear" hidden aria-label="Settings">⚙</button>
+<body>
+<div class="bg"><div class="orb a"></div><div class="orb b"></div><div class="orb c"></div></div>
+<div id="cur"></div>
+
+<div id="pinLock" hidden>
+  <div style="font-size:36px;margin-bottom:8px">🔐</div>
+  <h2 style="margin-bottom:6px">Admin PIN</h2>
+  <p class="sm" style="margin-bottom:14px;text-align:center">Enter PIN to open laptop station</p>
+  <input id="pinIn" type="password" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off">
+  <button class="btn" id="pinGo" style="max-width:200px;margin-top:12px">Unlock</button>
+  <p class="msg" id="pinMsg"></p>
+  <p class="sm" style="margin-top:18px;opacity:.7">Default PIN: <b>1234</b></p>
 </div>
-<p class="banner" id="dbw" hidden><b>Could not connect to Firebase.</b> Check internet, or that Email/Password + Anonymous auth and Firestore are enabled.</p>
 
-<section class="card" id="pick">
-  <h3>Which device is this?</h3>
-  <button class="btn" id="bServer">🖥 Server — alarm station</button>
-  <button class="btn alt" id="bPhone">📱 Phone — HELP button</button>
-  <ol class="sm" style="margin:12px 0 0 18px">
-    <li>On a PC open <b>Server</b> → log in with email</li>
-    <li>Scan the QR on every family phone</li>
-    <li>Each person enters their name</li>
-    <li>Press <b>Arm alarm</b> on server, keep tab open</li>
-    <li>In danger → press red <b>HELP</b></li>
-  </ol>
-  <p class="sm" style="margin-top:12px"><b>Backup only.</b> Call 112 or 1091 first if in danger.</p>
-</section>
+<div id="fake">
+  <div style="font-size:13px;opacity:.5">Calculator</div>
+  <div class="disp" id="fakeDisp">0</div>
+  <div class="pad" id="fakePad"></div>
+  <p class="sm" style="margin-top:20px;opacity:.35">Triple-tap to exit</p>
+</div>
 
-<section class="card hb" id="auth" hidden>
-  <button class="back" data-back="pick">← Back</button>
-  <h3 id="at">Server login</h3>
-  <input id="em" type="email" placeholder="Email" autocomplete="username">
-  <input id="pw" type="password" placeholder="Password (6+ characters)" autocomplete="current-password">
-  <input id="pw2" type="password" placeholder="Confirm password" autocomplete="new-password" hidden>
-  <button class="btn" id="aGo">Log in</button>
-  <button class="btn alt" id="aSw">Create a new account</button>
-  <button class="lnk" id="aForgot" type="button">Forgot password?</button>
-  <p class="msg" id="am"></p>
-  <p class="sm">One email = one private QR. Log in from any device for the same code.</p>
-</section>
-
-<section id="server" hidden>
-  <div class="l1">
-    <div class="card">
-      <h3>🖥 Alarm station</h3>
-      <p class="sm">Account: <b id="sem"></b></p>
-      <div id="qr"></div>
-      <div class="code" id="scode">------</div>
-      <p class="sm" style="text-align:center">Scan this QR on any phone (opens the site automatically).</p>
-      <p class="msg" id="sm"></p>
-    </div>
-    <div class="card">
-      <h3>Connected phones</h3>
-      <p class="sm" id="pc">Waiting for phones…</p>
-      <ul class="l" id="pl"></ul>
-      <button class="btn" id="arm">Arm alarm</button>
-      <button class="btn alt" id="hist">History</button>
-      <ul class="l" id="hl" hidden></ul>
-    </div>
+<main>
+  <div class="topbar">
+    <button class="icon" id="themeBtn" title="Theme">🌓</button>
   </div>
-  <div class="l2">
-    <div class="card em" id="ab" hidden>
-      <h3>🆘 EMERGENCY</h3>
-      <div id="al"></div>
-      <button class="btn alt" id="stop">Stop all alarms</button>
+  <h1>SafeLink</h1>
+  <p class="sub">One press. Whole family knows. Live location + alarm.</p>
+
+  <section class="card" id="pick">
+    <h3>Who's watching out for you?</h3>
+    <div class="demos" id="demos">
+      <div class="demo" data-i="0"><div class="face">👩</div><div class="label">Mom</div></div>
+      <div class="demo" data-i="1"><div class="face">👨</div><div class="label">Dad</div></div>
+      <div class="demo" data-i="2"><div class="face">👧</div><div class="label">You</div></div>
     </div>
-    <div class="card" id="idle">
-      <h3>All quiet</h3>
-      <p class="sm">Keep this tab open. Alerts appear here instantly.</p>
+    <p class="sm" style="text-align:center;margin-bottom:12px">Move your mouse — they look at you</p>
+    <button class="btn" id="pickLaptop">💻 This is the laptop (alarm)</button>
+    <button class="btn alt" id="pickPhone">📱 This is my phone (HELP)</button>
+    <ol class="sm" style="margin:14px 0 0 18px">
+      <li>Laptop → unlock with PIN → QR appears</li>
+      <li>Everyone scans the same QR → enters name</li>
+      <li>Arm alarm on laptop, keep tab open</li>
+      <li>Press red HELP when you need help</li>
+    </ol>
+    <p class="sm" style="margin-top:12px"><b>Backup only.</b> Call 112 / 1091 first in real danger.</p>
+  </section>
+
+  <section class="card" id="laptop" hidden>
+    <h3>💻 Laptop · Alarm station</h3>
+    <p class="sm">Scan with any phone camera:</p>
+    <div id="qr"></div>
+    <p class="sm" style="text-align:center">Or type this code:</p>
+    <div class="code-big" id="lcode">------</div>
+    <div class="status"><span class="dot" id="ldot"></span><span id="lstat">Connecting…</span></div>
+    <p class="sm" id="phoneCount"></p>
+    <ul class="list" id="phoneList"></ul>
+    <div class="section">Settings</div>
+    <div class="switch"><input type="checkbox" id="silentMode"><label for="silentMode">Silent mode (no siren)</label></div>
+    <div class="row">
+      <button class="btn sm alt" id="btnHistory">History</button>
+      <button class="btn sm alt" id="btnPin">Change PIN</button>
     </div>
-  </div>
-</section>
+    <div id="historyBox" hidden><ul class="list" id="historyList"></ul></div>
+    <div id="pinBox" hidden>
+      <input id="newPin" type="password" inputmode="numeric" maxlength="6" placeholder="New 4–6 digit PIN">
+      <button class="btn sm" id="savePin">Save PIN</button>
+    </div>
+    <button class="btn" id="arm">Arm alarm</button>
+    <button class="btn alt" id="test">Test (3 sec)</button>
+    <p class="msg" id="lmsg">Press Arm so the browser allows sound. Keep tab open.</p>
+  </section>
 
-<section class="card hb" id="pjoin" hidden>
-  <button class="back" data-back="pick">← Back</button>
-  <h3>Join a server</h3>
-  <p class="sm">Type the 6-character code, or scan the QR.</p>
-  <input id="pc6" maxlength="6" placeholder="Ab12Xy" autocapitalize="off" autocomplete="off" style="text-align:center;letter-spacing:.2em;font:700 24px ui-monospace,monospace">
-  <button class="btn" id="pNext">Next</button>
-  <button class="btn alt" id="pScan">📷 Scan QR</button>
-  <video id="vid" playsinline muted style="width:100%;margin-top:8px;border-radius:12px" hidden></video>
-  <p class="msg" id="jm"></p>
-</section>
+  <section class="card" id="alarmbox" hidden>
+    <h2>🆘 EMERGENCY</h2>
+    <div class="badge" id="alarmCount">1 person needs help</div>
+    <div id="emList"></div>
+    <button class="btn sos" id="stopAll">Stop all alarms</button>
+  </section>
 
-<section class="card hb" id="pname" hidden>
-  <button class="back" data-back="pjoin">← Back</button>
-  <h3>Your name</h3>
-  <p class="sm">Shown on the server when you need help.</p>
-  <input id="pn" maxlength="24" placeholder="Your full name" autocomplete="name">
-  <button class="btn" id="pnGo">Continue</button>
-  <p class="msg" id="nm"></p>
-</section>
-
-<section class="card" id="phone" hidden>
-  <h3>📱 <span id="who"></span></h3>
-  <p class="sm"><span class="dot" id="pdot"></span><span id="pst">Connecting…</span> · 🔋 <span id="bat">–</span> · 📶 <span id="net">–</span></p>
-  <button class="help" id="help"><span>🆘</span>HELP<div id="cnt" hidden></div></button>
-  <p class="msg" id="pm">Press HELP to alert the server.</p>
-  <button class="btn alt" id="cancel" hidden>Cancel HELP</button>
-  <button class="btn alt" id="safe" hidden>I'm safe — stop my alarm</button>
-  <p class="msg ok" id="coming" hidden></p>
-  <textarea id="txt" maxlength="200" rows="2" placeholder="Optional message sent with HELP"></textarea>
-  <h3 style="margin-top:14px">Emergency contacts (SMS backup)</h3>
-  <ul class="l" id="cl"></ul>
-  <div style="display:flex;gap:6px"><input id="cn" placeholder="Name"><input id="cp" placeholder="Phone" inputmode="tel"></div>
-  <button class="btn s alt" id="cadd">Add contact</button>
-  <button class="btn s alt" id="sms">Send SMS now</button>
-  <a class="btn" href="tel:112" style="margin-top:14px">Call 112</a>
-  <a class="btn alt" href="tel:1091">Call 1091</a>
-</section>
+  <section class="card" id="phone" hidden>
+    <h3>📱 Phone · HELP</h3>
+    <div id="stepCode">
+      <p class="sm">Enter the 6-digit code from the laptop:</p>
+      <input id="pcode" class="code" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="off">
+      <button class="btn" id="btnCode">Next</button>
+    </div>
+    <div id="stepName" hidden>
+      <p class="sm">Your name <b>(required)</b> — shown when you need help:</p>
+      <input id="pname" maxlength="24" placeholder="Your full name" autocomplete="name">
+      <button class="btn" id="btnName">Continue</button>
+    </div>
+    <div id="stepReady" hidden>
+      <div class="status"><span class="dot" id="pdot"></span><span id="pstat">Connecting…</span></div>
+      <p class="sm" id="nameLabel"></p>
+      <button class="help" id="helpBtn">HELP</button>
+      <p class="msg" id="pmsg">Press HELP to alert the laptop.</p>
+      <button class="btn alt" id="safeBtn" hidden>I'm safe — stop my alarm</button>
+      <div class="section">Options</div>
+      <div class="switch"><input type="checkbox" id="shakeOn"><label for="shakeOn">Shake to trigger HELP</label></div>
+      <button class="btn sm alt" id="hideBtn" style="margin-top:8px">Hide app (fake calculator)</button>
+      <a class="btn sos" href="tel:112" style="margin-top:14px">Call 112</a>
+      <a class="btn alt" href="tel:1091">Call 1091</a>
+    </div>
+  </section>
 </main>
 
-<div id="toast" hidden></div>
-<div id="sheet" hidden><div>
-  <div class="top"><h3>Settings</h3><button class="gear" id="sx">✕</button></div>
-  <h4>Permissions</h4>
-  <div class="row"><span>📍 Location <b id="p1"></b></span><button class="btn s" data-perm="loc">Enable</button></div>
-  <div class="row"><span>🎤 Microphone <b id="p2"></b></span><button class="btn s" data-perm="mic">Enable</button></div>
-  <div class="row"><span>🔔 Notifications <b id="p3"></b></span><button class="btn s" data-perm="not">Enable</button></div>
-  <h4>Sound</h4>
-  <label class="row"><span>Silent mode (visual only)</span><input type="checkbox" id="sil" style="width:auto"></label>
-  <h4>Account</h4>
-  <p class="sm" id="acct"></p>
-  <button class="btn alt" id="swr">Switch role</button>
-  <button class="btn alt" id="out">Log out</button>
-</div></div>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script type="module">
-/* ===== PASTE YOUR FIREBASE KEYS HERE ===== */
-const firebaseConfig = {
-  apiKey: "AIzaSyB-23pv3zK0nwOhkHuEUUBYk6WnSsUsBHA",
-  authDomain: "safelink-de966.firebaseapp.com",
-  projectId: "safelink-de966",
-  storageBucket: "safelink-de966.firebasestorage.app",
-  messagingSenderId: "989199088013",
-  appId: "1:989199088013:web:968100978b789c99465c4",
-  measurementId: "G-K18ELL86W"
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const store = {
+  get(k){try{return localStorage.getItem(k)}catch(e){return null}},
+  set(k,v){try{localStorage.setItem(k,v)}catch(e){}},
+  del(k){try{localStorage.removeItem(k)}catch(e){}},
+  json(k,d){try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}},
+  setJson(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 };
 
-import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signInAnonymously,signOut,sendPasswordResetEmail,sendEmailVerification,fetchSignInMethodsForEmail} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-import {getFirestore,doc,getDoc,setDoc,updateDoc,collection,onSnapshot,query,orderBy,limit,getDocs} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+/* custom cursor */
+const cur = $("cur");
+let mx=innerWidth/2,my=innerHeight/2;
+addEventListener("mousemove",e=>{
+  mx=e.clientX;my=e.clientY;
+  cur.style.left=mx+"px";cur.style.top=my+"px";
+  const t=e.target.closest("button,a,input,.help,.demo");
+  cur.classList.toggle("hot",!!t);
+  // demos look at cursor
+  document.querySelectorAll(".demo").forEach(d=>{
+    const r=d.getBoundingClientRect();
+    const cx=r.left+r.width/2, cy=r.top+r.height/2;
+    const dx=(mx-cx)/40, dy=(my-cy)/40;
+    d.style.transform=`translate(${Math.max(-8,Math.min(8,dx))}px,${Math.max(-6,Math.min(6,dy))}px)`;
+    const face=d.querySelector(".face");
+    if(face){
+      face.style.setProperty("--mx",(50+dx*3)+"%");
+      face.style.setProperty("--my",(35+dy*2)+"%");
+    }
+    d.classList.toggle("look", Math.hypot(mx-cx,my-cy)<120);
+  });
+});
+addEventListener("mousedown",()=>cur.classList.add("dot"));
+addEventListener("mouseup",()=>cur.classList.remove("dot"));
 
-const $=i=>document.getElementById(i),E=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const S={g(k){try{return localStorage.getItem(k)||""}catch(e){return""}},s(k,v){try{localStorage.setItem(k,v)}catch(e){}},d(k){try{localStorage.removeItem(k)}catch(e){}}};
-const AL="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
-const rnd=n=>{const a=new Uint32Array(n);crypto.getRandomValues(a);return[...a].map(x=>AL[x%AL.length]).join("")};
-const R=p=>doc(db,...p.split("/")),C=p=>collection(db,...p.split("/"));
+let client=null,role=null,code=null,myName="",myId=null;
+let phones={},emergencies={},history=[];
+let sosActive=false,acked=false,sendT=null,locT=null,tries=0,pos=null;
+let ctx=null,osc=null,sirenT=null,titleT=null,sirenOn=false;
+let batteryLevel=1;
 
-const configured=!/PASTE_/.test(firebaseConfig.apiKey||"PASTE_");
-let app,auth,db,role="",code="",ek="",pid="",pname="",mode="login";
-let unsubs=[],timers=[],known=new Set(),phones=[],alerts=[],seen=new Set();
-let ac,osc,sit,ready=false,vs=null,sosOn=false,watch=null,cT=null,counting=false,bat=null;
+function getPin(){return store.get("sl_pin")||"1234"}
+function showPin(){$("pinLock").hidden=false;$("pinIn").value="";setTimeout(()=>$("pinIn").focus(),80)}
+$("pinGo").onclick=()=>{
+  if($("pinIn").value===getPin()){$("pinLock").hidden=true;startLaptop(true)}
+  else{$("pinMsg").textContent="Wrong PIN";$("pinMsg").className="msg bad"}
+};
+$("pinIn").onkeydown=e=>{if(e.key==="Enter")$("pinGo").click()};
 
-function siteBase(){const u=new URL(location.href);u.hash="";u.search="";return u.toString().replace(/\/$/,"")||location.origin+location.pathname}
-function msg(id,t,bad){const e=$(id);e.textContent=t;e.className="msg"+(bad===1?" bad":bad===0?" ok":"")}
-function view(v){["pick","auth","server","pjoin","pname","phone"].forEach(x=>$(x).hidden=x!==v);document.body.dataset.v=v;$("gear").hidden=!(v==="server"||v==="phone");scrollTo(0,0)}
-function clean(){unsubs.forEach(f=>{try{f()}catch(e){}});unsubs=[];timers.forEach(clearInterval);timers=[];siren(false);phones=[];alerts=[];known=new Set();ready=false}
-function toast(t){const e=$("toast");e.textContent=t;e.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>e.hidden=true,3200)}
-function beep(f){try{ac=ac||new AudioContext();ac.resume();const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;g.gain.value=.15;o.connect(g);g.connect(ac.destination);o.start();setTimeout(()=>o.stop(),160)}catch(e){}}
-function siren(on){if(on&&!osc&&S.g("silent")!=="1"){try{ac=ac||new AudioContext();ac.resume();osc=ac.createOscillator();osc.type="square";const g=ac.createGain();g.gain.value=.4;osc.connect(g);g.connect(ac.destination);osc.start();let h=1;sit=setInterval(()=>{osc.frequency.value=h?1100:650;h=!h},380)}catch(e){}}if(!on&&osc){clearInterval(sit);try{osc.stop()}catch(e){}osc=null}document.body.classList.toggle("alarm",!!on)}
-function authErr(e){const m={"auth/invalid-credential":"Wrong email or password","auth/wrong-password":"Wrong password","auth/user-not-found":"Email not found — create a new account","auth/email-already-in-use":"This email already has an account — log in","auth/weak-password":"Password needs at least 6 characters","auth/invalid-email":"Enter a valid email address","auth/too-many-requests":"Too many attempts — wait a few minutes","auth/network-request-failed":"No internet connection","auth/operation-not-allowed":"Enable Email/Password in Firebase console","auth/admin-restricted-operation":"Enable Anonymous sign-in in Firebase console"};return m[e.code]||("Error: "+(e.code||e.message||e))}
+function show(id){["pick","laptop","phone"].forEach(x=>$(x).hidden=x!==id)}
+function setStatus(t,on){
+  if(role==="laptop"){$("lstat").textContent=t;$("ldot").classList.toggle("on",!!on)}
+  else{$("pstat").textContent=t;$("pdot").classList.toggle("on",!!on)}
+}
+function note(t,bad){
+  const el=role==="laptop"?$("lmsg"):$("pmsg");
+  el.textContent=t;el.className="msg"+(bad?" bad":bad===false?" ok":"")
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function ago(ts){const s=Math.floor((Date.now()-ts)/1000);if(s<5)return"just now";if(s<60)return s+"s ago";return Math.floor(s/60)+"m ago"}
 
-document.querySelectorAll("[data-back]").forEach(b=>b.onclick=()=>{stopScan();view(b.dataset.back)});
-function stopScan(){try{$("vid").hidden=true;if(vs)vs.getTracks().forEach(t=>t.stop());vs=null}catch(e){}}
+function updatePhones(){
+  const now=Date.now();
+  Object.keys(phones).forEach(id=>{if(now-phones[id].last>15000)delete phones[id]});
+  const list=Object.values(phones);
+  $("phoneCount").textContent=list.length?list.length+" phone"+(list.length>1?"s":"")+" linked":"No phones linked yet";
+  $("phoneList").innerHTML=list.map(p=>`<li><span class="dot on"></span>${esc(p.name||"Unknown")}</li>`).join("");
+  setStatus(list.length?"Ready — phones linked":"Waiting for phones…",!!list.length);
+}
+function renderEmergencies(){
+  const list=Object.values(emergencies).sort((a,b)=>b.ts-a.ts);
+  if(!list.length){$("alarmbox").hidden=true;stopSiren();return}
+  $("alarmbox").hidden=false;
+  $("alarmCount").textContent=list.length===1?"1 person needs help":list.length+" people need help";
+  $("emList").innerHTML=list.map(e=>{
+    let loc="";
+    if(typeof e.lat==="number"&&typeof e.lng==="number")
+      loc=`<div style="margin-top:4px"><a href="https://www.google.com/maps?q=${e.lat.toFixed(5)},${e.lng.toFixed(5)}" target="_blank" rel="noopener">📍 Open live location</a></div>`;
+    return `<div class="em-item"><div class="name">${esc(e.name||"Someone")} is in emergency</div><div class="meta">${ago(e.ts)}</div>${loc}</div>`;
+  }).join("");
+  if(!$("silentMode").checked) startSiren(); else document.body.classList.add("alarm");
+}
 
-async function ensureAnon(){if(auth.currentUser&&!auth.currentUser.isAnonymous)await signOut(auth);if(!auth.currentUser)await signInAnonymously(auth);pid=auth.currentUser.uid}
-async function ensureAccount(user){const ref=R("accounts/"+user.uid),s=await getDoc(ref);if(s.exists())return s.data().code;let c,n=0;do{c=rnd(6)}while((await getDoc(R("pairs/"+c))).exists()&&++n<8);await setDoc(R("pairs/"+c),{owner:user.uid,created:Date.now()});await setDoc(ref,{email:user.email,code:c,created:Date.now()});await setDoc(R("accounts/"+user.uid+"/settings/prefs"),{silent:false});return c}
-async function emailStatus(em){try{const methods=await fetchSignInMethodsForEmail(auth,em);return methods.length?"exists":"missing"}catch(e){return"unknown"}}
+function topic(b){return"safelink/"+code+"/"+b}
+function connect(){
+  return new Promise(resolve=>{
+    try{
+      myId="sl_"+role+"_"+Math.random().toString(16).slice(2,9);
+      client=mqtt.connect("wss://broker.hivemq.com:8884/mqtt",{clientId:myId,clean:true,reconnectPeriod:3000,connectTimeout:8000});
+      client.on("connect",()=>{
+        if(role==="laptop"){client.subscribe(topic("sos"));client.subscribe(topic("cancel"));client.subscribe(topic("phone"));setStatus("Waiting for phones…",false)}
+        else{client.subscribe(topic("ack"));client.subscribe(topic("stop"));client.subscribe(topic("laptop"));setStatus("Looking for laptop…",false)}
+        beat();setInterval(beat,4000);
+        if(role==="laptop") setInterval(updatePhones,3000);
+        resolve(true);
+      });
+      client.on("message",(t,buf)=>{let d={};try{d=JSON.parse(buf.toString())}catch(e){} onMsg(t,d)});
+      client.on("error",()=>setStatus("Connection error…",false));
+      client.on("close",()=>setStatus("Reconnecting…",false));
+    }catch(e){note("Couldn't connect.",true);resolve(false)}
+  });
+}
+function pub(b,obj){if(!client||!client.connected)return;try{client.publish(topic(b),JSON.stringify(obj||{}),{qos:1})}catch(e){}}
+function beat(){if(role==="phone") pub("phone",{id:myId,name:myName||"Phone",ts:Date.now()});else pub("laptop",{ts:Date.now()})}
 
-(async()=>{
- if(!configured){$("dbw").hidden=false;view("pick");return}
- try{app=initializeApp(firebaseConfig);auth=getAuth(app);db=getFirestore(app)}catch(e){$("dbw").hidden=false;view("pick");return}
- const u=await new Promise(r=>{const un=onAuthStateChanged(auth,x=>{un();r(x)})});
- const params=new URLSearchParams(location.search);
- const deep=(params.get("c")||params.get("code")||"").replace(/[^a-zA-Z0-9]/g,"");
- if(deep.length===6){S.s("role","phone");S.s("code",deep);$("pc6").value=deep;try{await ensureAnon();const s=await getDoc(R("pairs/"+deep));if(s.exists()){code=deep;if(S.g("name")){pname=S.g("name");startPhone();return}view("pname");$("pn").focus();return}else{view("pjoin");msg("jm","Code not found — check the server screen",1);return}}catch(e){view("pjoin");msg("jm",authErr(e),1);return}}
- try{if(S.g("role")==="server"&&u&&!u.isAnonymous){ek=u.uid;code=await ensureAccount(u);startServer(u.email);return}if(S.g("role")==="phone"&&S.g("code")&&S.g("name")){code=S.g("code");pname=S.g("name");await ensureAnon();startPhone();return}}catch(e){}
- view("pick")
+function onMsg(t,d){
+  if(t.endsWith("/sos")&&role==="laptop"){
+    const key=d.from||d.id||("x"+Date.now());
+    const prev=emergencies[key]||{};
+    emergencies[key]={name:d.name||prev.name||"Someone",lat:typeof d.lat==="number"?d.lat:prev.lat,lng:typeof d.lng==="number"?d.lng:prev.lng,ts:d.ts||Date.now(),from:key};
+    renderEmergencies();
+    if(!prev.ts){history.unshift({name:emergencies[key].name,ts:emergencies[key].ts,lat:emergencies[key].lat,lng:emergencies[key].lng});if(history.length>40)history.pop();store.setJson("sl_history",history)}
+    pub("ack",{id:d.id||"",to:key});
+  }
+  else if(t.endsWith("/cancel")&&role==="laptop"){
+    const key=d.from||d.id;
+    if(key&&emergencies[key]) delete emergencies[key];
+    else Object.keys(emergencies).forEach(k=>{if(emergencies[k].name===d.name)delete emergencies[k]});
+    renderEmergencies();
+    note((d.name?d.name+" marked safe.":"Someone marked safe."),false);
+  }
+  else if(t.endsWith("/ack")&&role==="phone"){
+    if(d.id===sosId||d.to===myId){acked=true;note("Laptop is sounding the alarm.",false);$("helpBtn").classList.remove("busy")}
+  }
+  else if(t.endsWith("/stop")&&role==="phone"){note("Laptop stopped the alarms.");endSos()}
+  else if(t.endsWith("/phone")&&role==="laptop"){if(d.id){phones[d.id]={name:d.name||"Phone",last:Date.now()};updatePhones()}}
+  else if(t.endsWith("/laptop")&&role==="phone") setStatus("Laptop linked ✓",true);
+}
+
+function baseUrl(){const u=new URL(location.href);u.hash="";u.search="";return u.toString().replace(/\/$/,"")||location.origin+location.pathname}
+function drawQr(){
+  const q=$("qr");q.innerHTML="";
+  try{new QRCode(q,{text:baseUrl()+"?c="+code,width:180,height:180,colorDark:"#4c1d95",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M})}
+  catch(e){q.innerHTML="<p class='sm'>QR unavailable</p>"}
+}
+function makeCode(){return String(Math.floor(100000+Math.random()*900000))}
+
+async function startLaptop(ok){
+  if(!ok){showPin();return}
+  role="laptop";show("laptop");
+  code=store.get("sl_code_laptop")||makeCode();
+  store.set("sl_code_laptop",code);
+  $("lcode").textContent=code;drawQr();
+  history=store.json("sl_history",[]);
+  await connect();
+}
+$("arm").onclick=async()=>{
+  try{ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();await ctx.resume()}catch(e){}
+  try{if(navigator.wakeLock)await navigator.wakeLock.request("screen")}catch(e){}
+  $("arm").textContent="Armed ✓";note("Alarm armed. Keep this tab open.",false);
+};
+$("test").onclick=()=>{
+  emergencies["test"]={name:"Test",lat:null,lng:null,ts:Date.now()};
+  renderEmergencies();
+  setTimeout(()=>{delete emergencies["test"];renderEmergencies()},3000);
+};
+$("btnHistory").onclick=()=>{
+  $("historyBox").hidden=!$("historyBox").hidden;
+  $("historyList").innerHTML=history.length?history.map(h=>{
+    const loc=h.lat?` · <a href="https://www.google.com/maps?q=${h.lat},${h.lng}" target="_blank">map</a>`:"";
+    return `<li>${esc(h.name)} · ${new Date(h.ts).toLocaleString()}${loc}</li>`;
+  }).join(""):"<li class='sm'>No history yet</li>";
+};
+$("btnPin").onclick=()=>{$("pinBox").hidden=!$("pinBox").hidden};
+$("savePin").onclick=()=>{
+  const p=$("newPin").value.replace(/\D/g,"");
+  if(p.length<4||p.length>6){alert("PIN must be 4–6 digits");return}
+  store.set("sl_pin",p);$("pinBox").hidden=true;$("newPin").value="";note("PIN saved.",false);
+};
+function startSiren(){
+  if(sirenOn||$("silentMode").checked)return;
+  sirenOn=true;document.body.classList.add("alarm");
+  try{
+    ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();ctx.resume();
+    osc=ctx.createOscillator();const g=ctx.createGain();
+    osc.type="square";g.gain.value=.55;osc.connect(g);g.connect(ctx.destination);osc.start();
+    let hi=true;sirenT=setInterval(()=>{osc.frequency.setValueAtTime(hi?1150:650,ctx.currentTime);hi=!hi},380);
+  }catch(e){}
+  let t=true;titleT=setInterval(()=>{document.title=t?"!!! EMERGENCY !!!":"SafeLink";t=!t},450);
+}
+function stopSiren(){
+  if(!sirenOn)return;sirenOn=false;document.body.classList.remove("alarm");
+  clearInterval(sirenT);clearInterval(titleT);document.title="SafeLink";
+  try{osc&&osc.stop()}catch(e){}osc=null;
+}
+$("stopAll").onclick=()=>{emergencies={};renderEmergencies();pub("stop",{})};
+
+async function startPhone(){
+  role="phone";show("phone");
+  const sc=store.get("sl_code_phone"),sn=store.get("sl_name_phone");
+  if(sc&&sn){code=sc;myName=sn;$("stepCode").hidden=true;$("stepName").hidden=true;$("stepReady").hidden=false;$("nameLabel").textContent="You are: "+myName;await connect();readBattery()}
+  else if(sc){code=sc;$("stepCode").hidden=true;$("stepName").hidden=false}
+}
+$("btnCode").onclick=()=>{
+  const c=$("pcode").value.replace(/\D/g,"");
+  if(c.length!==6){$("pcode").focus();return}
+  code=c;store.set("sl_code_phone",c);$("stepCode").hidden=true;$("stepName").hidden=false;$("pname").focus();
+};
+$("btnName").onclick=async()=>{
+  const n=$("pname").value.trim();
+  if(n.length<2){$("pname").focus();return}
+  myName=n.slice(0,24);store.set("sl_name_phone",myName);
+  $("stepName").hidden=true;$("stepReady").hidden=false;$("nameLabel").textContent="You are: "+myName;
+  await connect();readBattery();
+};
+function readBattery(){
+  if(navigator.getBattery)navigator.getBattery().then(b=>{batteryLevel=b.level;b.addEventListener("levelchange",()=>{batteryLevel=b.level})});
+}
+function getLocOnce(){
+  return new Promise(resolve=>{
+    if(!navigator.geolocation){resolve(null);return}
+    navigator.geolocation.getCurrentPosition(
+      p=>resolve({lat:p.coords.latitude,lng:p.coords.longitude}),
+      ()=>resolve(null),
+      {timeout:6000,maximumAge:10000,enableHighAccuracy:true}
+    );
+  });
+}
+let sosId=null;
+function sendPayload(){
+  tries++;
+  pub("sos",{id:sosId,from:myId,name:myName,lat:pos?pos.lat:null,lng:pos?pos.lng:null,ts:Date.now()});
+  if(acked||tries>40){clearInterval(sendT);sendT=null}
+}
+function endSos(){
+  clearInterval(sendT);clearInterval(locT);sendT=null;locT=null;
+  sosActive=false;acked=false;tries=0;sosId=null;
+  $("safeBtn").hidden=true;$("helpBtn").classList.remove("busy");
+}
+$("helpBtn").onclick=async()=>{
+  if(sosActive)return;
+  if(!client||!client.connected){note("Not linked yet. Call 112 if in danger.",true);return}
+  sosActive=true;sosId=Date.now().toString(36);acked=false;tries=0;
+  try{navigator.vibrate&&navigator.vibrate([180,80,180,80,180])}catch(e){}
+  note("Sending alert…");$("safeBtn").hidden=false;$("helpBtn").classList.add("busy");
+  pos=await getLocOnce();
+  sendPayload();
+  sendT=setInterval(sendPayload,2000);
+  // live location every 5s if battery > 20%
+  if(batteryLevel>0.20){
+    locT=setInterval(async()=>{
+      const p=await getLocOnce();
+      if(p){pos=p;pub("sos",{id:sosId,from:myId,name:myName,lat:p.lat,lng:p.lng,ts:Date.now()})}
+    },5000);
+  }
+  setTimeout(()=>{if(!acked&&sendT)note("No reply yet. Still trying. Call 112 if needed.",true)},10000);
+};
+$("safeBtn").onclick=()=>{pub("cancel",{id:sosId,from:myId,name:myName});endSos();note("Alarm cancelled. Glad you're safe.",false)};
+
+let lastShake=0;
+$("shakeOn").onchange=()=>store.set("sl_shake",$("shakeOn").checked?"1":"0");
+if(store.get("sl_shake")==="1")$("shakeOn").checked=true;
+window.addEventListener("devicemotion",e=>{
+  if(!$("shakeOn").checked||role!=="phone"||$("stepReady").hidden||sosActive)return;
+  const a=e.accelerationIncludingGravity;if(!a)return;
+  if(Math.abs(a.x)+Math.abs(a.y)+Math.abs(a.z)>42&&Date.now()-lastShake>4000){lastShake=Date.now();$("helpBtn").click()}
+},{passive:true});
+
+$("hideBtn").onclick=()=>{$("fake").style.display="flex"};
+let taps=0,tapTimer=null;
+$("fake").onclick=()=>{taps++;clearTimeout(tapTimer);tapTimer=setTimeout(()=>taps=0,500);if(taps>=3){$("fake").style.display="none";taps=0}};
+(function(){
+  const keys=["7","8","9","C","4","5","6","+","1","2","3","-","0",".","=","×"];
+  const pad=$("fakePad");let val="0";
+  keys.forEach(k=>{
+    const b=document.createElement("button");b.textContent=k;
+    b.onclick=e=>{e.stopPropagation();if(k==="C")val="0";else if(k==="="){try{val=String(eval(val.replace(/×/g,"*")))}catch(e){val="Err"}}else val=(val==="0"?"":val)+k;$("fakeDisp").textContent=val.slice(0,12)};
+    pad.appendChild(b);
+  });
 })();
 
-$("bServer").onclick=()=>{mode="login";authUI();view("auth")};
-$("bPhone").onclick=()=>{view("pjoin");$("pc6").focus()};
-function authUI(){const c=mode==="create";$("at").textContent=c?"Create server account":"Server login";$("pw2").hidden=!c;$("aGo").textContent=c?"Create account":"Log in";$("aSw").textContent=c?"I already have an account":"Create a new account";$("aForgot").hidden=c;msg("am","")}
-$("aSw").onclick=()=>{mode=mode==="login"?"create":"login";authUI()};
-
-$("aForgot").onclick=async()=>{
- const em=$("em").value.trim().toLowerCase();
- if(!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(em))return msg("am","Type your email above first",1);
- if(!configured)return msg("am","Firebase is not set up",1);
- msg("am","Checking email…");
- const st=await emailStatus(em);
- if(st==="missing")return msg("am","Email not found — create a new account first",1);
- try{await sendPasswordResetEmail(auth,em);msg("am","If this email has an account, a reset link was sent. Check spam.",0)}catch(e){msg("am",authErr(e),1)}
+$("pickLaptop").onclick=()=>{store.set("sl_role","laptop");showPin()};
+$("pickPhone").onclick=()=>{store.set("sl_role","phone");startPhone()};
+$("themeBtn").onclick=()=>{
+  // soft toggle - invert orbs opacity feel
+  document.body.classList.toggle("light");
 };
 
-$("aGo").onclick=async()=>{
- const em=$("em").value.trim().toLowerCase(),pw=$("pw").value;
- if(!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(em))return msg("am","Enter a valid email address",1);
- if(pw.length<6)return msg("am","Password needs at least 6 characters",1);
- if(!configured)return msg("am","Firebase is not set up",1);
- if(mode==="create"&&pw!==$("pw2").value)return msg("am","Passwords do not match",1);
- $("aGo").disabled=true;
- msg("am",mode==="login"?"Checking email…":"Creating account…");
- try{
-  if(mode==="login"){const st=await emailStatus(em);if(st==="missing"){msg("am","Email not found — create a new account",1);$("aGo").disabled=false;return}}
-  if(auth.currentUser&&auth.currentUser.isAnonymous)await signOut(auth);
-  let cred;
-  if(mode==="create"){cred=await createUserWithEmailAndPassword(auth,em,pw);sendEmailVerification(cred.user).catch(()=>{})}
-  else cred=await signInWithEmailAndPassword(auth,em,pw);
-  ek=cred.user.uid;code=await ensureAccount(cred.user);S.s("role","server");$("pw").value=$("pw2").value="";
-  startServer(cred.user.email);if(mode==="create")toast("Account created — check email to verify");
- }catch(e){
-  if(e.code==="auth/user-not-found")msg("am","Email not found — create a new account",1);
-  else if(e.code==="auth/invalid-credential"){const st=await emailStatus(em);msg("am",st==="missing"?"Email not found — create a new account":"Wrong email or password",1)}
-  else msg("am",authErr(e),1);
- }
- $("aGo").disabled=false;
-};
-
-function startServer(em){
- clean();role="server";S.s("role","server");view("server");
- $("sem").textContent=em;$("acct").textContent=em+" · server";$("scode").textContent=code;
- const link=siteBase()+"?c="+code;const q=$("qr");q.innerHTML="";
- try{new QRCode(q,{text:link,width:200,height:200,colorDark:"#9f1239",colorLight:"#ffffff"})}catch(e){q.textContent="Use the code below"}
- getDoc(R("accounts/"+ek+"/settings/prefs")).then(s=>{if(s.exists())S.s("silent",s.data().silent?"1":"0")}).catch(()=>{});
- unsubs.push(onSnapshot(C("pairs/"+code+"/phones"),s=>{phones=s.docs.map(d=>({id:d.id,...d.data()}));rp()},()=>msg("sm","Connection lost — retrying",1)));
- unsubs.push(onSnapshot(C("pairs/"+code+"/alerts"),s=>{alerts=s.docs.map(d=>({id:d.id,...d.data()})).filter(a=>a.active);ra()},()=>{}));
- timers.push(setInterval(rp,5000));msg("sm","Online · synced",0);
+const params=new URLSearchParams(location.search);
+const q=params.get("c")||params.get("code");
+if(q&&/^\d{6}$/.test(q)){store.set("sl_role","phone");store.set("sl_code_phone",q);startPhone()}
+else{
+  const r=store.get("sl_role");
+  if(r==="laptop") showPin();
+  else if(r==="phone") startPhone();
 }
-function rp(){const on=phones.filter(p=>Date.now()-(p.last||0)<35000);on.forEach(p=>{if(!known.has(p.id)){known.add(p.id);if(ready){toast("📱 "+(p.name||"Phone")+" connected ✓");beep(660)}}});ready=true;$("pc").textContent=on.length?on.length+" phone(s) connected":"Waiting for phones…";$("pl").innerHTML=on.map(p=>`<li><span class="dot on"></span><b>${E(p.name||"Phone")}</b></li>`).join("")}
-function ra(){$("ab").hidden=!alerts.length;$("idle").hidden=!!alerts.length;$("al").innerHTML=alerts.map(a=>{const m=typeof a.lat==="number"?`https://www.google.com/maps?q=${a.lat},${a.lng}`:"";return`<div style="margin-bottom:12px"><b style="font-size:17px">${E(a.name)} needs help</b><div class="sm" style="color:#fda4af">${new Date(a.ts).toLocaleTimeString()} · 🔋 ${a.battery??"–"}% · 📶 ${E(a.net||"–")}</div>${a.msg?`<p>“${E(a.msg)}”</p>`:""}${m?`<a class="btn" href="${m}" target="_blank" rel="noopener">📍 Open live location</a>`:`<p class="sm">Waiting for GPS…</p>`}<button class="btn alt" data-c="${a.id}">✓ Help is on the way</button></div>`}).join("");$("al").querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{updateDoc(R("pairs/"+code+"/alerts/"+b.dataset.c),{coming:"Help is on the way — stay safe."}).catch(()=>{});b.textContent="✓ Sent";b.disabled=true});alerts.forEach(a=>{const k=a.id+(a.ts0||a.ts);if(!seen.has(k)){seen.add(k);setDoc(R("accounts/"+ek+"/history/"+Date.now()),{name:a.name,ts:a.ts,lat:a.lat??null,lng:a.lng??null}).catch(()=>{})}});siren(alerts.length>0)}
-$("arm").onclick=()=>{try{ac=ac||new AudioContext();ac.resume()}catch(e){}$("arm").textContent="Armed ✓";beep(800);toast("Alarm armed — keep this tab open")};
-$("stop").onclick=()=>{alerts.forEach(a=>updateDoc(R("pairs/"+code+"/alerts/"+a.id),{active:false,stopped:true}).catch(()=>{}));siren(false)};
-$("hist").onclick=async()=>{const l=$("hl");l.hidden=!l.hidden;if(l.hidden)return;try{const s=await getDocs(query(C("accounts/"+ek+"/history"),orderBy("ts","desc"),limit(30)));l.innerHTML=s.docs.map(d=>{const x=d.data();return`<li>${E(x.name)} · ${new Date(x.ts).toLocaleString()}</li>`}).join("")||"<li class='sm'>No history yet</li>"}catch(e){l.innerHTML="<li class='sm'>Could not load</li>"}};
-
-async function joinCode(c){c=String(c||"").replace(/[^a-zA-Z0-9]/g,"");if(c.length!==6)return msg("jm","Enter the 6-character code",1);if(!configured)return msg("jm","Firebase is not set up",1);msg("jm","Checking…");$("pNext").disabled=true;try{await ensureAnon();const s=await getDoc(R("pairs/"+c));if(!s.exists()){msg("jm","Code not found — check the server screen",1);$("pNext").disabled=false;return}code=c;S.s("code",c);msg("jm","");stopScan();view("pname");$("pn").value=S.g("name");$("pn").focus()}catch(e){msg("jm",authErr(e),1)}$("pNext").disabled=false}
-$("pNext").onclick=()=>joinCode($("pc6").value);$("pc6").onkeydown=e=>{if(e.key==="Enter")joinCode($("pc6").value)};
-$("pScan").onclick=async()=>{if(!("BarcodeDetector" in window))return msg("jm","This browser can't scan — type the code",1);try{const d=new BarcodeDetector({formats:["qr_code"]});vs=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});const v=$("vid");v.srcObject=vs;v.hidden=false;await v.play();const t=setInterval(async()=>{try{const r=await d.detect(v);if(r.length){clearInterval(t);let raw=r[0].rawValue||"",c=raw;try{const u=new URL(raw);c=u.searchParams.get("c")||u.searchParams.get("code")||raw}catch(e){}c=String(c).replace(/[^a-zA-Z0-9]/g,"").slice(0,6);stopScan();$("pc6").value=c;joinCode(c)}}catch(e){}},400)}catch(e){msg("jm","Camera not allowed — type the code",1)}};
-$("pnGo").onclick=async()=>{const n=$("pn").value.trim();if(n.length<2)return msg("nm","Please enter your name",1);try{await ensureAnon()}catch(e){return msg("nm",authErr(e),1)}pname=n.slice(0,24);S.s("name",pname);S.s("role","phone");startPhone()};
-
-function startPhone(){clean();role="phone";pid=auth.currentUser.uid;S.s("role","phone");view("phone");$("who").textContent=pname;$("acct").textContent="Phone · "+pname+" · code "+code;loadC();bn();const beat=()=>setDoc(R("pairs/"+code+"/phones/"+pid),{name:pname,last:Date.now()}).then(()=>{$("pdot").classList.add("on");$("pst").textContent="Linked to server ✓"}).catch(()=>{$("pdot").classList.remove("on");$("pst").textContent="Offline — check internet"});beat();timers.push(setInterval(beat,10000),setInterval(bn,8000));unsubs.push(onSnapshot(R("pairs/"+code+"/alerts/"+pid),s=>{if(!s.exists())return;const d=s.data();if(d.coming){$("coming").hidden=false;$("coming").textContent=d.coming;if(navigator.vibrate)navigator.vibrate([100,50,100])}if(d.stopped&&sosOn){endSos();msg("pm","Server stopped the alarm.")}},()=>{}))}
-function bn(){const c=navigator.connection;$("net").textContent=navigator.onLine?(c&&c.effectiveType?c.effectiveType.toUpperCase():"Online"):"Offline";if(navigator.getBattery)navigator.getBattery().then(b=>{bat=Math.round(b.level*100);$("bat").textContent=bat+"%"}).catch(()=>{})}
-const loc=()=>new Promise(r=>navigator.geolocation?navigator.geolocation.getCurrentPosition(p=>r({lat:p.coords.latitude,lng:p.coords.longitude}),()=>r(null),{timeout:6000,enableHighAccuracy:true,maximumAge:5000}):r(null));
-const ALR=()=>R("pairs/"+code+"/alerts/"+pid);
-$("help").onclick=()=>{if(sosOn||counting)return;counting=true;let n=3;const c=$("cnt");c.hidden=false;c.textContent=n;$("cancel").hidden=false;msg("pm","Sending in 3… tap Cancel to stop.",1);cT=setInterval(()=>{n--;if(n<=0){clearInterval(cT);counting=false;c.hidden=true;$("cancel").hidden=true;fire()}else c.textContent=n},1000)};
-$("cancel").onclick=()=>{clearInterval(cT);counting=false;$("cnt").hidden=true;$("cancel").hidden=true;msg("pm","HELP cancelled.")};
-async function fire(){sosOn=true;$("help").classList.add("go");$("safe").hidden=false;$("coming").hidden=true;if(navigator.vibrate)navigator.vibrate([180,80,180]);const l=await loc(),m=$("txt").value.trim();const base={name:pname,msg:m||null,battery:bat,net:$("net").textContent,active:true,stopped:false,coming:"",ts:Date.now(),ts0:Date.now()};try{await setDoc(ALR(),{...base,lat:l?l.lat:null,lng:l?l.lng:null});msg("pm","Alert sent — server is alarmed.",0)}catch(e){msg("pm","Couldn't reach server — opening SMS backup",1);sendSms(l)}if(navigator.geolocation)watch=navigator.geolocation.watchPosition(p=>updateDoc(ALR(),{lat:p.coords.latitude,lng:p.coords.longitude,ts:Date.now()}).catch(()=>{}),()=>{},{enableHighAccuracy:true,maximumAge:2000})}
-function endSos(){sosOn=false;$("help").classList.remove("go");$("safe").hidden=true;if(watch!=null){navigator.geolocation.clearWatch(watch);watch=null}}
-$("safe").onclick=()=>{updateDoc(ALR(),{active:false}).catch(()=>{});endSos();$("coming").hidden=true;msg("pm","Alarm cancelled. Glad you're safe.",0)};
-
-function cs(){try{return JSON.parse(S.g("contacts")||"[]")}catch(e){return[]}}
-function loadC(){$("cl").innerHTML=cs().map((c,i)=>`<li>${E(c.n)} · ${E(c.p)} <a href="tel:${E(c.p)}">Call</a> <button class="btn s alt" data-x="${i}">✕</button></li>`).join("");$("cl").querySelectorAll("[data-x]").forEach(b=>b.onclick=()=>{const a=cs();a.splice(+b.dataset.x,1);S.s("contacts",JSON.stringify(a));loadC()})}
-$("cadd").onclick=()=>{const n=$("cn").value.trim(),p=$("cp").value.trim();if(!n||!p)return;const a=cs();a.push({n,p});S.s("contacts",JSON.stringify(a));$("cn").value=$("cp").value="";loadC()};
-function sendSms(l){const a=cs().map(c=>c.p.replace(/[^\d+]/g,"")).filter(x=>x.length>=8);if(!a.length)return msg("pm","Add emergency contacts first.",1);const t="SOS HELP! I need help now. - "+pname+(l?"\nhttps://maps.google.com/?q="+l.lat.toFixed(5)+","+l.lng.toFixed(5):"");const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);location.href="sms:"+(ios?a[0]:a.slice(0,5).join(","))+(ios?"&":"?")+"body="+encodeURIComponent(t)}
-$("sms").onclick=async()=>sendSms(await loc());
-
-async function perms(){for(const[id,n]of[["p1","geolocation"],["p2","microphone"]]){try{$(id).textContent="· "+(await navigator.permissions.query({name:n})).state}catch(e){$(id).textContent=""}}$("p3").textContent=typeof Notification!=="undefined"?"· "+Notification.permission:""}
-$("gear").onclick=()=>{$("sil").checked=S.g("silent")==="1";$("sheet").hidden=false;perms()};
-$("sx").onclick=()=>$("sheet").hidden=true;$("sheet").onclick=e=>{if(e.target===$("sheet"))$("sheet").hidden=true};
-$("sil").onchange=()=>{S.s("silent",$("sil").checked?"1":"0");if($("sil").checked)siren(false);if(role==="server"&&ek&&db)setDoc(R("accounts/"+ek+"/settings/prefs"),{silent:$("sil").checked}).catch(()=>{})};
-document.querySelectorAll("[data-perm]").forEach(b=>b.onclick=async()=>{const k=b.dataset.perm;try{if(k==="loc")await new Promise(r=>navigator.geolocation.getCurrentPosition(r,r,{timeout:6000}));if(k==="mic"){const s=await navigator.mediaDevices.getUserMedia({audio:true});s.getTracks().forEach(t=>t.stop())}if(k==="not"&&typeof Notification!=="undefined")await Notification.requestPermission()}catch(e){}perms()});
-async function leave(keepName){$("sheet").hidden=true;clean();endSos();["role","code"].forEach(S.d);if(!keepName)S.d("name");try{await signOut(auth)}catch(e){}ek=code="";view("pick")}
-$("out").onclick=()=>leave(false);$("swr").onclick=()=>leave(true);
 </script>
 </body>
 </html>
